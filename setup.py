@@ -6,12 +6,15 @@ setup(
     long_description=__doc__,
     packages=[
         'three_party',
+        'three_party.tests',
     ],
     install_requires=[
+        'PyYaml',
     ],
     entry_points = {
         'console_scripts': [
             'tp = three_party.main:main',
         ],
     },
+    test_suite='three_party.tests',
 )
