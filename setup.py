@@ -8,7 +8,6 @@ setup(
         'three_party',
     ],
     install_requires=[
-        'Fabric',
     ],
     entry_points = {
         'console_scripts': [
