@@ -1,0 +1,7 @@
+attendees:
+    boost:
+        source: http://sourceforge.net/projects/boost/files/boost/1.54.0/boost_1_54_0.tar.bz2/download
+        builder: jam
+    libiconv:
+        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+        builder: autotools
