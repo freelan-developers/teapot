@@ -6,12 +6,13 @@ setup(
     long_description=__doc__,
     packages=[
         'three_party',
+        'three_party.fetchers',
         'three_party.tests',
     ],
     install_requires=[
         'PyYaml',
     ],
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'tp = three_party.main:main',
         ],
