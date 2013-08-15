@@ -116,14 +116,6 @@ class BaseFetcher(object):
             self.location,
         )
 
-    def do_fetch(self):
-        """
-        Fetch the archive at the specified location using the overriden fetch()
-        implementation.
-        """
-
-        self.do_fetch()
-
     def normalize_location(self, location):
         """
         Reimplement this method to indicate whether or not your fetcher class
@@ -137,9 +129,11 @@ class BaseFetcher(object):
 
         raise NotImplementedError
 
-    def fetch(self):
+    def fetch(self, location, target):
         """
         Reimplement this method with your specific fetcher logic.
+
+        This method must return the target file or raise an exception on error.
         """
 
         raise NotImplementedError

@@ -52,14 +52,14 @@ class Attendee(object):
     """
     An `Attendee` instance holds information about an attendee (third-party
     software).
-
-    `sources` is a list of Source instances.
-    `depends` is a list of Attendee names to depend on.
     """
 
     def __init__(self, name, sources, depends):
         """
         Create an attendee.
+
+        `sources` is a list of Source instances.
+        `depends` is a list of Attendee names to depend on.
         """
 
         self.name = name

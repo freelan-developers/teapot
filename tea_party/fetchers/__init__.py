@@ -7,6 +7,7 @@ tea_party.fetchers.base_fetcher.BaseFetcher.
 
 from tea_party.fetchers.base_fetcher import BaseFetcher, UnsupportedLocationError
 from tea_party.fetchers.file_fetcher import FileFetcher  # NOQA
+from tea_party.fetchers.http_fetcher import HttpFetcher  # NOQA
 
 
 class NoSuchFetcherError(ValueError):
