@@ -3,8 +3,8 @@
 pep8:
 	find . -type f -name \*.py | xargs autopep8 -a -a -i
 
-pyflakes:
-	pyflakes three_party
+flake8:
+	flake8 three_party
 
 test:
 	python setup.py test

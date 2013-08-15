@@ -6,7 +6,7 @@ three_party.fetchers.base_fetcher.BaseFetcher.
 """
 
 from three_party.fetchers.base_fetcher import BaseFetcher, UnsupportedLocationError
-from three_party.fetchers.file_fetcher import FileFetcher
+from three_party.fetchers.file_fetcher import FileFetcher  # NOQA
 
 
 class NoSuchFetcherError(ValueError):

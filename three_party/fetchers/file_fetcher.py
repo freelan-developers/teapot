@@ -2,6 +2,8 @@
 A local-file fetcher class.
 """
 
+import os
+
 from three_party.fetchers.base_fetcher import BaseFetcher
 
 
