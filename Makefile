@@ -11,4 +11,4 @@ test:
 
 # Aliases
 
-check: pyflakes
+check: flake8
