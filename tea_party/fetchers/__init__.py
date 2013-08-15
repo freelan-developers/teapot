@@ -1,12 +1,12 @@
 """
-Contains all 3party fetchers logic.
+Contains all tea-party fetchers logic.
 
 If you want to create your own fetcher, derive from
-three_party.fetchers.base_fetcher.BaseFetcher.
+tea_party.fetchers.base_fetcher.BaseFetcher.
 """
 
-from three_party.fetchers.base_fetcher import BaseFetcher, UnsupportedLocationError
-from three_party.fetchers.file_fetcher import FileFetcher  # NOQA
+from tea_party.fetchers.base_fetcher import BaseFetcher, UnsupportedLocationError
+from tea_party.fetchers.file_fetcher import FileFetcher  # NOQA
 
 
 class NoSuchFetcherError(ValueError):

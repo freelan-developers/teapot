@@ -1,5 +1,5 @@
 """
-The 3party main script.
+The tea-party main script.
 """
 
 import argparse

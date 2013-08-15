@@ -1,21 +1,21 @@
 from setuptools import setup
 
 setup(
-    name='3party',
+    name='tea-party',
     version='1.0',
     long_description=__doc__,
     packages=[
-        'three_party',
-        'three_party.fetchers',
-        'three_party.tests',
+        'tea_party',
+        'tea_party.fetchers',
+        'tea_party.tests',
     ],
     install_requires=[
         'PyYaml',
     ],
     entry_points={
         'console_scripts': [
-            'tp = three_party.main:main',
+            'tp = tea_party.main:main',
         ],
     },
-    test_suite='three_party.tests',
+    test_suite='tea_party.tests',
 )

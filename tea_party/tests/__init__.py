@@ -1,11 +1,11 @@
 """
-three-party unit tests.
+tea-party unit tests.
 """
 
 import os
 import unittest
 
-from three_party.party import load_party_file
+from tea_party.party import load_party_file
 
 
 class TestThreeParty(unittest.TestCase):

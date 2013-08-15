@@ -1,10 +1,10 @@
 """
-3party 'party' class.
+tea-party 'party' class.
 """
 
 import yaml
 
-from three_party.attendee import make_attendees
+from tea_party.attendee import make_attendees
 
 
 def load_party_file(path):

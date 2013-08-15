@@ -1,8 +1,8 @@
 """
-3party 'attendee' class.
+tea-party 'attendee' class.
 """
 
-from three_party.source import make_sources
+from tea_party.source import make_sources
 
 
 def make_attendees(data):

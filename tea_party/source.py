@@ -1,8 +1,8 @@
 """
-3party 'Source' class.
+tea-party 'Source' class.
 """
 
-from three_party.fetchers import get_fetcher_class_from_shortname, guess_fetcher_instance
+from tea_party.fetchers import get_fetcher_class_from_shortname, guess_fetcher_instance
 
 
 def make_sources(sources):
