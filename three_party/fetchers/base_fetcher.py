@@ -105,6 +105,17 @@ class BaseFetcher(object):
                 fetcher_class=self.__class__,
             )
 
+    def __repr__(self):
+        """
+        Get the representation of the fetcher.
+        """
+
+        return '<%s.%s(location=%r)>' % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.location,
+        )
+
     def do_fetch(self):
         """
         Fetch the archive at the specified location using the overriden fetch()

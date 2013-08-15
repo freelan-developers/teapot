@@ -58,6 +58,18 @@ class Source(object):
         self.fetcher_class = fetcher_class
         self.__fetcher = None
 
+    def __repr__(self):
+        """
+        Get a representation of the source.
+        """
+
+        return '<%s.%s(location=%r, fetcher_class=%r)>' % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.location,
+            self.fetcher_class,
+        )
+
     @property
     def fetcher(self):
         """

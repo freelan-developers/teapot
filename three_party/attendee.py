@@ -65,3 +65,16 @@ class Attendee(object):
         self.name = name
         self.sources = sources
         self.depends = depends
+
+    def __repr__(self):
+        """
+        Get a representation of the source.
+        """
+
+        return '<%s.%s(name=%r, sources=%r, depends=%r)>' % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.name,
+            self.sources,
+            self.depends,
+        )

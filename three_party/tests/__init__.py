@@ -21,5 +21,9 @@ class TestThreeParty(unittest.TestCase):
 
     def test_parsing(self):
         party = load_party_file(self.party_file)
-        self.assertIn('boost', party.attendees)
-        self.assertIn('libiconv', party.attendees)
+
+        attendees_names = set([attendee.name for attendee in party.attendees])
+
+        self.assertEqual(set(['boost', 'libiconv', 'libfoo']), attendees_names)
+
+        print party.attendees
