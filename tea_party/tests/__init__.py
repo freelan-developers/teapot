@@ -8,7 +8,7 @@ import unittest
 from tea_party.party import load_party_file
 
 
-class TestThreeParty(unittest.TestCase):
+class TestTeaParty(unittest.TestCase):
 
     def setUp(self):
         self.fixtures_path = os.path.abspath(
