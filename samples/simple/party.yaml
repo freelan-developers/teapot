@@ -1,0 +1,4 @@
+attendees:
+    libiconv:
+        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+cache: cache

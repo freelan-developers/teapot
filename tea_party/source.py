@@ -2,6 +2,7 @@
 tea-party 'Source' class.
 """
 
+from tea_party.log import LOGGER
 from tea_party.fetchers import get_fetcher_class_from_shortname, guess_fetcher_instance
 
 
@@ -80,3 +81,17 @@ class Source(object):
             self.__fetcher = self.fetcher_class(self.location)
 
         return self.__fetcher
+
+    def fetch(self, root_path):
+        """
+        Fetch the specified source.
+        """
+
+        try:
+            return self.fetcher.fetch(
+                location=self.location,
+                target=root_path,
+            )
+
+        except Exception as ex:
+            LOGGER.exception(ex)

@@ -3,6 +3,7 @@ The tea-party main script.
 """
 
 import os
+import sys
 import argparse
 import logging
 
@@ -46,13 +47,17 @@ def main():
     try:
         party = load_party_file(args.party_file)
 
-        args.func(party, args)
     except IOError:
         LOGGER.error('No party-file was found. (Searched path: "%s")', args.party_file)
+
+        return 1
+
+    if not args.func(party, args):
+        return 2
 
 def fetch(party, args):
     """
     Fetch the archives.
     """
 
-    LOGGER.info('Fetching archives...')
+    return party.fetch()

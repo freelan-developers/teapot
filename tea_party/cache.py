@@ -4,7 +4,10 @@ A tea-party cache class.
 
 import os
 import errno
+
 from tea_party.log import LOGGER
+from tea_party.path import from_user_path
+from tea_party.defaults import *
 
 
 def make_cache(data, base_path):
@@ -20,14 +23,17 @@ def make_cache(data, base_path):
     If `data` is falsy, the Cache is default created.
     """
 
-    DEFAULT_NAME = '.party-cache'
-
     if not data:
-        return Cache(path=os.path.relpath(os.path.join(base_path, DEFAULT_NAME), os.getcwd()))
+        cache_path = from_user_path(DEFAULT_CACHE_PATH)
     elif isinstance(data, basestring):
-        return Cache(path=os.path.relpath(os.path.join(base_path, data), os.getcwd()))
+        cache_path = from_user_path(data)
     else:
-        return Cache(path=os.path.relpath(os.path.join(base_path, data.get('location', DEFAULT_NAME)), os.getcwd()))
+        cache_path = from_user_path(data.get('location', DEFAULT_CACHE_PATH))
+
+    if not os.path.isabs(cache_path):
+        cache_path = os.path.normpath(os.path.join(base_path, cache_path))
+
+    return Cache(path=cache_path)
 
 class Cache(object):
 
@@ -42,7 +48,7 @@ class Cache(object):
         `path` is the cache root directory.
         """
 
-        self.path = path
+        self.path = os.path.abspath(path)
 
         try:
             os.makedirs(self.path)
@@ -54,3 +60,21 @@ class Cache(object):
                 LOGGER.debug('Cache directory is at: %s', self.path)
             else:
                 raise
+
+    def get_attendee_path(self, attendee):
+        """
+        Get the attendee path and ensures it exists.
+        """
+
+        attendee_path = os.path.join(self.path, unicode(attendee))
+
+        try:
+            os.makedirs(attendee_path)
+
+            LOGGER.debug('Creating attendee directory: %s', attendee_path)
+
+        except OSError as ex:
+            if ex.errno != errno.EEXIST or not os.path.isdir(attendee_path):
+                raise
+
+        return attendee_path

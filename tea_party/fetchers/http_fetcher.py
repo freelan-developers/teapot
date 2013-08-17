@@ -2,6 +2,7 @@
 A HTTP fetcher class.
 """
 
+import os
 import urlparse
 import requests
 import shutil
@@ -32,13 +33,18 @@ class HttpFetcher(BaseFetcher):
         Fetch the archive at the specified location.
         """
 
-        response = requests.get(location, stream=True)
+        response = requests.get(location)
         response.raise_for_status()
 
         if 'content-disposition' in response.headers:
             print response.headers['content-disposition']
+            filename = 'archive'
+        else:
+            filename = 'archive'
 
-        with open(target, 'wb') as target_file:
-            shutil.copyfileobj(response.raw, target_file)
+        target_file_path = os.path.join(target, filename)
 
-        return target
+        with open(target_file_path, 'wb') as target_file:
+            target_file.write(response.content)
+
+        return target_file_path

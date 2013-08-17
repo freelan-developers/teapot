@@ -62,9 +62,19 @@ class Attendee(object):
         `depends` is a list of Attendee names to depend on.
         """
 
+        if not sources:
+            raise ValueError('A list one source must be specified for %s' % name)
+
         self.name = name
         self.sources = sources
         self.depends = depends
+
+    def __unicode__(self):
+        """
+        Get a unicode representation of the attendee.
+        """
+
+        return self.name
 
     def __repr__(self):
         """
@@ -78,3 +88,18 @@ class Attendee(object):
             self.sources,
             self.depends,
         )
+
+    def fetch(self, root_path):
+        """
+        Fetch the specified attendee archives at the specified `root_path`.
+
+        If the fetching suceeds, the archive path is returned.
+        If the fetching fails, a RuntimeError is raised.
+        """
+
+        for source in self.sources:
+            archive_path = source.fetch(root_path=root_path)
+
+            return archive_path
+
+        raise RuntimeError('All sources failed for %s' % self.name)

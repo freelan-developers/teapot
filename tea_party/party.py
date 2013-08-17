@@ -24,10 +24,12 @@ def load_party_file(path):
 
     values = yaml.load(data)
 
+    party_path = os.path.dirname(path)
+
     return Party(
         path=path,
         attendees=make_attendees(values.get('attendees', {})),
-        cache=make_cache(values.get('cache'), os.path.dirname(path)),
+        cache=make_cache(values.get('cache'), party_path),
     )
 
 
@@ -47,5 +49,25 @@ class Party(object):
         `cache` is a tea_party.cache.Cache instance.
         """
 
-        self.path = path
+        self.path = os.path.abspath(path)
         self.attendees = attendees
+        self.cache = cache
+
+    def fetch(self):
+        """
+        Fetch the archives.
+        """
+
+        LOGGER.info("Fetching archives...")
+
+        try:
+            for attendee in self.attendees:
+                attendee_path = self.cache.get_attendee_path(attendee)
+                attendee.fetch(attendee_path)
+
+            return True
+
+        except Exception as ex:
+            LOGGER.exception(ex)
+
+            return False

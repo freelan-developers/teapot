@@ -7,6 +7,7 @@ setup(
     packages=[
         'tea_party',
         'tea_party.fetchers',
+        'tea_party.defaults',
         'tea_party.tests',
     ],
     install_requires=[

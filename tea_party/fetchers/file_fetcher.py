@@ -29,9 +29,8 @@ class FileFetcher(BaseFetcher):
         Fetch the filename at the specified location.
         """
 
-        # We are given a filename, but we want to keep the original.
-        target = os.path.join(os.path.dirname(target), os.path.basename(location))
+        target_file_path = os.path.join(target, os.path.basename(location))
 
-        shutil.copyfile(location, target)
+        shutil.copyfile(location, target_file_path)
 
-        return target
+        return target_file_path

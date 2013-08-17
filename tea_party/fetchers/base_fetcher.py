@@ -133,7 +133,7 @@ class BaseFetcher(object):
         """
         Reimplement this method with your specific fetcher logic.
 
-        This method must return the target file or raise an exception on error.
+        This method must raise an exception on error.
         """
 
         raise NotImplementedError
