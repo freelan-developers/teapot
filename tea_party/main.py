@@ -39,6 +39,10 @@ def main():
     fetch_command_parser.set_defaults(func=fetch)
     fetch_command_parser.add_argument('-f', '--force', action='store_true', help='Fetch archives even if they already exist in the cache.')
 
+    # The unpack command
+    unpack_command_parser = command_parser.add_parser('unpack', help='Unpack all the fetched archives.')
+    unpack_command_parser.set_defaults(func=unpack)
+
     args = parser.parse_args()
 
     if args.debug:
@@ -103,5 +107,15 @@ def fetch(party, context, args):
 
     party.fetch(
         force=args.force,
+        context=context,
+    )
+
+@command
+def unpack(party, context, args):
+    """
+    Unpack the archives.
+    """
+
+    party.unpack(
         context=context,
     )

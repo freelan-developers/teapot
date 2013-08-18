@@ -113,3 +113,11 @@ class Party(object):
                 attendee.fetch(cache_path, context)
 
             LOGGER.info("Done fetching archives.")
+
+    def unpack(self, context={}):
+        """
+        Unpack the archives.
+        """
+
+        LOGGER.info('Unpacking %s archive(s)...', len(self.attendees))
+        LOGGER.info('Done unpacking archives.')
