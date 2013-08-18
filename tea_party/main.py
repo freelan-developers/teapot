@@ -8,6 +8,7 @@ import argparse
 import logging
 
 from tea_party.party import load_party_file
+from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
 
 
 LOGGER = logging.getLogger('tea_party.main')
@@ -40,6 +41,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(format='%(message)s', level=logging.INFO)
+        logging.getLogger('requests').setLevel(logging.WARNING)
 
     if args.party_file is None:
         args.party_file = os.path.join(os.getcwd(), 'party.yaml')
@@ -52,12 +54,16 @@ def main():
 
         return 1
 
-    if not args.func(party, args):
+    context = {
+        'fetcher_callback_class': ProgressBarFetcherCallback,
+    }
+
+    if not args.func(party, context, args):
         return 2
 
-def fetch(party, args):
+def fetch(party, context, args):
     """
     Fetch the archives.
     """
 
-    return party.fetch()
+    return party.fetch(context=context)

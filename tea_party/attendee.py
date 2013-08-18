@@ -89,7 +89,7 @@ class Attendee(object):
             self.depends,
         )
 
-    def fetch(self, root_path):
+    def fetch(self, root_path, context):
         """
         Fetch the specified attendee archives at the specified `root_path`.
 
@@ -98,7 +98,7 @@ class Attendee(object):
         """
 
         for source in self.sources:
-            archive_path = source.fetch(root_path=root_path)
+            archive_path = source.fetch(root_path=root_path, context=context)
 
             return archive_path
 

@@ -53,17 +53,19 @@ class Party(object):
         self.attendees = attendees
         self.cache = cache
 
-    def fetch(self):
+    def fetch(self, context={}):
         """
         Fetch the archives.
         """
 
-        LOGGER.info("Fetching archives...")
+        LOGGER.info("Fetching %s archive(s)...", len(self.attendees))
 
         try:
             for attendee in self.attendees:
                 attendee_path = self.cache.get_attendee_path(attendee)
-                attendee.fetch(attendee_path)
+                attendee.fetch(attendee_path, context)
+
+            LOGGER.info("Done fetching archives.")
 
             return True
 

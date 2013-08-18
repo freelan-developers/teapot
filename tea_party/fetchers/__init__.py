@@ -51,7 +51,7 @@ def get_fetcher_class_from_shortname(shortname):
     raise NoSuchFetcherError(shortname=shortname)
 
 
-def guess_fetcher_instance(location, default_class=None):
+def guess_fetcher_instance(location, options, default_class=None):
     """
     Guess the fetcher class to use for the specified `location` and returns an
     instance of this class.
@@ -75,13 +75,10 @@ def guess_fetcher_instance(location, default_class=None):
     # one with the location to detect if it is supported.
     for fetcher_class in BaseFetcher.index.values():
         try:
-            fetcher_class(location)
-
-            default_class = fetcher_class
-            break
+            return fetcher_class(location, options)
 
         except UnsupportedLocationError:
             pass
 
     if default_class:
-        return default_class(location)
+        return default_class(location, options)

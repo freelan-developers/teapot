@@ -6,6 +6,8 @@ import os
 import urlparse
 import requests
 import shutil
+import mimetypes
+from rfc6266 import parse_requests_response
 
 from tea_party.fetchers.base_fetcher import BaseFetcher
 
@@ -28,23 +30,41 @@ class HttpFetcher(BaseFetcher):
         if url.scheme in ['http', 'https']:
             return urlparse.urlunparse(url)
 
-    def fetch(self, location, target):
+    def do_fetch(self, target):
         """
         Fetch the archive at the specified location.
         """
 
-        response = requests.get(location)
+        response = requests.get(self.location, stream=True)
         response.raise_for_status()
 
-        if 'content-disposition' in response.headers:
-            print response.headers['content-disposition']
-            filename = 'archive'
-        else:
-            filename = 'archive'
+        mimetype = response.headers.get('content-type')
+
+        extension = mimetypes.guess_extension(mimetype)
+        content_disposition = parse_requests_response(response)
+
+        filename = content_disposition.filename_sanitized(extension=extension[1:], default_filename='archive')
+
+        content_length = response.headers.get('content-length')
+
+        if content_length is not None:
+            content_length = int(content_length)
 
         target_file_path = os.path.join(target, filename)
 
-        with open(target_file_path, 'wb') as target_file:
-            target_file.write(response.content)
+        self.on_start(target=os.path.basename(target_file_path), size=content_length)
 
-        return target_file_path
+        with open(target_file_path, 'wb') as target_file:
+            current_size = 0
+
+            for buf in response.iter_content(1024):
+
+                if buf:
+                    target_file.write(buf)
+                    current_size += len(buf)
+
+                    self.on_update(progress=current_size)
+
+        self.on_finish()
+
+        return target_file_path, mimetype

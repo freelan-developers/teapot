@@ -4,6 +4,7 @@ tea-party 'Source' class.
 
 from tea_party.log import LOGGER
 from tea_party.fetchers import get_fetcher_class_from_shortname, guess_fetcher_instance
+from tea_party.fetchers.callbacks import NullFetcherCallback
 
 
 def make_sources(sources):
@@ -24,6 +25,7 @@ def make_sources(sources):
             Source(
                 location=unicode(sources),
                 fetcher_class=guess_fetcher_instance,
+                options={},
             ),
         ]
 
@@ -34,6 +36,7 @@ def make_sources(sources):
                 fetcher_class=get_fetcher_class_from_shortname(
                     sources.get('fetcher')
                 ),
+                options=sources.get('options'),
             ),
         ]
 
@@ -47,16 +50,20 @@ class Source(object):
     third-party software.
     """
 
-    def __init__(self, location, fetcher_class):
+    def __init__(self, location, fetcher_class, options):
         """
         Create a Source instance.
 
         `location` is the origin of the third-party software archive to get.
         Its format an meaning depends on the associated `fetcher_class`.
+
+        `options` is a free-format structure that will be passed as a parameter
+        to the fetcher on instanciation.
         """
 
         self.location = location
         self.fetcher_class = fetcher_class
+        self.options = options
         self.__fetcher = None
 
     def __repr__(self):
@@ -78,19 +85,23 @@ class Source(object):
         """
 
         if self.__fetcher is None:
-            self.__fetcher = self.fetcher_class(self.location)
+            self.__fetcher = self.fetcher_class(self.location, self.options)
 
         return self.__fetcher
 
-    def fetch(self, root_path):
+    def fetch(self, root_path, context):
         """
         Fetch the specified source.
+
+        Returns a 2-tuple (`target`, `mimetype`) where:
+            - `target` is the name of the downloaded file.
+            - `mimetype` is the mimetype of the downloaded file.
         """
 
         try:
             return self.fetcher.fetch(
-                location=self.location,
                 target=root_path,
+                fetcher_callback_class=context.get('fetcher_callback_class', NullFetcherCallback),
             )
 
         except Exception as ex:

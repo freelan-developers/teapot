@@ -12,7 +12,9 @@ setup(
     ],
     install_requires=[
         'PyYaml',
-        'requests',
+        'requests>=1.2.3',
+        'rfc6266',
+        'progressbar',
     ],
     entry_points={
         'console_scripts': [

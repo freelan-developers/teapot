@@ -2,6 +2,8 @@
 A base Fetcher class.
 """
 
+from tea_party.fetchers.callbacks import NullFetcherCallback
+
 
 class DuplicateFetcherShortNameError(ValueError):
 
@@ -90,14 +92,17 @@ class BaseFetcher(object):
                 # shortname attribute.
                 setattr(cls, 'shortname', None)
 
-    def __init__(self, location):
+    def __init__(self, location, options):
         """
         Instantiate a base fetcher.
 
         `location` is stored in self.location for use in derived classes.
+        `options` is a free-format structure whose content depends on the
+        fetcher type.
         """
 
         self.location = self.normalize_location(location)
+        self.options = options
 
         if self.location is None:
             raise UnsupportedLocationError(
@@ -129,11 +134,43 @@ class BaseFetcher(object):
 
         raise NotImplementedError
 
-    def fetch(self, location, target):
+    def fetch(self, target, fetcher_callback_class=NullFetcherCallback):
+        """
+        Fetch the associated location using `target` as a suggested filename.
+        """
+
+        fetcher_callback = fetcher_callback_class(self)
+
+        callbacks = [
+            'on_start',
+            'on_update',
+            'on_finish',
+        ]
+
+        for callback in callbacks:
+            setattr(self, callback, getattr(fetcher_callback, callback))
+
+        try:
+            return self.do_fetch(target)
+
+        except Exception as ex:
+            fetcher_callback.on_exception(ex)
+
+            raise
+
+        finally:
+            for callback in callbacks:
+                delattr(self, callback)
+
+    def do_fetch(self, target):
         """
         Reimplement this method with your specific fetcher logic.
 
-        This method must raise an exception on error.
+        `target` is the suggested target filename.
+
+        This method must return the really used filename and the mime type, as 2-tuple.
+
+        It must raise an exception on error.
         """
 
         raise NotImplementedError
