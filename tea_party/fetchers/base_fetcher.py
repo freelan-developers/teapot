@@ -168,7 +168,10 @@ class BaseFetcher(object):
 
         `target` is the suggested target filename.
 
-        This method must return the really used filename and the mime type, as 2-tuple.
+        This method must return a dict with the following keys:
+            - archive_path: The archive path.
+            - mimetype: The MIME type.
+            - encoding: The encoding.
 
         It must raise an exception on error.
         """

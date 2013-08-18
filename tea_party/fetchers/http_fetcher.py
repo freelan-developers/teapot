@@ -39,6 +39,7 @@ class HttpFetcher(BaseFetcher):
         response.raise_for_status()
 
         mimetype = response.headers.get('content-type')
+        encoding = response.headers.get('content-encoding')
 
         extension = mimetypes.guess_extension(mimetype)
         content_disposition = parse_requests_response(response)
@@ -67,4 +68,8 @@ class HttpFetcher(BaseFetcher):
 
         self.on_finish()
 
-        return target_file_path, mimetype
+        return {
+            'archive_path': target_file_path,
+            'mimetype': mimetype,
+            'encoding': encoding,
+        }

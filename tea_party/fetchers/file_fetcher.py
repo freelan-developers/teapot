@@ -32,7 +32,7 @@ class FileFetcher(BaseFetcher):
 
         target_file_path = os.path.join(target, os.path.basename(self.location))
 
-        mimetype = mimetypes.guess_type(self.location)[0]
+        mimetype, encoding = mimetypes.guess_type(self.location)
         size = os.path.getsize(self.location)
 
         self.on_start(target=os.path.basename(target_file_path), size=size)
@@ -42,4 +42,8 @@ class FileFetcher(BaseFetcher):
         self.on_update(progress=size)
         self.on_finish()
 
-        return target_file_path, mimetype
+        return {
+            'archive_path': target_file_path,
+            'mimetype': mimetype,
+            'encoding': encoding,
+        }

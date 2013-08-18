@@ -59,7 +59,7 @@ class Attendee(object):
     software).
     """
 
-    ARCHIVE_INFO_FILENAME = 'archive.json'
+    ARCHIVE_INFO_FILENAME = 'archive_info.json'
 
     def __init__(self, name, sources, depends):
         """
@@ -112,13 +112,11 @@ class Attendee(object):
         """
 
         for source in self.sources:
-            archive_path, mimetype = source.fetch(root_path=root_path, context=context)
+            archive_info = source.fetch(root_path=root_path, context=context)
+            archive_info['archive_path'] = os.path.relpath(archive_info['archive_path'], root_path)
 
             with open(os.path.join(root_path, self.ARCHIVE_INFO_FILENAME), 'w') as archive_info_file:
-                return json.dump({
-                    'archive_path': os.path.relpath(archive_path, root_path),
-                    'mimetype': mimetype,
-                }, archive_info_file)
+                return json.dump(archive_info, archive_info_file)
 
             return source
 

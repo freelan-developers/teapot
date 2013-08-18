@@ -93,9 +93,7 @@ class Source(object):
         """
         Fetch the specified source.
 
-        Returns a 2-tuple (`target`, `mimetype`) where:
-            - `target` is the name of the downloaded file.
-            - `mimetype` is the mimetype of the downloaded file.
+        Returns dict, containing the information about the archive.
         """
 
         try:
