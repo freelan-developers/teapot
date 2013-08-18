@@ -66,4 +66,7 @@ def fetch(party, context, args):
     Fetch the archives.
     """
 
-    return party.fetch(context=context)
+    return party.fetch(
+        force=args.force,
+        context=context,
+    )

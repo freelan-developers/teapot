@@ -2,6 +2,11 @@
 tea-party 'attendee' class.
 """
 
+import os
+import json
+import errno
+
+from tea_party.log import LOGGER
 from tea_party.source import make_sources
 
 
@@ -54,6 +59,8 @@ class Attendee(object):
     software).
     """
 
+    ARCHIVE_INFO_FILENAME = 'archive.json'
+
     def __init__(self, name, sources, depends):
         """
         Create an attendee.
@@ -76,6 +83,13 @@ class Attendee(object):
 
         return self.name
 
+    def __str__(self):
+        """
+        Get the name of the attendee.
+        """
+
+        return self.name
+
     def __repr__(self):
         """
         Get a representation of the source.
@@ -93,13 +107,55 @@ class Attendee(object):
         """
         Fetch the specified attendee archives at the specified `root_path`.
 
-        If the fetching suceeds, the archive path is returned.
+        If the fetching suceeds, the succeeding source is returned.
         If the fetching fails, a RuntimeError is raised.
         """
 
         for source in self.sources:
-            archive_path = source.fetch(root_path=root_path, context=context)
+            archive_path, mimetype = source.fetch(root_path=root_path, context=context)
 
-            return archive_path
+            with open(os.path.join(root_path, self.ARCHIVE_INFO_FILENAME), 'w') as archive_info_file:
+                return json.dump({
+                    'archive_path': os.path.relpath(archive_path, root_path),
+                    'mimetype': mimetype,
+                }, archive_info_file)
+
+            return source
 
         raise RuntimeError('All sources failed for %s' % self.name)
+
+    def get_archive_info(self, root_path):
+        """
+        Get the associated archive info.
+
+        Returns a dict containing the archive information.
+
+        If the archive information or the archive does not exist, nothing is
+        returned.
+        """
+
+        try:
+            with open(os.path.join(root_path, self.ARCHIVE_INFO_FILENAME)) as archive_info_file:
+                return json.load(archive_info_file)
+
+        except IOError as ex:
+            if ex.errno != errno.ENOENT:
+                raise
+        except ValueError:
+            pass
+
+    def needs_fetching(self, root_path):
+        """
+        Check if the attendee needs fetching.
+        """
+
+        archive_info = self.get_archive_info(root_path)
+
+        if archive_info:
+            if os.path.isfile(os.path.join(root_path, archive_info.get('archive_path'))):
+                LOGGER.debug('%s does not need fetching.', self)
+                return False
+
+        LOGGER.debug('%s needs fetching.', self)
+
+        return True

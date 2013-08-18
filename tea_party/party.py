@@ -53,19 +53,38 @@ class Party(object):
         self.attendees = attendees
         self.cache = cache
 
-    def fetch(self, context={}):
+    def fetch(self, force=False, context={}):
         """
         Fetch the archives.
         """
 
-        LOGGER.info("Fetching %s archive(s)...", len(self.attendees))
-
         try:
-            for attendee in self.attendees:
-                attendee_path = self.cache.get_attendee_path(attendee)
-                attendee.fetch(attendee_path, context)
+            if force:
+                attendees_to_fetch = self.attendees
 
-            LOGGER.info("Done fetching archives.")
+                for attendee in self.attendees:
+                    attendee_path = self.cache.destroy_attendee_path(attendee)
+
+            else:
+                attendees_to_fetch = []
+
+                for attendee in self.attendees:
+                    attendee_path = self.cache.get_attendee_path(attendee)
+
+                    if attendee.needs_fetching(attendee_path):
+                        attendees_to_fetch.append(attendee)
+
+            if not attendees_to_fetch:
+                LOGGER.info('None of the %s archive(s) needs fetching.', len(self.attendees))
+
+            else:
+                LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.attendees))
+
+                for attendee in attendees_to_fetch:
+                    attendee_path = self.cache.create_attendee_path(attendee)
+                    attendee.fetch(attendee_path, context)
+
+                LOGGER.info("Done fetching archives.")
 
             return True
 

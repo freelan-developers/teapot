@@ -4,6 +4,7 @@ A tea-party cache class.
 
 import os
 import errno
+import shutil
 
 from tea_party.log import LOGGER
 from tea_party.path import from_user_path
@@ -63,18 +64,45 @@ class Cache(object):
 
     def get_attendee_path(self, attendee):
         """
-        Get the attendee path and ensures it exists.
+        Get the attendee path.
         """
 
-        attendee_path = os.path.join(self.path, unicode(attendee))
+        return os.path.join(self.path, unicode(attendee))
+
+    def create_attendee_path(self, attendee):
+        """
+        Create the attendee path and returns it.
+        """
+
+        attendee_path = self.get_attendee_path(attendee)
 
         try:
-            os.makedirs(attendee_path)
-
             LOGGER.debug('Creating attendee directory: %s', attendee_path)
+
+            os.makedirs(attendee_path)
 
         except OSError as ex:
             if ex.errno != errno.EEXIST or not os.path.isdir(attendee_path):
+                LOGGER.exception(ex)
                 raise
 
+        except Exception as ex:
+            LOGGER.exception(ex)
+            raise
+
         return attendee_path
+
+    def destroy_attendee_path(self, attendee):
+        """
+        Destroy the attendee path, if it exists.
+        """
+
+        attendee_path = self.get_attendee_path(attendee)
+
+        try:
+            LOGGER.debug('Destroying attendee directory: %s', attendee_path)
+
+            shutil.rmtree(attendee_path)
+
+        except Exception as ex:
+            LOGGER.exception(ex)

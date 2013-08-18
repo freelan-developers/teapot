@@ -25,7 +25,7 @@ def make_sources(sources):
             Source(
                 location=unicode(sources),
                 fetcher_class=guess_fetcher_instance,
-                options={},
+                fetcher_options={},
             ),
         ]
 
@@ -36,7 +36,7 @@ def make_sources(sources):
                 fetcher_class=get_fetcher_class_from_shortname(
                     sources.get('fetcher')
                 ),
-                options=sources.get('options'),
+                fetcher_options=sources.get('fetcher_options'),
             ),
         ]
 
@@ -50,20 +50,20 @@ class Source(object):
     third-party software.
     """
 
-    def __init__(self, location, fetcher_class, options):
+    def __init__(self, location, fetcher_class, fetcher_options):
         """
         Create a Source instance.
 
         `location` is the origin of the third-party software archive to get.
         Its format an meaning depends on the associated `fetcher_class`.
 
-        `options` is a free-format structure that will be passed as a parameter
-        to the fetcher on instanciation.
+        `fetcher_options` is a free-format structure that will be passed as a
+        parameter to the fetcher on instanciation.
         """
 
         self.location = location
         self.fetcher_class = fetcher_class
-        self.options = options
+        self.fetcher_options = fetcher_options
         self.__fetcher = None
 
     def __repr__(self):
@@ -85,7 +85,7 @@ class Source(object):
         """
 
         if self.__fetcher is None:
-            self.__fetcher = self.fetcher_class(self.location, self.options)
+            self.__fetcher = self.fetcher_class(self.location, self.fetcher_options)
 
         return self.__fetcher
 
