@@ -53,42 +53,63 @@ class Party(object):
         self.attendees = attendees
         self.cache = cache
 
+    def get_attendee_by_name(self, name):
+        """
+        Get an attendee by name, if it exists.
+
+        If no attendee has the specified name, nothing is returned.
+        """
+
+        for attendee in self.attendees:
+            if attendee.name == name:
+                return attendee
+
+    def clean(self, attendee=None, clean_archives=False, context={}):
+        """
+        Clean the build directories to recover disk space.
+
+        If `clean_archives` is specified, archives are erased as well.
+        """
+
+        if not attendee:
+            if clean_archives:
+                self.cache.clean()
+            else:
+                map(self.cache.clean_attendee_build_directory, self.attendees)
+        else:
+            if clean_archives:
+                self.cache.clean_attendee_directory(self.get_attendee_by_name(attendee))
+            else:
+                self.cache.clean_attendee_build_directory(self.get_attendee_by_name(attendee))
+
     def fetch(self, force=False, context={}):
         """
         Fetch the archives.
         """
 
-        try:
-            if force:
-                attendees_to_fetch = self.attendees
+        if force:
+            attendees_to_fetch = self.attendees
 
-                for attendee in self.attendees:
-                    attendee_path = self.cache.destroy_attendee_path(attendee)
+            for attendee in self.attendees:
+                self.cache.clean_attendee_cache(attendee)
 
-            else:
-                attendees_to_fetch = []
+        else:
+            attendees_to_fetch = []
 
-                for attendee in self.attendees:
-                    attendee_path = self.cache.get_attendee_path(attendee)
+            for attendee in self.attendees:
+                cache_path = self.cache.get_attendee_cache_directory(attendee)
 
-                    if attendee.needs_fetching(attendee_path):
-                        attendees_to_fetch.append(attendee)
+                if attendee.needs_fetching(cache_path):
+                    attendees_to_fetch.append(attendee)
 
-            if not attendees_to_fetch:
-                LOGGER.info('None of the %s archive(s) needs fetching.', len(self.attendees))
+        if not attendees_to_fetch:
+            LOGGER.info('None of the %s archive(s) needs fetching.', len(self.attendees))
 
-            else:
-                LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.attendees))
+        else:
+            LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.attendees))
 
-                for attendee in attendees_to_fetch:
-                    attendee_path = self.cache.create_attendee_path(attendee)
-                    attendee.fetch(attendee_path, context)
+            for attendee in attendees_to_fetch:
+                cache_path = self.cache.create_attendee_cache_directory(attendee)
+                attendee.fetch(cache_path, context)
 
-                LOGGER.info("Done fetching archives.")
-
-            return True
-
-        except Exception as ex:
-            LOGGER.exception(ex)
-
-            return False
+            LOGGER.info("Done fetching archives.")

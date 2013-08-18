@@ -62,47 +62,119 @@ class Cache(object):
             else:
                 raise
 
-    def get_attendee_path(self, attendee):
+    def clean(self):
         """
-        Get the attendee path.
+        Erases completely the cache directory.
+        """
+
+        try:
+            LOGGER.debug('Cleaning cache at %s', self.path)
+
+            shutil.rmtree(self.path)
+
+        except Exception as ex:
+            LOGGER.debug(ex)
+
+    def get_attendee_directory(self, attendee):
+        """
+        Get an attendee directory.
+
+        The directory is not guaranteed to exist.
         """
 
         return os.path.join(self.path, unicode(attendee))
 
-    def create_attendee_path(self, attendee):
+    def clean_attendee_directory(self, attendee):
         """
-        Create the attendee path and returns it.
+        Clean an attendee directory.
         """
 
-        attendee_path = self.get_attendee_path(attendee)
+        path = self.get_attendee_directory(attendee)
 
         try:
-            LOGGER.debug('Creating attendee directory: %s', attendee_path)
+            LOGGER.debug('Cleaning %s\'s directory at %s', attendee, path)
 
-            os.makedirs(attendee_path)
+            shutil.rmtree(path)
+
+        except Exception as ex:
+            LOGGER.debug(ex)
+
+    def get_attendee_cache_directory(self, attendee):
+        """
+        Get the attendee cache directory.
+        """
+
+        return os.path.join(self.get_attendee_directory(attendee), 'cache')
+
+    def create_attendee_cache_directory(self, attendee):
+        """
+        Create the attendee cache directory.
+        """
+
+        path = self.get_attendee_cache_directory(attendee)
+
+        try:
+            LOGGER.debug('Creating %s\'s cache directory at %s.', attendee, path)
+
+            os.makedirs(path)
 
         except OSError as ex:
-            if ex.errno != errno.EEXIST or not os.path.isdir(attendee_path):
-                LOGGER.exception(ex)
+            if ex.errno != errno.EEXIST or not os.path.isdir(path):
                 raise
 
-        except Exception as ex:
-            LOGGER.exception(ex)
-            raise
+        return path
 
-        return attendee_path
-
-    def destroy_attendee_path(self, attendee):
+    def clean_attendee_cache_directory(self, attendee):
         """
-        Destroy the attendee path, if it exists.
+        Clean the attendee cache directory.
         """
 
-        attendee_path = self.get_attendee_path(attendee)
+        path = self.get_attendee_cache_directory(attendee)
 
         try:
-            LOGGER.debug('Destroying attendee directory: %s', attendee_path)
+            LOGGER.debug('Destroying %s\'s cache directory at %s.', attendee, path)
 
-            shutil.rmtree(attendee_path)
+            shutil.rmtree(path)
 
         except Exception as ex:
-            LOGGER.exception(ex)
+            LOGGER.debug(ex)
+
+    def get_attendee_build_directory(self, attendee):
+        """
+        Get the attendee build directory.
+        """
+
+        return os.path.join(self.get_attendee_directory(attendee), 'build')
+
+    def create_attendee_build_directory(self, attendee):
+        """
+        Create the attendee build directory.
+        """
+
+        path = self.get_attendee_build_directory(attendee)
+
+        try:
+            LOGGER.debug('Creating %s\'s build directory at %s.', attendee, path)
+
+            os.makedirs(path)
+
+        except OSError as ex:
+            if ex.errno != errno.EEXIST or not os.path.isdir(path):
+                raise
+
+        return path
+
+    def clean_attendee_build_directory(self, attendee):
+        """
+        Clean the attendee build directory.
+        """
+
+        path = self.get_attendee_build_directory(attendee)
+
+        try:
+            LOGGER.debug('Destroying %s\'s build directory at %s.', attendee, path)
+
+            shutil.rmtree(path)
+
+        except Exception as ex:
+            LOGGER.debug(ex)

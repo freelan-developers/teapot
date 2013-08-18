@@ -7,11 +7,12 @@ import sys
 import argparse
 import logging
 
+from functools import wraps
+
+from tea_party.log import LOGGER
 from tea_party.party import load_party_file
 from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
 
-
-LOGGER = logging.getLogger('tea_party.main')
 
 def main():
     """
@@ -27,8 +28,11 @@ def main():
     command_parser = parser.add_subparsers(help='The available commands.')
     parser.add_argument('-p', '--party-file', default=None, help='The party-file to read.')
 
-    # The status command
-    status_command_parser = command_parser.add_parser('status', help='Get the party status.')
+    # The clean command
+    clean_command_parser = command_parser.add_parser('clean', help='Clean the party build cache.')
+    clean_command_parser.set_defaults(func=clean)
+    clean_command_parser.add_argument('attendee', nargs='?', help='The attendee to clean.')
+    clean_command_parser.add_argument('-a', '--clean-archives', action='store_true', help='Clean also the archive cache.')
 
     # The fetch command
     fetch_command_parser = command_parser.add_parser('fetch', help='Fetch all the archives.')
@@ -61,12 +65,43 @@ def main():
     if not args.func(party, context, args):
         return 2
 
+def command(func):
+    """
+    Provides exception handling for commands.
+    """
+
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+
+            return True
+        except Exception as ex:
+            LOGGER.exception(ex)
+
+            return False
+
+    return decorated
+
+@command
+def clean(party, context, args):
+    """
+    Clean the party.
+    """
+
+    party.clean(
+        attendee=args.attendee,
+        clean_archives=args.clean_archives,
+        context=context,
+    )
+
+@command
 def fetch(party, context, args):
     """
     Fetch the archives.
     """
 
-    return party.fetch(
+    party.fetch(
         force=args.force,
         context=context,
     )
