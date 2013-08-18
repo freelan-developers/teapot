@@ -33,7 +33,7 @@ def main():
     # The fetch command
     fetch_command_parser = command_parser.add_parser('fetch', help='Fetch all the archives.')
     fetch_command_parser.set_defaults(func=fetch)
-    fetch_command_parser.add_argument('-f', '--force', action='store_true', help='Fetch archives even if they exist already in the cache.')
+    fetch_command_parser.add_argument('-f', '--force', action='store_true', help='Fetch archives even if they already exist in the cache.')
 
     args = parser.parse_args()
 

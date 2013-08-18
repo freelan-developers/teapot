@@ -18,7 +18,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'tp = tea_party.main:main',
+            'teapot = tea_party.main:main',
         ],
     },
     test_suite='tea_party.tests',
