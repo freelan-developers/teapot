@@ -9,6 +9,7 @@ import shutil
 import mimetypes
 from rfc6266 import parse_requests_response
 
+from tea_party.log import LOGGER
 from tea_party.fetchers.base_fetcher import BaseFetcher
 
 
@@ -42,9 +43,18 @@ class HttpFetcher(BaseFetcher):
         encoding = response.headers.get('content-encoding')
 
         extension = mimetypes.guess_extension(mimetype)
+
+        if not extension:
+            LOGGER.debug('No extension registered for this mimetype (%s). Guessing one from the URL...', mimetype)
+
+            extension = os.path.splitext(urlparse.urlparse(self.location).path)[1]
+
+        if extension and extension.startswith('.'):
+            extension = extension[1:]
+
         content_disposition = parse_requests_response(response)
 
-        filename = content_disposition.filename_sanitized(extension=extension[1:], default_filename='archive')
+        filename = content_disposition.filename_sanitized(extension=extension, default_filename='archive')
 
         content_length = response.headers.get('content-length')
 
