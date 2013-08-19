@@ -91,7 +91,7 @@ class Party(object):
             attendees_to_fetch = self.attendees
 
             for attendee in self.attendees:
-                self.cache.clean_attendee_cache(attendee)
+                self.cache.clean_attendee_cache_directory(attendee)
 
         else:
             attendees_to_fetch = []
