@@ -76,15 +76,15 @@ class BaseUnpacker(object):
                         cls)
 
                 for mimetype, encoding in cls.mimetypes_encodings:
-                if (mimetype, encoding) in BaseUnpacker.index:
-                    raise DuplicateUnpackerMimetypeError(
-                        mimetype=mimetype,
-                        encoding=encoding,
-                        original_class=BaseUnpacker.index[(mimetype, encoding)],
-                        new_class=cls,
-                    )
-                else:
-                    BaseUnpacker.index[(mimetype, encoding)] = cls
+                    if (mimetype, encoding) in BaseUnpacker.index:
+                        raise DuplicateUnpackerMimetypeError(
+                            mimetype=mimetype,
+                            encoding=encoding,
+                            original_class=BaseUnpacker.index[(mimetype, encoding)],
+                            new_class=cls,
+                        )
+                    else:
+                        BaseUnpacker.index[(mimetype, encoding)] = cls
             else:
                 # We ensure all unpacker classes have at least an empty
                 # mimetypes_encodings attribute.

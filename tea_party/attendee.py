@@ -9,6 +9,7 @@ import errno
 from tea_party.log import LOGGER
 from tea_party.source import make_sources
 from tea_party.path import mkdir, rmdir
+from tea_party.unpackers import get_unpacker_class_for_mimetype
 
 
 def make_attendees(party, data):
@@ -132,6 +133,28 @@ class Attendee(object):
 
         mkdir(self.cache_path)
 
+    @property
+    def source_path(self):
+        """
+        The path of the source of this attendee.
+        """
+
+        return os.path.join(self.party.source_path, self.name)
+
+    def clean_source(self):
+        """
+        Clean the source directory.
+        """
+
+        rmdir(self.source_path)
+
+    def create_source(self):
+        """
+        Create the source directory.
+        """
+
+        mkdir(self.source_path)
+
     def fetch(self, context):
         """
         Fetch the attendee archive by trying all its sources.
@@ -153,7 +176,20 @@ class Attendee(object):
 
         raise RuntimeError('All sources failed for %s' % self.name)
 
-    def get_archive_info(self):
+    def unpack(self, context):
+        """
+        Unpack the attendee archive.
+
+        If the unpacking suceeds, the archive source path is returned.
+        """
+
+        self.create_source()
+
+        unpacker = get_unpacker_class_for_mimetype((self.cache_info.get('mimetype'), self.cache_info.get('encoding')))()
+        unpacker.unpack(self.archive_path)
+
+    @property
+    def cache_info(self):
         """
         Get the associated archive info.
 
@@ -173,18 +209,34 @@ class Attendee(object):
         except ValueError:
             pass
 
+    @property
+    def archive_path(self):
+        """
+        Get the archive path, if an archive exists.
+        """
+
+        cache_info = self.cache_info
+
+        if cache_info:
+            archive_path = os.path.join(self.cache_path, cache_info.get('archive_path'))
+
+            if os.path.isfile(archive_path):
+                return archive_path
+
+    @property
     def needs_fetching(self):
         """
         Check if the attendee needs fetching.
         """
 
-        archive_info = self.get_archive_info()
-
-        if archive_info:
-            if os.path.isfile(os.path.join(self.cache_path, archive_info.get('archive_path'))):
-                LOGGER.debug('%s does not need fetching.', self)
-                return False
+        if self.archive_path:
+            LOGGER.debug('%s does not need fetching.', self)
+            return False
 
         LOGGER.debug('%s needs fetching.', self)
 
+        return True
+
+    @property
+    def needs_unpacking(self):
         return True

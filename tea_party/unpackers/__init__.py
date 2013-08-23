@@ -5,7 +5,8 @@ If you want to create your own unpacker, derive from
 tea_party.unpackers.base_unpacker.BaseUnpacker.
 """
 
-from tea_party.fetchers.base_unpacker import BaseUnpacker, UnsupportedMimetypeError
+from tea_party.unpackers.base_unpacker import BaseUnpacker
+from tea_party.unpackers.tarball_unpacker import TarballUnpacker
 
 
 class NoSuchUnpackerError(ValueError):

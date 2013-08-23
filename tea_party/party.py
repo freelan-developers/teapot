@@ -29,6 +29,7 @@ def load_party_file(path):
     party = Party(
         path=path,
         cache_path=values.get('cache'),
+        source_path=values.get('source'),
     )
 
     party.attendees = make_attendees(party, values.get('attendees'))
@@ -59,17 +60,19 @@ class Party(object):
     different attendees (third-party softwares), and the party options.
     """
 
-    def __init__(self, path, cache_path, **kwargs):
+    def __init__(self, path, cache_path, source_path, **kwargs):
         """
         Create a Party instance.
 
         `path` is the path to the party file.
         `cache_path` is the root of the cache.
+        `source_path` is the root of the sources.
         """
 
         self.path = os.path.abspath(path)
         self.attendees = []
         self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
+        self.source_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_SOURCE_PATH)
 
     def get_attendee_by_name(self, name):
         """
@@ -103,7 +106,7 @@ class Party(object):
         if force:
             map(lambda x: x.clean_cache(), self.attendees)
 
-        attendees_to_fetch = filter(lambda x: x.needs_fetching(), self.attendees)
+        attendees_to_fetch = filter(lambda x: x.needs_fetching, self.attendees)
 
         if not attendees_to_fetch:
             LOGGER.info('None of the %s archive(s) needs fetching.', len(self.attendees))
@@ -120,8 +123,17 @@ class Party(object):
         Unpack the archives.
         """
 
-        LOGGER.info('Unpacking %s archive(s)...', len(self.attendees))
+        if force:
+            map(lambda x: x.clean_source(), self.attendees)
 
-        map(lambda x: x.unpack(context), self.attendees)
+        attendees_to_unpack = filter(lambda x: x.needs_unpacking, self.attendees)
 
-        LOGGER.info('Done unpacking archives.')
+        if not attendees_to_unpack:
+            LOGGER.info('None of the %s archive(s) needs unpacking.', len(self.attendees))
+
+        else:
+            LOGGER.info("Unpacking %s/%s archive(s)...", len(attendees_to_unpack), len(self.attendees))
+
+            map(lambda x: x.unpack(context), attendees_to_unpack)
+
+            LOGGER.info("Done unpacking archives.")
