@@ -27,6 +27,22 @@ class DuplicateUnpackerMimetypeError(ValueError):
         )
 
 
+class UnsupportedArchiveError(RuntimeError):
+
+    """
+    The specified archive format is not supported by the current unpacker.
+    """
+
+    def __init__(self, archive_path):
+        """
+        Create an UnsupportedArchiveError for the specified `archive_path`.
+        """
+
+        super(UnsupportedArchiveError, self).__init__(
+            'Unsupported archive: %s' % archive_path
+        )
+
+
 class BaseUnpacker(object):
 
     """
@@ -83,3 +99,16 @@ class BaseUnpacker(object):
             self.__class__.__module__,
             self.__class__.__name__,
         )
+
+    def unpack(self, archive_path):
+        """
+        Unpack an archive.
+
+        Define this method in a subclass and return the path to the extracted
+        folder that contains the source.
+
+        If the unpacker doesn't support the specified archive, raise an
+        exception.
+        """
+
+        raise NotImplementedError

@@ -27,11 +27,12 @@ class NoSuchUnpackerError(ValueError):
         )
 
 
-def get_unpacker_class_from_mimetype(mimetype):
+def get_unpacker_class_for_mimetype(mimetype):
     """
-    Get the appropriate unpacker class/builder from its `mimetype`.
+    Get the appropriate unpacker class/builder for a given `mimetype`.
 
-    If no unpacker supports `mimetype` a NoSuchFetcherError instance is raised.
+    If no unpacker supports `mimetype` a NoSuchUnpackerError instance is
+    raised.
     """
 
     unpacker_class = BaseUnpacker.index.get(mimetype)

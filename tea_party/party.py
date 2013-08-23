@@ -7,7 +7,8 @@ import yaml
 
 from tea_party.log import LOGGER
 from tea_party.attendee import make_attendees
-from tea_party.cache import make_cache
+from tea_party.path import read_path, rmdir
+from tea_party.defaults import *
 
 
 def load_party_file(path):
@@ -24,13 +25,31 @@ def load_party_file(path):
 
     values = yaml.load(data)
 
-    party_path = os.path.dirname(path)
 
-    return Party(
+    party = Party(
         path=path,
-        attendees=make_attendees(values.get('attendees', {})),
-        cache=make_cache(values.get('cache'), party_path),
+        cache_path=values.get('cache'),
     )
+
+    party.attendees = make_attendees(party, values.get('attendees'))
+
+    return party
+
+
+class NoSuchAttendeeError(ValueError):
+
+    """
+    The specified attendee does not exist.
+    """
+
+    def __init__(self, attendee):
+        """
+        Create an NoSuchAttendeeError for the specified `attendee`.
+        """
+
+        super(NoSuchAttendeeError, self).__init__(
+            'No such attendee: %s' % attendee
+        )
 
 
 class Party(object):
@@ -40,47 +59,41 @@ class Party(object):
     different attendees (third-party softwares), and the party options.
     """
 
-    def __init__(self, path, attendees, cache, **kwargs):
+    def __init__(self, path, cache_path, **kwargs):
         """
         Create a Party instance.
 
         `path` is the path to the party file.
-        `attendees` is a list of attendees.
-        `cache` is a tea_party.cache.Cache instance.
+        `cache_path` is the root of the cache.
         """
 
         self.path = os.path.abspath(path)
-        self.attendees = attendees
-        self.cache = cache
+        self.attendees = []
+        self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
 
     def get_attendee_by_name(self, name):
         """
         Get an attendee by name, if it exists.
 
-        If no attendee has the specified name, nothing is returned.
+        If no attendee has the specified name, a NoSuchAttendeeError is raised.
         """
 
         for attendee in self.attendees:
             if attendee.name == name:
                 return attendee
 
-    def clean(self, attendee=None, clean_archives=False, context={}):
-        """
-        Clean the build directories to recover disk space.
+        raise NoSuchAttendeeError(attendee=attendee)
 
-        If `clean_archives` is specified, archives are erased as well.
+    def clean_cache(self, attendee=None):
+        """
+        Clean the cache, optionally for a given `attendee` to recover disk
+        space.
         """
 
         if not attendee:
-            if clean_archives:
-                self.cache.clean()
-            else:
-                map(self.cache.clean_attendee_build_directory, self.attendees)
+            rmdir(self.cache_path)
         else:
-            if clean_archives:
-                self.cache.clean_attendee_directory(self.get_attendee_by_name(attendee))
-            else:
-                self.cache.clean_attendee_build_directory(self.get_attendee_by_name(attendee))
+            self.get_attendee_by_name(attendee).clean_cache()
 
     def fetch(self, force=False, context={}):
         """
@@ -88,19 +101,9 @@ class Party(object):
         """
 
         if force:
-            attendees_to_fetch = self.attendees
+            map(lambda x: x.clean_cache(), self.attendees)
 
-            for attendee in self.attendees:
-                self.cache.clean_attendee_cache_directory(attendee)
-
-        else:
-            attendees_to_fetch = []
-
-            for attendee in self.attendees:
-                cache_path = self.cache.get_attendee_cache_directory(attendee)
-
-                if attendee.needs_fetching(cache_path):
-                    attendees_to_fetch.append(attendee)
+        attendees_to_fetch = filter(lambda x: x.needs_fetching(), self.attendees)
 
         if not attendees_to_fetch:
             LOGGER.info('None of the %s archive(s) needs fetching.', len(self.attendees))
@@ -108,16 +111,17 @@ class Party(object):
         else:
             LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.attendees))
 
-            for attendee in attendees_to_fetch:
-                cache_path = self.cache.create_attendee_cache_directory(attendee)
-                attendee.fetch(cache_path, context)
+            map(lambda x: x.fetch(context), attendees_to_fetch)
 
             LOGGER.info("Done fetching archives.")
 
-    def unpack(self, context={}):
+    def unpack(self, force=False, context={}):
         """
         Unpack the archives.
         """
 
         LOGGER.info('Unpacking %s archive(s)...', len(self.attendees))
+
+        map(lambda x: x.unpack(context), self.attendees)
+
         LOGGER.info('Done unpacking archives.')
