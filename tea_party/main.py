@@ -11,7 +11,6 @@ from functools import wraps
 
 from tea_party.log import LOGGER
 from tea_party.party import load_party_file
-from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
 
 
 def main():
@@ -62,11 +61,7 @@ def main():
 
         return 1
 
-    context = {
-        'fetcher_callback_class': ProgressBarFetcherCallback,
-    }
-
-    if not args.func(party, context, args):
+    if not args.func(party, args):
         return 2
 
 def command(func):
@@ -88,7 +83,7 @@ def command(func):
     return decorated
 
 @command
-def clean(party, context, args):
+def clean(party, args):
     """
     Clean the party.
     """
@@ -98,23 +93,21 @@ def clean(party, context, args):
     )
 
 @command
-def fetch(party, context, args):
+def fetch(party, args):
     """
     Fetch the archives.
     """
 
     party.fetch(
         force=args.force,
-        context=context,
     )
 
 @command
-def unpack(party, context, args):
+def unpack(party, args):
     """
     Unpack the archives.
     """
 
     party.unpack(
         force=args.force,
-        context=context,
     )

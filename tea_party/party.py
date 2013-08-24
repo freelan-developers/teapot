@@ -6,9 +6,10 @@ import os
 import yaml
 
 from tea_party.log import LOGGER
-from tea_party.attendee import make_attendees
+from tea_party.attendee import Attendee, make_attendees
 from tea_party.path import read_path, rmdir
 from tea_party.defaults import *
+from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
 
 
 def load_party_file(path):
@@ -73,6 +74,7 @@ class Party(object):
         self.attendees = []
         self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
         self.source_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_SOURCE_PATH)
+        self.fetcher_callback_class = ProgressBarFetcherCallback
 
     def get_attendee_by_name(self, name):
         """
@@ -98,7 +100,7 @@ class Party(object):
         else:
             self.get_attendee_by_name(attendee).clean_cache()
 
-    def fetch(self, force=False, context={}):
+    def fetch(self, force=False):
         """
         Fetch the archives.
         """
@@ -114,11 +116,11 @@ class Party(object):
         else:
             LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.attendees))
 
-            map(lambda x: x.fetch(context), attendees_to_fetch)
+            map(Attendee.fetch, attendees_to_fetch)
 
             LOGGER.info("Done fetching archives.")
 
-    def unpack(self, force=False, context={}):
+    def unpack(self, force=False):
         """
         Unpack the archives.
         """
@@ -134,6 +136,6 @@ class Party(object):
         else:
             LOGGER.info("Unpacking %s/%s archive(s)...", len(attendees_to_unpack), len(self.attendees))
 
-            map(lambda x: x.unpack(context), attendees_to_unpack)
+            map(Attendee.unpack, attendees_to_unpack)
 
             LOGGER.info("Done unpacking archives.")

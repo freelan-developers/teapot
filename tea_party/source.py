@@ -7,7 +7,7 @@ from tea_party.fetchers import get_fetcher_class_from_shortname, guess_fetcher_i
 from tea_party.fetchers.callbacks import NullFetcherCallback
 
 
-def make_sources(sources):
+def make_sources(attendee, sources):
     """
     Build a list of Source instances.
 
@@ -23,6 +23,7 @@ def make_sources(sources):
     elif isinstance(sources, basestring):
         return [
             Source(
+                attendee=attendee,
                 location=unicode(sources),
                 fetcher_class=guess_fetcher_instance,
                 fetcher_options={},
@@ -32,6 +33,7 @@ def make_sources(sources):
     elif isinstance(sources, dict):
         return [
             Source(
+                attendee=attendee,
                 location=sources.get('location'),
                 fetcher_class=get_fetcher_class_from_shortname(
                     sources.get('fetcher')
@@ -40,7 +42,7 @@ def make_sources(sources):
             ),
         ]
 
-    return sum(map(make_sources, sources), [])
+    return sum(map(lambda x: make_sources(attendee, x), sources), [])
 
 
 class Source(object):
@@ -50,9 +52,11 @@ class Source(object):
     third-party software.
     """
 
-    def __init__(self, location, fetcher_class, fetcher_options):
+    def __init__(self, attendee, location, fetcher_class, fetcher_options):
         """
         Create a Source instance.
+
+        `attendee` is the attendee this source is attached to.
 
         `location` is the origin of the third-party software archive to get.
         Its format an meaning depends on the associated `fetcher_class`.
@@ -61,6 +65,10 @@ class Source(object):
         parameter to the fetcher on instanciation.
         """
 
+        if not attendee:
+            raise ValueError('An source must be associated to an attendee.')
+
+        self.attendee = attendee
         self.location = location
         self.fetcher_class = fetcher_class
         self.fetcher_options = fetcher_options
@@ -85,11 +93,11 @@ class Source(object):
         """
 
         if self.__fetcher is None:
-            self.__fetcher = self.fetcher_class(self.location, self.fetcher_options)
+            self.__fetcher = self.fetcher_class(self)
 
         return self.__fetcher
 
-    def fetch(self, root_path, context):
+    def fetch(self, root_path):
         """
         Fetch the specified source.
 
@@ -99,7 +107,6 @@ class Source(object):
         try:
             return self.fetcher.fetch(
                 target=root_path,
-                fetcher_callback_class=context.get('fetcher_callback_class', NullFetcherCallback),
             )
 
         except Exception as ex:

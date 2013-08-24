@@ -32,16 +32,16 @@ class UnsupportedLocationError(ValueError):
     A fetcher does not handle the specified location.
     """
 
-    def __init__(self, location, fetcher_class):
+    def __init__(self, source, fetcher_class):
         """
-        Create an UnsupportedLocationError for the specified `location` and
+        Create an UnsupportedLocationError for the specified `source` and
         `fetcher_class`.
         """
 
         super(UnsupportedLocationError, self).__init__(
-            'The fetcher class %s does not support the specified location (%s)' % (
+            'The fetcher class %s does not support the specified source (%s)' % (
                 fetcher_class,
-                location,
+                source,
             )
         )
 
@@ -51,8 +51,8 @@ class BaseFetcher(object):
     """
     Base class for all fetcher classes.
 
-    If you subclass this class, you will have to re-implement the fetch()
-    and normalize_location() methods in your subclass to provide your fetcher
+    If you subclass this class, you will have to re-implement the do_fetch()
+    and read_source() methods in your subclass to provide your fetcher
     specific fetch logic.
     """
 
@@ -92,75 +92,64 @@ class BaseFetcher(object):
                 # shortname attribute.
                 setattr(cls, 'shortname', None)
 
-    def __init__(self, location, options):
+    def __init__(self, source):
         """
         Instantiate a base fetcher.
 
-        `location` is stored in self.location for use in derived classes.
-        `options` is a free-format structure whose content depends on the
-        fetcher type.
+        `source` is the source.
         """
 
-        self.location = self.normalize_location(location)
-        self.options = options
+        if not source:
+            raise ValueError('A fetcher must be associated to a source.')
 
-        if self.location is None:
+        if not self.read_source(source):
             raise UnsupportedLocationError(
-                location=location,
+                source=source,
                 fetcher_class=self.__class__,
             )
+
+        self.source = source
+        self.progress = source.attendee.party.fetcher_callback_class(self)
 
     def __repr__(self):
         """
         Get the representation of the fetcher.
         """
 
-        return '<%s.%s(location=%r)>' % (
+        return '<%s.%s(source=%r)>' % (
             self.__class__.__module__,
             self.__class__.__name__,
-            self.location,
+            self.source,
         )
 
-    def normalize_location(self, location):
+    def read_source(self, source):
         """
         Reimplement this method to indicate whether or not your fetcher class
-        supports the specified `location` and to normalize its value.
+        supports the specified `source`.
 
-        If the location is supported, this function must return a normalized
-        location whose type depends on the fetcher implementation.
+        This method is called during the fetcher creation and must return a
+        truthy value if the fetcher supports the specified source.
 
-        If the location is not supported, this function must return None.
+        You may set custom instance variable in this method as it is guaranteed
+        that it gets called before the fetch() method. For instance, one could
+        parse a source URL and get the meaningful components into member
+        variables for later use in do_fetch().
         """
 
         raise NotImplementedError
 
-    def fetch(self, target, fetcher_callback_class=NullFetcherCallback):
+    def fetch(self, target):
         """
         Fetch the associated location using `target` as a suggested filename.
         """
-
-        fetcher_callback = fetcher_callback_class(self)
-
-        callbacks = [
-            'on_start',
-            'on_update',
-            'on_finish',
-        ]
-
-        for callback in callbacks:
-            setattr(self, callback, getattr(fetcher_callback, callback))
 
         try:
             return self.do_fetch(target)
 
         except Exception as ex:
-            fetcher_callback.on_exception(ex)
+            self.progress.on_exception(ex)
 
             raise
-
-        finally:
-            for callback in callbacks:
-                delattr(self, callback)
 
     def do_fetch(self, target):
         """
@@ -169,9 +158,9 @@ class BaseFetcher(object):
         `target` is the suggested target filename.
 
         This method must return a dict with the following keys:
-            - archive_path: The archive path.
-            - mimetype: The MIME type.
-            - encoding: The encoding.
+            - archive_path: The archive absolute path.
+            - archive_type: A couple containing the mimetype, then the encoding
+            of the archive. Example: ('application/x-gzip', None)
 
         It must raise an exception on error.
         """

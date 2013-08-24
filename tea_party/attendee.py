@@ -29,12 +29,15 @@ def make_attendee(party, name, attributes):
     Create an attendee from a name a dictionary of attributes.
     """
 
-    return Attendee(
+    attendee = Attendee(
         party=party,
         name=name,
-        sources=make_sources(attributes.get('source')),
         depends=make_depends(attributes.get('depends')),
     )
+
+    attendee.sources = make_sources(attendee, attributes.get('source'))
+
+    return attendee
 
 
 def make_depends(depends):
@@ -64,23 +67,20 @@ class Attendee(object):
 
     CACHE_FILE = 'cache.json'
 
-    def __init__(self, party, name, sources, depends):
+    def __init__(self, party, name, depends):
         """
         Create an attendee associated to a `party`.
 
-        `sources` is a list of Source instances.
+        `name` is the name of the attendee.
         `depends` is a list of Attendee names to depend on.
         """
 
         if not party:
             raise ValueError('An attendee must be associated to a party.')
 
-        if not sources:
-            raise ValueError('A list one source must be specified for %s' % name)
-
         self.party = party
         self.name = name
-        self.sources = sources
+        self.sources = []
         self.depends = depends
 
     def __unicode__(self):
@@ -155,7 +155,7 @@ class Attendee(object):
 
         mkdir(self.source_path)
 
-    def fetch(self, context):
+    def fetch(self):
         """
         Fetch the attendee archive by trying all its sources.
 
@@ -166,8 +166,7 @@ class Attendee(object):
         self.create_cache()
 
         for source in self.sources:
-            archive_info = source.fetch(root_path=self.cache_path, context=context)
-            archive_info['archive_path'] = os.path.relpath(archive_info['archive_path'], self.cache_path)
+            archive_info = source.fetch(root_path=self.cache_path)
 
             with open(os.path.join(self.cache_path, self.CACHE_FILE), 'w') as cache_file:
                 return json.dump(archive_info, cache_file)
@@ -176,7 +175,7 @@ class Attendee(object):
 
         raise RuntimeError('All sources failed for %s' % self.name)
 
-    def unpack(self, context):
+    def unpack(self):
         """
         Unpack the attendee archive.
 

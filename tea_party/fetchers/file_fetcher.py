@@ -17,33 +17,34 @@ class FileFetcher(BaseFetcher):
 
     shortname = 'file'
 
-    def normalize_location(self, location):
+    def read_source(self, source):
         """
-        Checks that the `location` is a local filename.
+        Checks that the `source` is a local filename.
         """
 
-        if os.path.isfile(location):
-            return os.path.abspath(location)
+        if os.path.isfile(source.location):
+            self.file_path = os.path.abspath(source.location)
+
+            return True
 
     def do_fetch(self, target):
         """
-        Fetch the filename at the specified location.
+        Fetch a filename.
         """
 
-        target_file_path = os.path.join(target, os.path.basename(self.location))
+        archive_path = os.path.join(target, os.path.basename(self.file_path))
 
-        mimetype, encoding = mimetypes.guess_type(self.location)
-        size = os.path.getsize(self.location)
+        archive_type = mimetypes.guess_type(self.file_path)
+        size = os.path.getsize(self.file_path)
 
-        self.on_start(target=os.path.basename(target_file_path), size=size)
+        self.progress.on_start(target=os.path.basename(archive_path), size=size)
 
-        shutil.copyfile(self.location, target_file_path)
+        shutil.copyfile(self.file_path, archive_path)
 
-        self.on_update(progress=size)
-        self.on_finish()
+        self.progress.on_update(progress=size)
+        self.progress.on_finish()
 
         return {
-            'archive_path': target_file_path,
-            'mimetype': mimetype,
-            'encoding': encoding,
+            'archive_path': archive_path,
+            'archive_type': archive_type,
         }

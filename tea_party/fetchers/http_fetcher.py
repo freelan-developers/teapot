@@ -21,33 +21,38 @@ class HttpFetcher(BaseFetcher):
 
     shortname = 'http'
 
-    def normalize_location(self, location):
+    def read_source(self, source):
         """
-        Checks that the `location` is an HTTP(S) URL.
+        Checks that the `source` is an HTTP(S) URL.
         """
 
-        url = urlparse.urlparse(location)
+        assert(source)
+
+        url = urlparse.urlparse(source.location)
 
         if url.scheme in ['http', 'https']:
-            return urlparse.urlunparse(url)
+            self.url = urlparse.urlunparse(url)
+
+            return True
 
     def do_fetch(self, target):
         """
-        Fetch the archive at the specified location.
+        Fetch the archive at the specified URL.
         """
 
-        response = requests.get(self.location, stream=True)
+        response = requests.get(self.url, stream=True)
         response.raise_for_status()
 
         mimetype = response.headers.get('content-type')
         encoding = response.headers.get('content-encoding')
+        archive_type = (mimetype, encoding)
 
         extension = mimetypes.guess_extension(mimetype)
 
         if not extension:
             LOGGER.debug('No extension registered for this mimetype (%s). Guessing one from the URL...', mimetype)
 
-            extension = os.path.splitext(urlparse.urlparse(self.location).path)[1]
+            extension = os.path.splitext(urlparse.urlparse(self.url).path)[1]
 
         if extension and extension.startswith('.'):
             extension = extension[1:]
@@ -61,11 +66,11 @@ class HttpFetcher(BaseFetcher):
         if content_length is not None:
             content_length = int(content_length)
 
-        target_file_path = os.path.join(target, filename)
+        archive_path = os.path.join(target, filename)
 
-        self.on_start(target=os.path.basename(target_file_path), size=content_length)
+        self.progress.on_start(target=os.path.basename(archive_path), size=content_length)
 
-        with open(target_file_path, 'wb') as target_file:
+        with open(archive_path, 'wb') as target_file:
             current_size = 0
 
             for buf in response.iter_content(1024):
@@ -74,12 +79,11 @@ class HttpFetcher(BaseFetcher):
                     target_file.write(buf)
                     current_size += len(buf)
 
-                    self.on_update(progress=current_size)
+                    self.progress.on_update(progress=current_size)
 
-        self.on_finish()
+        self.progress.on_finish()
 
         return {
-            'archive_path': target_file_path,
-            'mimetype': mimetype,
-            'encoding': encoding,
+            'archive_path': archive_path,
+            'archive_type': archive_type,
         }
