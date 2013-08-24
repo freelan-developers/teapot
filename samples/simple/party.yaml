@@ -1,5 +1,7 @@
 attendees:
     libiconv:
         source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+    libcurl:
+        source: http://curl.haxx.se/download/curl-7.32.0.tar.bz2
 cache: cache
-source: source
+build: build

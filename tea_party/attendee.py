@@ -9,7 +9,7 @@ import errno
 from tea_party.log import LOGGER
 from tea_party.source import make_sources
 from tea_party.path import mkdir, rmdir
-from tea_party.unpackers import get_unpacker_class_for_mimetype
+from tea_party.unpackers import get_unpacker_class_for_type
 
 
 def make_attendees(party, data):
@@ -66,6 +66,7 @@ class Attendee(object):
     """
 
     CACHE_FILE = 'cache.json'
+    BUILD_FILE = 'build.json'
 
     def __init__(self, party, name, depends):
         """
@@ -134,26 +135,26 @@ class Attendee(object):
         mkdir(self.cache_path)
 
     @property
-    def source_path(self):
+    def build_path(self):
         """
         The path of the source of this attendee.
         """
 
-        return os.path.join(self.party.source_path, self.name)
+        return os.path.join(self.party.build_path, self.name)
 
-    def clean_source(self):
+    def clean_build(self):
         """
-        Clean the source directory.
-        """
-
-        rmdir(self.source_path)
-
-    def create_source(self):
-        """
-        Create the source directory.
+        Clean the build directory.
         """
 
-        mkdir(self.source_path)
+        rmdir(self.build_path)
+
+    def create_build(self):
+        """
+        Create the build directory.
+        """
+
+        mkdir(self.build_path)
 
     def fetch(self):
         """
@@ -182,20 +183,19 @@ class Attendee(object):
         If the unpacking suceeds, the archive source path is returned.
         """
 
-        self.create_source()
+        self.create_build()
 
-        unpacker = get_unpacker_class_for_mimetype((self.cache_info.get('mimetype'), self.cache_info.get('encoding')))()
-        unpacker.unpack(self.archive_path)
+        get_unpacker_class_for_type(self.archive_type)(attendee=self).unpack()
 
     @property
-    def cache_info(self):
+    def cache(self):
         """
-        Get the associated archive info.
+        Get the associated cache info.
 
         Returns a dict containing the archive information.
 
-        If the archive information or the archive does not exist, nothing is
-        returned.
+        If the archive information or the archive does not exist, an empty dict
+        is returned.
         """
 
         try:
@@ -208,34 +208,36 @@ class Attendee(object):
         except ValueError:
             pass
 
+        return {}
+
     @property
     def archive_path(self):
         """
-        Get the archive path, if an archive exists.
+        Get the archive path.
         """
 
-        cache_info = self.cache_info
-
-        if cache_info:
-            archive_path = os.path.join(self.cache_path, cache_info.get('archive_path'))
-
-            if os.path.isfile(archive_path):
-                return archive_path
+        return self.cache.get('archive_path')
 
     @property
-    def needs_fetching(self):
+    def archive_type(self):
         """
-        Check if the attendee needs fetching.
+        Get the archive type.
         """
 
-        if self.archive_path:
-            LOGGER.debug('%s does not need fetching.', self)
-            return False
+        return self.cache.get('archive_type')
+
+    @property
+    def fetched(self):
+        """
+        Check if the attendee was fetched already.
+        """
+
+        if self.archive_path and os.path.isfile(self.archive_path):
+            LOGGER.debug('%s was already fetched.', self)
+            return True
 
         LOGGER.debug('%s needs fetching.', self)
 
-        return True
-
     @property
-    def needs_unpacking(self):
+    def unpacked(self):
         return True

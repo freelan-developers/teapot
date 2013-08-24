@@ -69,13 +69,13 @@ class BaseUnpacker(object):
 
             type.__init__(cls, name, bases, attrs)
 
-            if 'mimetypes_encodings' in attrs and cls.mimetypes_encodings:
-                if not isinstance(cls.mimetypes_encodings, list):
+            if 'types' in attrs and cls.types:
+                if not isinstance(cls.types, list):
                     raise TypeError(
-                        'The mimetypes_encodings attribute for %s must be a list of 2-tuples.' %
+                        'The types attribute for %s must be a list of 2-tuples.' %
                         cls)
 
-                for mimetype, encoding in cls.mimetypes_encodings:
+                for mimetype, encoding in cls.types:
                     if (mimetype, encoding) in BaseUnpacker.index:
                         raise DuplicateUnpackerMimetypeError(
                             mimetype=mimetype,
@@ -87,8 +87,18 @@ class BaseUnpacker(object):
                         BaseUnpacker.index[(mimetype, encoding)] = cls
             else:
                 # We ensure all unpacker classes have at least an empty
-                # mimetypes_encodings attribute.
-                setattr(cls, 'mimetypes_encodings', None)
+                # types attribute.
+                setattr(cls, 'types', None)
+
+    def __init__(self, attendee):
+        """
+        Create a new unpacker.
+        """
+
+        if not attendee:
+            raise ValueError('An unpacker must be associated to an attendee.')
+
+        self.attendee = attendee
 
     def __repr__(self):
         """

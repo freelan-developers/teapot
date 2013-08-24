@@ -28,18 +28,34 @@ def main():
     parser.add_argument('-p', '--party-file', default=None, help='The party-file to read.')
 
     # The clean command
-    clean_command_parser = command_parser.add_parser('clean', help='Clean the party cache.')
-    clean_command_parser.set_defaults(func=clean)
-    clean_command_parser.add_argument('attendee', nargs='?', help='The attendee to clean.')
+    clean_command_parser = command_parser.add_parser('clean', help='Clean the party.')
+    clean_subcommand_parser = clean_command_parser.add_subparsers(help='The available commands.')
+
+    #  The clean cache subcommand
+    clean_cache_command_parser = clean_subcommand_parser.add_parser('cache', help='Clean the party cache.')
+    clean_cache_command_parser.set_defaults(func=clean_cache)
+    clean_cache_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
+
+    #  The clean build subcommand
+    clean_build_command_parser = clean_subcommand_parser.add_parser('build', help='Clean the party build.')
+    clean_build_command_parser.set_defaults(func=clean_build)
+    clean_build_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
+
+    #  The clean all subcommand
+    clean_all_command_parser = clean_subcommand_parser.add_parser('all', help='Clean the party cache and build.')
+    clean_all_command_parser.set_defaults(func=clean_all)
+    clean_all_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
 
     # The fetch command
     fetch_command_parser = command_parser.add_parser('fetch', help='Fetch all the archives.')
     fetch_command_parser.set_defaults(func=fetch)
+    fetch_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
     fetch_command_parser.add_argument('-f', '--force', action='store_true', help='Fetch archives even if they already exist in the cache.')
 
     # The unpack command
     unpack_command_parser = command_parser.add_parser('unpack', help='Unpack all the fetched archives.')
     unpack_command_parser.set_defaults(func=unpack)
+    unpack_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
     unpack_command_parser.add_argument('-f', '--force', action='store_true', help='Unpack archives even if they already exist in the build.')
 
     args = parser.parse_args()
@@ -83,13 +99,36 @@ def command(func):
     return decorated
 
 @command
-def clean(party, args):
+def clean_cache(party, args):
     """
-    Clean the party.
+    Clean the party cache.
     """
 
     party.clean_cache(
-        attendee=args.attendee,
+        attendees=args.attendees,
+    )
+
+@command
+def clean_build(party, args):
+    """
+    Clean the party build.
+    """
+
+    party.clean_build(
+        attendees=args.attendees,
+    )
+
+@command
+def clean_all(party, args):
+    """
+    Clean the party cache and build.
+    """
+
+    party.clean_cache(
+        attendees=args.attendees,
+    )
+    party.clean_build(
+        attendees=args.attendees,
     )
 
 @command
@@ -99,6 +138,7 @@ def fetch(party, args):
     """
 
     party.fetch(
+        attendees=args.attendees,
         force=args.force,
     )
 
@@ -109,5 +149,6 @@ def unpack(party, args):
     """
 
     party.unpack(
+        attendees=args.attendees,
         force=args.force,
     )

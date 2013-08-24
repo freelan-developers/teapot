@@ -5,6 +5,8 @@ tea-party 'party' class.
 import os
 import yaml
 
+from functools import wraps
+
 from tea_party.log import LOGGER
 from tea_party.attendee import Attendee, make_attendees
 from tea_party.path import read_path, rmdir
@@ -30,7 +32,7 @@ def load_party_file(path):
     party = Party(
         path=path,
         cache_path=values.get('cache'),
-        source_path=values.get('source'),
+        build_path=values.get('build'),
     )
 
     party.attendees = make_attendees(party, values.get('attendees'))
@@ -54,6 +56,28 @@ class NoSuchAttendeeError(ValueError):
         )
 
 
+def has_attendees(func):
+    """
+    Ensures the function has real attendees instances as its `attendees`
+    parameter.
+    """
+
+    @wraps(func)
+    def result(self, *args, **kwargs):
+        attendees = kwargs.get('attendees', [])
+
+        if not attendees:
+            attendees = self.attendees
+        else:
+            attendees = map(self.get_attendee_by_name, attendees)
+
+        kwargs['attendees'] = attendees
+
+        return func(self, *args, **kwargs)
+
+    return result
+
+
 class Party(object):
 
     """
@@ -61,19 +85,19 @@ class Party(object):
     different attendees (third-party softwares), and the party options.
     """
 
-    def __init__(self, path, cache_path, source_path, **kwargs):
+    def __init__(self, path, cache_path, build_path, **kwargs):
         """
         Create a Party instance.
 
         `path` is the path to the party file.
         `cache_path` is the root of the cache.
-        `source_path` is the root of the sources.
+        `build_path` is the root of the build.
         """
 
         self.path = os.path.abspath(path)
         self.attendees = []
         self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
-        self.source_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_SOURCE_PATH)
+        self.build_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_BUILD_PATH)
         self.fetcher_callback_class = ProgressBarFetcherCallback
 
     def get_attendee_by_name(self, name):
@@ -83,35 +107,46 @@ class Party(object):
         If no attendee has the specified name, a NoSuchAttendeeError is raised.
         """
 
+        if isinstance(name, Attendee):
+            return name
+
         for attendee in self.attendees:
             if attendee.name == name:
                 return attendee
 
         raise NoSuchAttendeeError(attendee=attendee)
 
-    def clean_cache(self, attendee=None):
+    @has_attendees
+    def clean_cache(self, attendees=[]):
         """
-        Clean the cache, optionally for a given `attendee` to recover disk
-        space.
+        Clean the cache, optionally for a given list of `attendees` to recover
+        disk space.
         """
 
-        if not attendee:
-            rmdir(self.cache_path)
-        else:
-            self.get_attendee_by_name(attendee).clean_cache()
+        map(Attendee.clean_cache, attendees)
 
-    def fetch(self, force=False):
+    @has_attendees
+    def clean_build(self, attendees=[]):
+        """
+        Clean the build, optionally for a given list of `attendees` to recover
+        disk space.
+        """
+
+        map(Attendee.clean_build, attendees)
+
+    @has_attendees
+    def fetch(self, attendees=[], force=False):
         """
         Fetch the archives.
         """
 
         if force:
-            map(lambda x: x.clean_cache(), self.attendees)
+            map(lambda x: x.clean_cache(), attendees)
 
-        attendees_to_fetch = filter(lambda x: x.needs_fetching, self.attendees)
+        attendees_to_fetch = [x for x in attendees if not x.fetched]
 
         if not attendees_to_fetch:
-            LOGGER.info('None of the %s archive(s) needs fetching.', len(self.attendees))
+            LOGGER.info('None of the %s archive(s) needs fetching.', len(attendees))
 
         else:
             LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.attendees))
@@ -120,7 +155,8 @@ class Party(object):
 
             LOGGER.info("Done fetching archives.")
 
-    def unpack(self, force=False):
+    @has_attendees
+    def unpack(self, attendees=[], force=False):
         """
         Unpack the archives.
         """
@@ -128,7 +164,7 @@ class Party(object):
         if force:
             map(lambda x: x.clean_source(), self.attendees)
 
-        attendees_to_unpack = filter(lambda x: x.needs_unpacking, self.attendees)
+        attendees_to_unpack = [x for x in attendees if not x.unpacked]
 
         if not attendees_to_unpack:
             LOGGER.info('None of the %s archive(s) needs unpacking.', len(self.attendees))
