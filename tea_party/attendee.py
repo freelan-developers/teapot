@@ -166,13 +166,20 @@ class Attendee(object):
 
         self.create_cache()
 
+        LOGGER.info('Fetching %s...' % self)
+
         for source in self.sources:
-            archive_info = source.fetch(root_path=self.cache_path)
+            LOGGER.info('Trying from %s...', source)
 
-            with open(os.path.join(self.cache_path, self.CACHE_FILE), 'w') as cache_file:
-                return json.dump(archive_info, cache_file)
+            cache_info = source.fetch(root_path=self.cache_path)
 
-            return source
+            if cache_info:
+                LOGGER.info('%s fetched sucessfully.' % self)
+
+                with open(os.path.join(self.cache_path, self.CACHE_FILE), 'w') as cache_file:
+                    return json.dump(cache_info, cache_file)
+
+                return source
 
         raise RuntimeError('All sources failed for %s' % self.name)
 
@@ -183,24 +190,58 @@ class Attendee(object):
         If the unpacking suceeds, the archive source path is returned.
         """
 
+        if not self.fetched and self.party.auto_fetch:
+            self.fetch()
+
         self.create_build()
 
-        get_unpacker_class_for_type(self.archive_type)(attendee=self).unpack()
+        LOGGER.info('Unpacking %s...' % self)
+
+        build_info = get_unpacker_class_for_type(self.archive_type)(attendee=self).unpack()
+
+        if build_info:
+            LOGGER.info('%s unpacked sucessfully.' % self)
+
+            with open(os.path.join(self.build_path, self.BUILD_FILE), 'w') as build_file:
+                return json.dump(build_info, build_file)
 
     @property
     def cache(self):
         """
         Get the associated cache info.
 
-        Returns a dict containing the archive information.
+        Returns a dict containing the archive cache information.
 
-        If the archive information or the archive does not exist, an empty dict
+        If the archive cache information does not exist, an empty dict
         is returned.
         """
 
         try:
             with open(os.path.join(self.cache_path, self.CACHE_FILE)) as cache_file:
                 return json.load(cache_file)
+
+        except IOError as ex:
+            if ex.errno != errno.ENOENT:
+                raise
+        except ValueError:
+            pass
+
+        return {}
+
+    @property
+    def build(self):
+        """
+        Get the associated build info.
+
+        Returns a dict containing the archive build information.
+
+        If the archive build information does not exist, an empty dict
+        is returned.
+        """
+
+        try:
+            with open(os.path.join(self.build_path, self.BUILD_FILE)) as build_file:
+                return json.load(build_file)
 
         except IOError as ex:
             if ex.errno != errno.ENOENT:
@@ -239,5 +280,21 @@ class Attendee(object):
         LOGGER.debug('%s needs fetching.', self)
 
     @property
+    def source_tree_path(self):
+        """
+        Get the source tree path.
+        """
+
+        return self.build.get('source_tree_path')
+
+    @property
     def unpacked(self):
-        return True
+        """
+        Check if the attendee needs unpacking.
+        """
+
+        if self.source_tree_path and os.path.isdir(self.source_tree_path):
+            LOGGER.debug('%s was already unpacked.', self)
+            return True
+
+        LOGGER.debug('%s needs unpacking.', self)

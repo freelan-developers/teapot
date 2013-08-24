@@ -36,7 +36,10 @@ def get_unpacker_class_for_type(_type):
     raised.
     """
 
-    unpacker_class = BaseUnpacker.index.get(_type)
+    if not _type:
+        raise ValueError('Unable to get an unpacker as no type was specified.')
+
+    unpacker_class = BaseUnpacker.index.get(tuple(_type))
 
     if unpacker_class:
         return unpacker_class

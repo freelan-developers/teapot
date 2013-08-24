@@ -86,6 +86,13 @@ class Source(object):
             self.fetcher_class,
         )
 
+    def __str__(self):
+        """
+        Get a string representation of the source.
+        """
+
+        return self.location
+
     @property
     def fetcher(self):
         """

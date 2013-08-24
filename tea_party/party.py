@@ -12,6 +12,7 @@ from tea_party.attendee import Attendee, make_attendees
 from tea_party.path import read_path, rmdir
 from tea_party.defaults import *
 from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
+from tea_party.unpackers.callbacks import ProgressBarUnpackerCallback
 
 
 def load_party_file(path):
@@ -97,8 +98,10 @@ class Party(object):
         self.path = os.path.abspath(path)
         self.attendees = []
         self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
-        self.build_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_BUILD_PATH)
+        self.build_path = read_path(build_path, os.path.dirname(self.path), DEFAULT_BUILD_PATH)
+        self.auto_fetch = True
         self.fetcher_callback_class = ProgressBarFetcherCallback
+        self.unpacker_callback_class = ProgressBarUnpackerCallback
 
     def get_attendee_by_name(self, name):
         """

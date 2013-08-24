@@ -1,6 +1,7 @@
 """
 A set of fetcher callbacks class.
 """
+
 from progressbar import *
 
 
@@ -48,7 +49,8 @@ class BaseFetcherCallback(object):
         """
         The fetch failed.
 
-        Don't forget to call the on_finish() if you override this method.
+        Don't forget to call the on_finish() method if you override this
+        method.
         """
 
         self.on_finish()

@@ -140,7 +140,7 @@ class BaseFetcher(object):
 
     def fetch(self, target):
         """
-        Fetch the associated location using `target` as a suggested filename.
+        Fetch the associated source using `target` as a suggested filename.
         """
 
         try:
@@ -163,6 +163,10 @@ class BaseFetcher(object):
             of the archive. Example: ('application/x-gzip', None)
 
         It must raise an exception on error.
+
+        You can provide feedback on the fetching operation by calling
+        `self.progress.on_start`, `self.progress.on_update` and
+        `self.progress.on_finish` at the appropriate time.
         """
 
         raise NotImplementedError

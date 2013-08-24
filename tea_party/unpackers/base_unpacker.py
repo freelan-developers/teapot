@@ -27,22 +27,6 @@ class DuplicateUnpackerMimetypeError(ValueError):
         )
 
 
-class UnsupportedArchiveError(RuntimeError):
-
-    """
-    The specified archive format is not supported by the current unpacker.
-    """
-
-    def __init__(self, archive_path):
-        """
-        Create an UnsupportedArchiveError for the specified `archive_path`.
-        """
-
-        super(UnsupportedArchiveError, self).__init__(
-            'Unsupported archive: %s' % archive_path
-        )
-
-
 class BaseUnpacker(object):
 
     """
@@ -99,6 +83,7 @@ class BaseUnpacker(object):
             raise ValueError('An unpacker must be associated to an attendee.')
 
         self.attendee = attendee
+        self.progress = self.attendee.party.unpacker_callback_class(self)
 
     def __repr__(self):
         """
@@ -110,15 +95,43 @@ class BaseUnpacker(object):
             self.__class__.__name__,
         )
 
-    def unpack(self, archive_path):
+    @property
+    def archive_path(self):
+        """
+        Get the archive path.
+
+        This is a shortcut function for `self.attendee.archive_path`.
+        """
+
+        return self.attendee.archive_path
+
+    def unpack(self):
+        """
+        Unpack the associated attendee archive.
+        """
+
+        try:
+            return self.do_unpack()
+
+        except Exception as ex:
+            self.progress.on_exception(ex)
+
+            raise
+
+    def do_unpack(self):
         """
         Unpack an archive.
 
-        Define this method in a subclass and return the path to the extracted
-        folder that contains the source.
+        The archive to unpack can be reached at `self.archive_path`.
 
-        If the unpacker doesn't support the specified archive, raise an
-        exception.
+        This method must return a dict with the following keys:
+            - source_tree_path: The extracted source tree path.
+
+        It must raise an exception on error.
+
+        You can provide feedback on the unpacking operation by calling
+        `self.progress.on_start`, `self.progress.on_update` and
+        `self.progress.on_finish` at the appropriate time.
         """
 
         raise NotImplementedError
