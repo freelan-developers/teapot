@@ -126,7 +126,11 @@ class Party(object):
         disk space.
         """
 
+        LOGGER.info('Cleaning the cache directory for: %s', ', '.join(map(str, attendees)))
+
         map(Attendee.clean_cache, attendees)
+
+        LOGGER.info('Done cleaning the cache directory.')
 
     @has_attendees
     def clean_build(self, attendees=[]):
@@ -135,7 +139,11 @@ class Party(object):
         disk space.
         """
 
+        LOGGER.info('Cleaning the build directory for: %s', ', '.join(map(str, attendees)))
+
         map(Attendee.clean_build, attendees)
+
+        LOGGER.info('Done cleaning the build directory.')
 
     @has_attendees
     def fetch(self, attendees=[], force=False):

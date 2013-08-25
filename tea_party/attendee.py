@@ -125,7 +125,11 @@ class Attendee(object):
         Clean the cache directory.
         """
 
+        LOGGER.info('Cleaning cache directory: %s', self.build_path)
+
         rmdir(self.cache_path)
+
+        LOGGER.info('Done cleaning cache directory for %s.', self)
 
     def create_cache(self):
         """
@@ -147,7 +151,11 @@ class Attendee(object):
         Clean the build directory.
         """
 
+        LOGGER.info('Cleaning build directory: %s', self.build_path)
+
         rmdir(self.build_path)
+
+        LOGGER.info('Done cleaning build directory for %s.', self)
 
     def create_build(self):
         """
@@ -197,7 +205,7 @@ class Attendee(object):
         build_info = get_unpacker_class_for_type(self.archive_type)(attendee=self).unpack()
 
         if build_info:
-            LOGGER.info('%s unpacked sucessfully.' % self)
+            LOGGER.info('%s unpacked successfully at: %s', self, build_info.get('source_tree_path'))
 
             with open(os.path.join(self.build_path, self.BUILD_FILE), 'w') as build_file:
                 return json.dump(build_info, build_file)
