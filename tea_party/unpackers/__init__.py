@@ -7,6 +7,7 @@ tea_party.unpackers.base_unpacker.BaseUnpacker.
 
 from tea_party.unpackers.base_unpacker import BaseUnpacker
 from tea_party.unpackers.tarball_unpacker import TarballUnpacker
+from tea_party.unpackers.zipfile_unpacker import ZipFileUnpacker
 
 
 class NoSuchUnpackerError(ValueError):
