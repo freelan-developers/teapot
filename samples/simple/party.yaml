@@ -7,5 +7,7 @@ attendees:
         source:
             location: http://sourceforge.net/projects/boost/files/boost/1.54.0/boost_1_54_0.zip/download
             type: application/zip
+    libiconvplus:
+        source: github:freelan-developers/libiconvplus/1.0
 cache: cache
 build: build

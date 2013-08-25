@@ -48,6 +48,8 @@ class HttpFetcher(BaseFetcher):
         archive_type = (mimetype, encoding)
 
         # If the source has an overriden type, we use that instead.
+        extension = None
+
         if self.source._type:
             extension = mimetypes.guess_extension(self.source._type[0])
 
