@@ -270,7 +270,10 @@ class Attendee(object):
         Get the archive type.
         """
 
-        return self.cache.get('archive_type')
+        result = self.cache.get('archive_type')
+
+        if result:
+            return tuple(result)
 
     @property
     def fetched(self):

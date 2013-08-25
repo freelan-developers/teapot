@@ -47,7 +47,12 @@ class HttpFetcher(BaseFetcher):
         encoding = response.headers.get('content-encoding')
         archive_type = (mimetype, encoding)
 
-        extension = mimetypes.guess_extension(mimetype)
+        # If the source has an overriden type, we use that instead.
+        if self.source._type:
+            extension = mimetypes.guess_extension(self.source._type[0])
+
+        if not extension:
+            extension = mimetypes.guess_extension(mimetype)
 
         if not extension:
             LOGGER.debug('No extension registered for this mimetype (%s). Guessing one from the URL...', mimetype)

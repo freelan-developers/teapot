@@ -24,7 +24,7 @@ class NoSuchUnpackerError(ValueError):
             NoSuchUnpackerError,
             self
         ).__init__(
-            'No suitable unpacker found for: %r' % _type
+            'No suitable unpacker found for: %s' % repr(_type)
         )
 
 

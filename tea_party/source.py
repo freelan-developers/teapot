@@ -7,6 +7,31 @@ from tea_party.fetchers import get_fetcher_class_from_shortname, guess_fetcher_i
 from tea_party.fetchers.callbacks import NullFetcherCallback
 
 
+def read_type(_type):
+    """
+    Read a type in different formats.
+
+    If `_type` is a falsy value, nothing is returned.
+
+    If `_type` is a string, a 2-tuple (`_type`, None) will be returned.
+
+    Otherwise `_type` will be assumed to be an iterable. Its size must not
+    exceed 2 elements, and it will be returned as a 2-tuple.
+    """
+
+    if not _type:
+        return
+
+    if isinstance(_type, basestring):
+        return (_type, None)
+
+    if len(_type) == 1:
+        return tuple(_type[0], None)
+    elif len(_type) == 2:
+        return tuple(_type)
+
+    raise ValueError('Incorrect type: %r' % _type)
+
 def make_sources(attendee, sources):
     """
     Build a list of Source instances.
@@ -25,6 +50,7 @@ def make_sources(attendee, sources):
             Source(
                 attendee=attendee,
                 location=unicode(sources),
+                _type=None,
                 fetcher_class=guess_fetcher_instance,
                 fetcher_options={},
             ),
@@ -35,6 +61,7 @@ def make_sources(attendee, sources):
             Source(
                 attendee=attendee,
                 location=sources.get('location'),
+                _type=read_type(sources.get('type')),
                 fetcher_class=get_fetcher_class_from_shortname(
                     sources.get('fetcher')
                 ),
@@ -52,7 +79,7 @@ class Source(object):
     third-party software.
     """
 
-    def __init__(self, attendee, location, fetcher_class, fetcher_options):
+    def __init__(self, attendee, location, _type, fetcher_class, fetcher_options):
         """
         Create a Source instance.
 
@@ -60,6 +87,10 @@ class Source(object):
 
         `location` is the origin of the third-party software archive to get.
         Its format an meaning depends on the associated `fetcher_class`.
+
+        `_type` is a 2-tuple containing the mimetype, and the encoding of the
+        source. If `_type` is falsy, the type will be guessed from the source
+        itself.
 
         `fetcher_options` is a free-format structure that will be passed as a
         parameter to the fetcher on instanciation.
@@ -70,6 +101,7 @@ class Source(object):
 
         self.attendee = attendee
         self.location = location
+        self._type = _type
         self.fetcher_class = fetcher_class
         self.fetcher_options = fetcher_options
         self.__fetcher = None
@@ -112,9 +144,14 @@ class Source(object):
         """
 
         try:
-            return self.fetcher.fetch(
+            cache_info = self.fetcher.fetch(
                 target=root_path,
             )
+
+            if self._type:
+                cache_info['archive_type'] = self._type
+
+            return cache_info
 
         except Exception as ex:
             LOGGER.exception(ex)
