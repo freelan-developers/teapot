@@ -81,6 +81,8 @@ class TarballUnpacker(BaseUnpacker):
 
             if prefix == new_prefix:
                 raise TarballHasNoCommonPrefixError(archive_path=self.archive_path)
+            else:
+                prefix = new_prefix
 
         source_tree_path = os.path.join(self.attendee.build_path, prefix_member.name)
 
