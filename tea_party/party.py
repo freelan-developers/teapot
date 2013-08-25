@@ -157,7 +157,10 @@ class Party(object):
         attendees_to_fetch = [x for x in attendees if not x.fetched]
 
         if not attendees_to_fetch:
-            LOGGER.info('None of the %s archive(s) needs fetching.', len(attendees))
+            if len(attendees) == 1:
+                LOGGER.info('%s was already fetched.', attendees[0])
+            else:
+                LOGGER.info('None of the %s archives needs fetching.', len(attendees))
 
         else:
             LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.attendees))
@@ -181,7 +184,10 @@ class Party(object):
         attendees_to_unpack = [x for x in attendees if not x.unpacked]
 
         if not attendees_to_unpack:
-            LOGGER.info('None of the %s archive(s) needs unpacking.', len(self.attendees))
+            if len(attendees) == 1:
+                LOGGER.info('%s was already unpacked.', attendees[0])
+            else:
+                LOGGER.info('None of the %s archive(s) needs unpacking.', len(attendees))
 
         else:
             LOGGER.info("Unpacking %s/%s archive(s)...", len(attendees_to_unpack), len(self.attendees))
