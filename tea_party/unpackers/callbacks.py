@@ -70,33 +70,35 @@ class NullUnpackerCallbackCallback(BaseUnpackerCallback):
     pass
 
 
-class CurrentFile(Widget):
+class CurrentFile(WidgetHFill):
     """Displays the current file."""
 
-    def __init__(self, unpacker_callback):
+    def __init__(self, unpacker_callback, prefix='', suffix=''):
         """
         Create a current file widget.
         """
 
         self.unpacker_callback = unpacker_callback
-
-    def update(self, pbar):
-        """
-        Update the progress bar.
-        """
-
-        return self.unpacker_callback.current_file
-
-
-class LineFill(WidgetHFill):
-    """Fills the line with blank text."""
+        self.count = 0
+        self.prefix = prefix
+        self.suffix = suffix
 
     def update(self, pbar, width):
         """
         Update the progress bar.
         """
 
-        return ' ' * width
+        if self.unpacker_callback.current_file:
+            result = self.prefix + self.unpacker_callback.current_file + self.suffix
+        else:
+            result = ''
+
+        if len(result) > width:
+            result = result[:width - 3 - len(self.suffix)] + '...' + self.suffix
+        else:
+            result += ' ' * (width - len(result))
+
+        return result
 
 
 class ProgressBarUnpackerCallback(BaseUnpackerCallback):
@@ -109,9 +111,10 @@ class ProgressBarUnpackerCallback(BaseUnpackerCallback):
         The unpack just started.
         """
 
+        self.count = count
         self.current_file = ''
 
-        widgets = [os.path.basename(self.unpacker.archive_path), ': ', SimpleProgress(), ' (', Percentage(), ') - ', CurrentFile(self), LineFill()]
+        widgets = [os.path.basename(self.unpacker.archive_path), ': ', SimpleProgress(), ' (', Percentage(), ')', CurrentFile(self, prefix=' - ')]
         self.progressbar = ProgressBar(widgets=widgets, maxval=count)
         self.progressbar.start()
 
@@ -128,6 +131,8 @@ class ProgressBarUnpackerCallback(BaseUnpackerCallback):
         The unpack finished.
         """
 
+        self.current_file = ''
+        self.progressbar.update(self.count)
         self.progressbar.finish()
 
     def on_exception(self, exception):
