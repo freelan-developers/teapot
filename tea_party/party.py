@@ -164,6 +164,9 @@ class Party(object):
         Unpack the archives.
         """
 
+        if self.auto_fetch:
+            self.fetch(attendees=attendees)
+
         if force:
             map(lambda x: x.clean_build(), self.attendees)
 

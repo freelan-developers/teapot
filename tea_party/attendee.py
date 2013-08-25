@@ -190,9 +190,6 @@ class Attendee(object):
         If the unpacking suceeds, the archive source path is returned.
         """
 
-        if not self.fetched and self.party.auto_fetch:
-            self.fetch()
-
         self.create_build()
 
         LOGGER.info('Unpacking %s...' % self)
