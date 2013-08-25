@@ -165,7 +165,7 @@ class Party(object):
         """
 
         if force:
-            map(lambda x: x.clean_source(), self.attendees)
+            map(lambda x: x.clean_build(), self.attendees)
 
         attendees_to_unpack = [x for x in attendees if not x.unpacked]
 
