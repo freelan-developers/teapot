@@ -76,7 +76,11 @@ class ProgressBarFetcherCallback(BaseFetcherCallback):
         You use a None `size` to indicate that the overall size is unknown.
         """
 
-        widgets = [target, ': ', Bar(marker='#', left='[', right='] '), Percentage(), ' - ', FileTransferSpeed(), ' - ', 'Total size: %s MB' % round(size / (1024 ** 2), 2)]
+        widgets = [target, ': ', Bar(marker='#', left='[', right='] '), Percentage(), ' - ', FileTransferSpeed()]
+
+        if size:
+            widgets.extend([' - ', 'Total size: %s MB' % round(size / (1024 ** 2), 2)])
+
         self.progressbar = ProgressBar(widgets=widgets, maxval=size)
         self.progressbar.start()
 
