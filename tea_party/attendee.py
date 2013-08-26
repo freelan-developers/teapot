@@ -10,6 +10,7 @@ from tea_party.log import LOGGER
 from tea_party.source import make_sources
 from tea_party.path import mkdir, rmdir
 from tea_party.unpackers import get_unpacker_class_for_type
+from tea_party.builders import make_builders
 
 
 def make_attendees(party, data):
@@ -36,6 +37,7 @@ def make_attendee(party, name, attributes):
     )
 
     attendee.sources = make_sources(attendee, attributes.get('source'))
+    attendee.builders = make_builders(attendee, attributes.get('builders'))
 
     return attendee
 
@@ -82,6 +84,7 @@ class Attendee(object):
         self.party = party
         self.name = name
         self.sources = []
+        self.builders = []
         self.depends = depends
 
     def __unicode__(self):
