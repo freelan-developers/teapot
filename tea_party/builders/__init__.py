@@ -2,7 +2,7 @@
 Contains all tea-party builders logic.
 """
 
-from tea_party.builders.filters import get_filter_by_name
+from tea_party.filters import get_filter_by_name
 
 
 def make_builders(attendee, builders):

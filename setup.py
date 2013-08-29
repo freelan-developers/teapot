@@ -9,6 +9,7 @@ setup(
         'tea_party.fetchers',
         'tea_party.unpackers',
         'tea_party.builders',
+        'tea_party.filters',
         'tea_party.defaults',
         'tea_party.tests',
     ],
