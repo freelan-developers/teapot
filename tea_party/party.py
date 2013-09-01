@@ -3,6 +3,7 @@ tea-party 'party' class.
 """
 
 import os
+import imp
 import yaml
 
 from functools import wraps
@@ -29,6 +30,19 @@ def load_party_file(path):
 
     values = yaml.load(data)
 
+    extension_modules = values.get('extension_modules', {})
+
+    # We import the extension modules.
+    #
+    # This has to be done first, or the things defined in those extension
+    # modules won't be accessible to the parsing functions.
+    for name, module_path in extension_modules.items():
+        abs_module_path = os.path.join(os.path.dirname(path), module_path)
+
+        try:
+            imp.load_source(name, abs_module_path)
+        except Exception as ex:
+            LOGGER.error('Unable to load the extension module "%s" at "%s": %s', name, abs_module_path, ex)
 
     party = Party(
         path=path,
