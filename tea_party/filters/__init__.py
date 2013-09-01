@@ -27,7 +27,7 @@ class Filtered(object):
             self.filters = map(get_filter_by_name, filters)
 
     @property
-    def active(self):
+    def enabled(self):
         """
         Check if the instance is filtered out.
         """

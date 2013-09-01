@@ -68,7 +68,7 @@ def has_attendees(func):
         attendees = kwargs.get('attendees', [])
 
         if not attendees:
-            attendees = self.attendees
+            attendees = self.enabled_attendees
         else:
             attendees = map(self.get_attendee_by_name, attendees)
 
@@ -102,6 +102,14 @@ class Party(object):
         self.auto_fetch = True
         self.fetcher_callback_class = ProgressBarFetcherCallback
         self.unpacker_callback_class = ProgressBarUnpackerCallback
+
+    @property
+    def enabled_attendees(self):
+        """
+        Get the list of the enabled attendees.
+        """
+
+        return [attendee for attendee in self.attendees if attendee.enabled]
 
     def get_attendee_by_name(self, name):
         """
@@ -163,7 +171,7 @@ class Party(object):
                 LOGGER.info('None of the %s archives needs fetching.', len(attendees))
 
         else:
-            LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.attendees))
+            LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.enabled_attendees))
 
             map(Attendee.fetch, attendees_to_fetch)
 
@@ -179,7 +187,7 @@ class Party(object):
             self.fetch(attendees=attendees)
 
         if force:
-            map(lambda x: x.clean_build(), self.attendees)
+            map(lambda x: x.clean_build(), self.enabled_attendees)
 
         attendees_to_unpack = [x for x in attendees if not x.unpacked]
 
@@ -190,7 +198,7 @@ class Party(object):
                 LOGGER.info('None of the %s archive(s) needs unpacking.', len(attendees))
 
         else:
-            LOGGER.info("Unpacking %s/%s archive(s)...", len(attendees_to_unpack), len(self.attendees))
+            LOGGER.info("Unpacking %s/%s archive(s)...", len(attendees_to_unpack), len(self.enabled_attendees))
 
             map(Attendee.unpack, attendees_to_unpack)
 
