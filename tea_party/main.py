@@ -49,14 +49,21 @@ def main():
     # The fetch command
     fetch_command_parser = command_parser.add_parser('fetch', help='Fetch all the archives.')
     fetch_command_parser.set_defaults(func=fetch)
-    fetch_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
+    fetch_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to fetch.')
     fetch_command_parser.add_argument('-f', '--force', action='store_true', help='Fetch archives even if they already exist in the cache.')
 
     # The unpack command
     unpack_command_parser = command_parser.add_parser('unpack', help='Unpack all the fetched archives.')
     unpack_command_parser.set_defaults(func=unpack)
-    unpack_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
+    unpack_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to unpack.')
     unpack_command_parser.add_argument('-f', '--force', action='store_true', help='Unpack archives even if they already exist in the build.')
+
+    # The build command
+    build_command_parser = command_parser.add_parser('build', help='Build the archives.')
+    build_command_parser.set_defaults(func=build)
+    build_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to build.')
+    build_command_parser.add_argument('-t', '--tags', metavar='tag', action='append', default=[], help='The tags to build.')
+    build_command_parser.add_argument('-f', '--force', action='store_true', help='Clean build directories before trying to build. archives even if they already exist in the build.')
 
     args = parser.parse_args()
 
@@ -150,5 +157,17 @@ def unpack(party, args):
 
     party.unpack(
         attendees=args.attendees,
+        force=args.force,
+    )
+
+@command
+def build(party, args):
+    """
+    Build the archives.
+    """
+
+    party.build(
+        attendees=args.attendees,
+        tags=args.tags,
         force=args.force,
     )

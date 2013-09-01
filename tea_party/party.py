@@ -217,3 +217,19 @@ class Party(object):
             map(Attendee.unpack, attendees_to_unpack)
 
             LOGGER.info("Done unpacking archives.")
+
+    @has_attendees
+    def build(self, attendees=[], tags=[], force=False):
+        """
+        Build the archives.
+        """
+
+        if self.auto_fetch:
+            self.unpack(attendees=attendees, force=force)
+
+        LOGGER.info("Building %s archive(s)...", len(attendees))
+
+        for attendee in attendees:
+            attendee.build(tags=tags)
+
+        LOGGER.info("Done building archives.")

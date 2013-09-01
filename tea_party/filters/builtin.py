@@ -4,6 +4,7 @@ The built-in filters.
 
 import os
 import sys
+import distutils
 
 from tea_party.filters.decorators import named_filter
 
@@ -47,3 +48,11 @@ def msvc():
     """
 
     return 'VCINSTALLDIR' in os.environ
+
+@named_filter('mingw', depends='windows')
+def mingw():
+    """
+    Check if MinGW is available.
+    """
+
+    return bool(distutils.spawn.find_executable('gcc'))

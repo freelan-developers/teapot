@@ -62,6 +62,22 @@ def make_depends(depends):
     return depends
 
 
+class NoSuchBuilderError(ValueError):
+
+    """
+    The specified builder does not exist.
+    """
+
+    def __init__(self, tag):
+        """
+        Create an NoSuchBuilderError for the specified `tag`.
+        """
+
+        super(NoSuchBuilderError, self).__init__(
+            'No builder found with that tag: %s' % tag
+        )
+
+
 class Attendee(Filtered):
 
     """
@@ -135,6 +151,18 @@ class Attendee(Filtered):
             self.depends,
         )
 
+    def get_builders_by_tag(self, tag):
+        """
+        Get all the enabled builders that match the specified tag.
+
+        If no builder has the specified tag, a NoSuchBuilderError is raised.
+        """
+
+        result = [builder for builder in self.enabled_builders if tag in builder.tags]
+
+        if not result:
+            raise NoSuchBuilderError(tag=tag)
+
     @property
     def cache_path(self):
         """
@@ -197,7 +225,7 @@ class Attendee(Filtered):
 
         self.create_cache()
 
-        LOGGER.info('Fetching %s...' % self)
+        LOGGER.info('Fetching %s...', self)
 
         if not self.enabled_sources:
             raise RuntimeError('No active source found for %s' % self.name)
@@ -208,7 +236,7 @@ class Attendee(Filtered):
             cache_info = source.fetch(root_path=self.cache_path)
 
             if cache_info:
-                LOGGER.info('%s fetched sucessfully.' % self)
+                LOGGER.info('%s fetched sucessfully.', self)
 
                 with open(os.path.join(self.cache_path, self.CACHE_FILE), 'w') as cache_file:
                     return json.dump(cache_info, cache_file)
@@ -226,7 +254,7 @@ class Attendee(Filtered):
 
         self.create_build()
 
-        LOGGER.info('Unpacking %s...' % self)
+        LOGGER.info('Unpacking %s...', self)
 
         build_info = get_unpacker_class_for_type(self.archive_type)(attendee=self).unpack()
 
@@ -236,8 +264,27 @@ class Attendee(Filtered):
             with open(os.path.join(self.build_path, self.BUILD_FILE), 'w') as build_file:
                 return json.dump(build_info, build_file)
 
+    def build(self, tags=None):
+        """
+        Build the attendee, with the builders that match `tags`, if any.
+        """
+
+        if not tags:
+            builders = self.enabled_builders
+        else:
+            builders = map(self.get_builders_by_tag, tags)
+
+        self.create_build()
+
+        LOGGER.info('Building %s with %s builder(s)...', self, len(builders))
+
+        for builder in builders:
+            LOGGER.info('Starting build for %s using builder "%s"...', self, builder)
+
+        LOGGER.info('%s was built successfully.', self)
+
     @property
-    def cache(self):
+    def cache_info(self):
         """
         Get the associated cache info.
 
@@ -260,7 +307,7 @@ class Attendee(Filtered):
         return {}
 
     @property
-    def build(self):
+    def build_info(self):
         """
         Get the associated build info.
 
@@ -288,7 +335,7 @@ class Attendee(Filtered):
         Get the archive path.
         """
 
-        return self.cache.get('archive_path')
+        return self.cache_info.get('archive_path')
 
     @property
     def archive_type(self):
@@ -296,7 +343,7 @@ class Attendee(Filtered):
         Get the archive type.
         """
 
-        result = self.cache.get('archive_type')
+        result = self.cache_info.get('archive_type')
 
         if result:
             return tuple(result)
@@ -319,7 +366,7 @@ class Attendee(Filtered):
         Get the source tree path.
         """
 
-        return self.build.get('source_tree_path')
+        return self.build_info.get('source_tree_path')
 
     @property
     def unpacked(self):

@@ -20,14 +20,22 @@ def make_builder(attendee, name, attributes):
     Make a builder from its attributes.
     """
 
+    if not attributes:
+        attributes = {}
+
+    tags = attributes.get('tags')
+
+    if not tags:
+        tags = []
+    elif isinstance(tags, basestring):
+        tags = [tags]
+
     command = attributes.get('command')
 
     if not command:
         command = None
     elif isinstance(command, basestring):
         command = [command]
-    else:
-        command = command
 
     script = attributes.get('script')
 
@@ -39,6 +47,7 @@ def make_builder(attendee, name, attributes):
     return Builder(
         attendee=attendee,
         name=name,
+        tags=tags,
         command=command,
         script=script,
         filters=filters,
@@ -52,9 +61,11 @@ class Builder(Filtered):
     A Builder represents a way to build an attendee.
     """
 
-    def __init__(self, attendee, name, command=None, script=None, filters=[], directory=None):
+    def __init__(self, attendee, name, tags, command=None, script=None, filters=[], directory=None):
         """
         Initialize a builder attached to `attendee` with the specified `name`.
+
+        A builder may have `tags`, which must be a list of strings.
 
         You may specify either `command`, a list of commands to call for the
         build to take place, or `script`, an executable file to launch that
@@ -75,8 +86,30 @@ class Builder(Filtered):
 
         self.attendee = attendee
         self.name = name
+        self.tags = tags
         self.command = command or None
         self.script = script or None
         self.directory = directory or None
 
         Filtered.__init__(self, filters=filters)
+
+    def __str__(self):
+        """
+        Get the name of the builder.
+        """
+
+        return self.name
+
+    def __repr__(self):
+        """
+        Get a representation of the builder.
+        """
+
+        return '<%s.%s(name=%r, tags=%r, command=%r, script=%r)>' % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.name,
+            self.tags,
+            self.command,
+            self.script,
+        )
