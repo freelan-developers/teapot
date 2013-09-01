@@ -2,77 +2,34 @@
 The filters.
 """
 
+from tea_party.filters.builtin import *
+from tea_party.filters.decorators import get_filter_by_name
 
-FILTERS = {}
 
-class InvalidFilterError(ValueError):
-
+class Filtered(object):
     """
-    No filter exists with the specified name.
-    """
-
-    def __init__(self, name):
-        """
-        Create an InvalidFilterError for the specified filter `name`.
-        """
-
-        super(InvalidFilterError, self).__init__(
-            'No filter with the specified name: %s' % name
-            )
-
-
-class DuplicateFilterError(ValueError):
-
-    """
-    Another filter with the same name exists.
+    Inherit from this class when your object can be disabled by filters.
     """
 
-    def __init__(self, name):
+    def __init__(self, filters=[]):
         """
-        Create a DuplicateFilterError for the specified filter `name`.
-        """
+        Set the `filters` to check.
 
-        super(DuplicateFilterError, self).__init__(
-            'Another filter was already registered with the name %r' % name
-            )
-
-
-class register_filter(object):
-
-    """
-    Registers a function to be a filter.
-    """
-
-    def __init__(self, name, override=False):
-        """
-        Registers the function with the specified name.
-
-        If another function was registered with the same name, a
-        DuplicateFilterError will be raised, unless `override` is truthy.
+        `filters` can be None, a string, or a list of strings that will be
+        resolved.
         """
 
-        if name in FILTERS and not override:
-            raise DuplicateFilterError(name)
+        if not filters:
+            self.filters = []
+        elif isinstance(filters, basestring):
+            self.filters = [get_filter_by_name(filters)]
+        else:
+            self.filters = map(get_filter_by_name, filters)
 
-        self.name = name
-
-    def __call__(self, func):
+    @property
+    def active(self):
         """
-        Registers the function and returns it unchanged.
+        Check if the instance is filtered out.
         """
 
-        FILTERS[self.name] = func
-
-        return func
-
-def get_filter_by_name(name):
-    """
-    Get a filter by name.
-
-    If no filter matches the specified name, an InvalidFilterError is raised.
-    """
-
-    if not name in FILTERS:
-        raise InvalidFilterError(name=name)
-
-    return FILTERS[name]
+        return all(f() for f in self.filters)

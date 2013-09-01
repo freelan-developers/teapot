@@ -5,6 +5,7 @@ tea-party 'Source' class.
 from tea_party.log import LOGGER
 from tea_party.fetchers import get_fetcher_class_from_shortname, guess_fetcher_instance
 from tea_party.fetchers.callbacks import NullFetcherCallback
+from tea_party.filters import Filtered
 
 
 def read_type(_type):
@@ -66,20 +67,21 @@ def make_sources(attendee, sources):
                     sources.get('fetcher')
                 ),
                 fetcher_options=sources.get('fetcher_options'),
+                filters=sources.get('filters'),
             ),
         ]
 
     return sum(map(lambda x: make_sources(attendee, x), sources), [])
 
 
-class Source(object):
+class Source(Filtered):
 
     """
     A Source instance holds information about where and how to get a
     third-party software.
     """
 
-    def __init__(self, attendee, location, _type, fetcher_class, fetcher_options):
+    def __init__(self, attendee, location, _type, fetcher_class, fetcher_options, filters=[]):
         """
         Create a Source instance.
 
@@ -94,6 +96,9 @@ class Source(object):
 
         `fetcher_options` is a free-format structure that will be passed as a
         parameter to the fetcher on instanciation.
+
+        `filters` is a list of filters that must be truth for the source to be
+        active.
         """
 
         if not attendee:
@@ -105,6 +110,8 @@ class Source(object):
         self.fetcher_class = fetcher_class
         self.fetcher_options = fetcher_options
         self.__fetcher = None
+
+        Filtered.__init__(self, filters=filters)
 
     def __repr__(self):
         """

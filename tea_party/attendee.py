@@ -11,6 +11,7 @@ from tea_party.source import make_sources
 from tea_party.path import mkdir, rmdir
 from tea_party.unpackers import get_unpacker_class_for_type
 from tea_party.builders import make_builders
+from tea_party.filters import Filtered
 
 
 def make_attendees(party, data):
@@ -34,6 +35,7 @@ def make_attendee(party, name, attributes):
         party=party,
         name=name,
         depends=make_depends(attributes.get('depends')),
+        filters=attributes.get('filters'),
     )
 
     attendee.sources = make_sources(attendee, attributes.get('source'))
@@ -60,7 +62,7 @@ def make_depends(depends):
     return depends
 
 
-class Attendee(object):
+class Attendee(Filtered):
 
     """
     An `Attendee` instance holds information about an attendee (third-party
@@ -70,7 +72,7 @@ class Attendee(object):
     CACHE_FILE = 'cache.json'
     BUILD_FILE = 'build.json'
 
-    def __init__(self, party, name, depends):
+    def __init__(self, party, name, depends, filters=[]):
         """
         Create an attendee associated to a `party`.
 
@@ -86,6 +88,8 @@ class Attendee(object):
         self.sources = []
         self.builders = []
         self.depends = depends
+
+        Filtered.__init__(self, filters=filters)
 
     def __unicode__(self):
         """

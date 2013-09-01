@@ -2,7 +2,7 @@
 Contains all tea-party builders logic.
 """
 
-from tea_party.filters import get_filter_by_name
+from tea_party.filters import Filtered
 
 
 def make_builders(attendee, builders):
@@ -36,13 +36,6 @@ def make_builder(attendee, name, attributes):
 
     filters = attributes.get('filters')
 
-    if not filters:
-        filters = []
-    elif isinstance(filters, basestring):
-        filters = [get_filter_by_name(filters)]
-    else:
-        filters = map(get_filter_by_name, filters)
-
     return Builder(
         attendee=attendee,
         name=name,
@@ -53,7 +46,7 @@ def make_builder(attendee, name, attributes):
     )
 
 
-class Builder(object):
+class Builder(Filtered):
 
     """
     A Builder represents a way to build an attendee.
@@ -84,5 +77,6 @@ class Builder(object):
         self.name = name
         self.command = command or None
         self.script = script or None
-        self.filters = filters
         self.directory = directory or None
+
+        Filtered.__init__(self, filters=filters)
