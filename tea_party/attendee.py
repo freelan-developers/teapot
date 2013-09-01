@@ -91,6 +91,22 @@ class Attendee(Filtered):
 
         Filtered.__init__(self, filters=filters)
 
+    @property
+    def enabled_sources(self):
+        """
+        Get the list of the enabled sources.
+        """
+
+        return [source for source in self.sources if source.enabled]
+
+    @property
+    def enabled_builders(self):
+        """
+        Get the list of the enabled builders.
+        """
+
+        return [builder for builder in self.builders if builder.enabled]
+
     def __unicode__(self):
         """
         Get a unicode representation of the attendee.
@@ -183,7 +199,10 @@ class Attendee(Filtered):
 
         LOGGER.info('Fetching %s...' % self)
 
-        for source in self.sources:
+        if not self.enabled_sources:
+            raise RuntimeError('No active source found for %s' % self.name)
+
+        for source in self.enabled_sources:
             LOGGER.info('Trying from %s...', source)
 
             cache_info = source.fetch(root_path=self.cache_path)
