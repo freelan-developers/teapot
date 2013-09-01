@@ -89,7 +89,10 @@ class ProgressBarFetcherCallback(BaseFetcherCallback):
         The fetch was updated.
         """
 
-        self.progressbar.update(progress)
+        try:
+            self.progressbar.update(progress)
+        except ValueError:
+            pass
 
     def on_finish(self):
         """
