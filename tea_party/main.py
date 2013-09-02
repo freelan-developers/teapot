@@ -9,7 +9,7 @@ import logging
 
 from functools import wraps
 
-from tea_party.log import LOGGER
+from tea_party.log import LOGGER, ColorizingStreamHandler
 from tea_party.party import load_party_file
 
 
@@ -67,11 +67,16 @@ def main():
 
     args = parser.parse_args()
 
+    handler = ColorizingStreamHandler(sys.stdout)
+    formatter = logging.Formatter('%(message)s')
+    handler.setFormatter(formatter)
+
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().addHandler(handler)
+        logging.getLogger().setLevel(logging.DEBUG)
     else:
-        logging.basicConfig(format='%(message)s', level=logging.INFO)
-        logging.getLogger('requests').setLevel(logging.WARNING)
+        LOGGER.addHandler(handler)
+        LOGGER.setLevel(logging.INFO)
 
     if args.party_file is None:
         args.party_file = os.path.join(os.getcwd(), 'party.yaml')
