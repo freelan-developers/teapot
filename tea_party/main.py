@@ -23,6 +23,7 @@ def main():
     )
 
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output.')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Be more explicit about what happens.')
 
     command_parser = parser.add_subparsers(help='The available commands.')
     parser.add_argument('-p', '--party-file', default=None, help='The party-file to read.')
@@ -176,5 +177,6 @@ def build(party, args):
     party.build(
         attendees=args.attendees,
         tags=args.tags,
+        verbose=args.verbose,
         force=args.force,
     )

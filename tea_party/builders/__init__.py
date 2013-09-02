@@ -3,7 +3,9 @@ Contains all tea-party builders logic.
 """
 
 import os
+import sys
 import math
+from StringIO import StringIO
 import subprocess
 
 from tea_party.log import LOGGER
@@ -105,7 +107,7 @@ class Builder(Filtered):
             self.commands,
         )
 
-    def build(self):
+    def build(self, verbose=False):
         """
         Build the attendee.
         """
@@ -125,11 +127,17 @@ class Builder(Filtered):
 
                 process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-                output, error = process.communicate()
+                output_file = StringIO()
 
-                LOGGER.info(output)
+                for line in iter(process.stdout.readline, ''):
+                    output_file.write(line)
+
+                    if verbose:
+                        sys.stdout.write(line)
+
+                process.wait()
 
                 if process.returncode != 0:
-                    raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command, output=output)
+                    raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command)
         finally:
             os.chdir(current_dir)

@@ -264,7 +264,7 @@ class Attendee(Filtered):
             with open(os.path.join(self.build_path, self.BUILD_FILE), 'w') as build_file:
                 return json.dump(build_info, build_file)
 
-    def build(self, tags=None):
+    def build(self, tags=None, verbose=False):
         """
         Build the attendee, with the builders that match `tags`, if any.
         """
@@ -284,7 +284,7 @@ class Attendee(Filtered):
             for builder in builders:
                 try:
                     LOGGER.info('Starting build for %s using builder "%s"...', self, builder)
-                    builder.build()
+                    builder.build(verbose=verbose)
 
                 except Exception as ex:
                     LOGGER.error('Error while building %s: %s', self, ex)

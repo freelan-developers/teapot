@@ -1,13 +1,20 @@
 attendees:
     libiconv:
         source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+        builders:
+            unix:
+                filters: unix
+                commands:
+                    - ./configure
+                    - make
+                #command: ./configure && make && make install --prefix=%PREFIX%
     libcurl:
         source: http://curl.haxx.se/download/curl-7.32.0.tar.bz2
         builders:
             windows:
                 filters: msvc
                 directory: winbuild
-                command: nmake /f Makefile.vc mode=static
+                commands: nmake /f Makefile.vc mode=static
     boost:
         source:
             location: http://sourceforge.net/projects/boost/files/boost/1.54.0/boost_1_54_0.zip/download
