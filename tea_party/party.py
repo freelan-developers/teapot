@@ -201,7 +201,7 @@ class Party(object):
             self.fetch(attendees=attendees)
 
         if force:
-            map(lambda x: x.clean_build(), self.enabled_attendees)
+            map(lambda x: x.clean_build(), attendees)
 
         attendees_to_unpack = [x for x in attendees if not x.unpacked]
 
