@@ -276,12 +276,15 @@ class Attendee(Filtered):
 
         self.create_build()
 
-        LOGGER.info('Building %s with %s builder(s)...', self, len(builders))
+        if not builders:
+            LOGGER.warning('Not building %s because no builder matches the current settings.', self)
+        else:
+            LOGGER.info('Building %s with %s builder(s)...', self, len(builders))
 
-        for builder in builders:
-            LOGGER.info('Starting build for %s using builder "%s"...', self, builder)
+            for builder in builders:
+                LOGGER.info('Starting build for %s using builder "%s"...', self, builder)
 
-        LOGGER.info('%s was built successfully.', self)
+            LOGGER.info('%s was built successfully.', self)
 
     @property
     def cache_info(self):
