@@ -8,6 +8,28 @@ import logging
 LOGGER = logging.getLogger('tea-party')
 LOGGER.addHandler(logging.NullHandler())
 
+logging.IMPORTANT = logging.INFO + 1
+logging.SUCCESS = logging.IMPORTANT + 1
+logging.addLevelName(logging.IMPORTANT, 'IMPORTANT')
+logging.addLevelName(logging.SUCCESS, 'SUCCESS')
+
+def important(self, message, *args, **kwargs):
+    """
+    Outputs an important log.
+    """
+
+    self._log(logging.IMPORTANT, message, args, **kwargs)
+
+def success(self, message, *args, **kwargs):
+    """
+    Outputs a success log.
+    """
+
+    self._log(logging.SUCCESS, message, args, **kwargs)
+
+logging.Logger.important = important
+logging.Logger.success = success
+
 try:
     import colorama
 
@@ -18,6 +40,8 @@ try:
 
         COLOR_MAP = {
             logging.DEBUG: colorama.Style.DIM + colorama.Fore.CYAN,
+            logging.IMPORTANT: colorama.Style.BRIGHT,
+            logging.SUCCESS: colorama.Style.BRIGHT + colorama.Fore.GREEN,
             logging.WARNING: colorama.Fore.YELLOW,
             logging.ERROR: colorama.Fore.RED,
             logging.CRITICAL: colorama.Back.RED,

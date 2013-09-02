@@ -236,7 +236,7 @@ class Attendee(Filtered):
             cache_info = source.fetch(root_path=self.cache_path)
 
             if cache_info:
-                LOGGER.info('%s fetched sucessfully.', self)
+                LOGGER.success('%s fetched successfully.', self)
 
                 with open(os.path.join(self.cache_path, self.CACHE_FILE), 'w') as cache_file:
                     return json.dump(cache_info, cache_file)
@@ -259,7 +259,7 @@ class Attendee(Filtered):
         build_info = get_unpacker_class_for_type(self.archive_type)(attendee=self).unpack()
 
         if build_info:
-            LOGGER.info('%s unpacked successfully at: %s', self, build_info.get('source_tree_path'))
+            LOGGER.success('%s unpacked successfully at: %s', self, build_info.get('source_tree_path'))
 
             with open(os.path.join(self.build_path, self.BUILD_FILE), 'w') as build_file:
                 return json.dump(build_info, build_file)
@@ -291,7 +291,7 @@ class Attendee(Filtered):
 
                     raise
 
-            LOGGER.info('%s was built successfully.', self)
+            LOGGER.success('%s was built successfully.', self)
 
     @property
     def cache_info(self):

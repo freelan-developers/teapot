@@ -123,7 +123,7 @@ class Builder(Filtered):
             os.chdir(source_tree_path)
 
             for index, command in enumerate(self.commands):
-                LOGGER.info('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
+                LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
 
                 process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
