@@ -2,6 +2,11 @@
 Contains all tea-party builders logic.
 """
 
+import os
+import math
+import subprocess
+
+from tea_party.log import LOGGER
 from tea_party.filters import Filtered
 
 
@@ -30,17 +35,10 @@ def make_builder(attendee, name, attributes):
     elif isinstance(tags, basestring):
         tags = [tags]
 
-    command = attributes.get('command')
+    commands = attributes.get('commands', [])
 
-    if not command:
-        command = None
-    elif isinstance(command, basestring):
-        command = [command]
-
-    script = attributes.get('script')
-
-    if not script:
-        script = None
+    if isinstance(commands, basestring):
+        commands = [commands]
 
     filters = attributes.get('filters')
 
@@ -48,8 +46,7 @@ def make_builder(attendee, name, attributes):
         attendee=attendee,
         name=name,
         tags=tags,
-        command=command,
-        script=script,
+        commands=commands,
         filters=filters,
         directory=attributes.get('directory'),
     )
@@ -61,34 +58,29 @@ class Builder(Filtered):
     A Builder represents a way to build an attendee.
     """
 
-    def __init__(self, attendee, name, tags, command=None, script=None, filters=[], directory=None):
+    def __init__(self, attendee, name, tags, commands, filters=[], directory=None):
         """
         Initialize a builder attached to `attendee` with the specified `name`.
 
         A builder may have `tags`, which must be a list of strings.
 
-        You may specify either `command`, a list of commands to call for the
-        build to take place, or `script`, an executable file to launch that
-        will build everything.
-
-        Specifying both will raise a ValueError.
+        You must specify `commands`, a list of commands to call for the build to
+        take place.
 
         `filters` is a list of filters that must all validate in order for the
         build to be active in the current environment.
 
         `directory`, if specified, is a directory relative to the source root,
-        where to go before issuing the build command or calling the build
-        script.
+        where to go before issuing the build commands.
         """
 
-        if command and script:
-            raise ValueError('You may only specify only one of `command` or `script`.')
+        if not commands:
+            raise ValueError('A builder must have at least one command.')
 
         self.attendee = attendee
         self.name = name
         self.tags = tags
-        self.command = command or None
-        self.script = script or None
+        self.commands = commands or []
         self.directory = directory or None
 
         Filtered.__init__(self, filters=filters)
@@ -105,11 +97,39 @@ class Builder(Filtered):
         Get a representation of the builder.
         """
 
-        return '<%s.%s(name=%r, tags=%r, command=%r, script=%r)>' % (
+        return '<%s.%s(name=%r, tags=%r, commands=%r)>' % (
             self.__class__.__module__,
             self.__class__.__name__,
             self.name,
             self.tags,
-            self.command,
-            self.script,
+            self.commands,
         )
+
+    def build(self):
+        """
+        Build the attendee.
+        """
+
+        current_dir = os.getcwd()
+
+        try:
+            if self.directory:
+                source_tree_path = os.path.join(self.attendee.source_tree_path, self.directory)
+            else:
+                source_tree_path = self.attendee.source_tree_path
+
+            os.chdir(source_tree_path)
+
+            for index, command in enumerate(self.commands):
+                LOGGER.info('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
+
+                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+                output, error = process.communicate()
+
+                LOGGER.info(output)
+
+                if process.returncode != 0:
+                    raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command, output=output)
+        finally:
+            os.chdir(current_dir)

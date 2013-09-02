@@ -282,7 +282,14 @@ class Attendee(Filtered):
             LOGGER.info('Building %s with %s builder(s)...', self, len(builders))
 
             for builder in builders:
-                LOGGER.info('Starting build for %s using builder "%s"...', self, builder)
+                try:
+                    LOGGER.info('Starting build for %s using builder "%s"...', self, builder)
+                    builder.build()
+
+                except Exception as ex:
+                    LOGGER.error('Error while building %s: %s', self, ex)
+
+                    raise
 
             LOGGER.info('%s was built successfully.', self)
 

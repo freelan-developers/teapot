@@ -93,13 +93,15 @@ def command(func):
     """
 
     @wraps(func)
-    def decorated(*args, **kwargs):
+    def decorated(party, args, **kwargs):
         try:
-            func(*args, **kwargs)
+            func(party, args, **kwargs)
 
             return True
+
         except Exception as ex:
-            LOGGER.exception(ex)
+            if args.debug:
+                LOGGER.exception(ex)
 
             return False
 
