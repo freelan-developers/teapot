@@ -2,6 +2,7 @@
 The tea-party logging facilities.
 """
 
+import re
 import logging
 
 
@@ -33,6 +34,13 @@ logging.Logger.success = success
 try:
     import colorama
 
+    def highlighted(msg):
+        """
+        Returns a highlighted version of `msg`.
+        """
+
+        return '<[{%s}]>' % msg
+
     class ColorizingStreamHandler(logging.StreamHandler):
         """
         A logging handler that colorizes its output.
@@ -41,7 +49,7 @@ try:
         COLOR_MAP = {
             logging.DEBUG: colorama.Style.DIM + colorama.Fore.CYAN,
             logging.IMPORTANT: colorama.Style.BRIGHT,
-            logging.SUCCESS: colorama.Style.BRIGHT + colorama.Fore.GREEN,
+            logging.SUCCESS: colorama.Fore.GREEN,
             logging.WARNING: colorama.Fore.YELLOW,
             logging.ERROR: colorama.Fore.RED,
             logging.CRITICAL: colorama.Back.RED,
@@ -68,9 +76,23 @@ try:
             message = super(ColorizingStreamHandler, self).format(record)
 
             if self.is_tty:
-                message = '%s%s%s' % (self.COLOR_MAP.get(record.levelno, ''), message, colorama.Style.RESET_ALL)
+                highlight_color = self.COLOR_MAP.get(logging.IMPORTANT)
+                color = self.COLOR_MAP.get(record.levelno, '')
+                reset = colorama.Style.RESET_ALL
+                message = re.sub('<\[\{(.*?)\}\]>', lambda m: highlight_color + m.group(1) + reset + color, message)
+                message = '%s%s%s' % (color, message, reset)
+            else:
+                message = re.sub('<\[\{(.*?)\}\]>', lambda m: m.group(1), message)
 
             return message
 
 except ImportError:
+
+    def highlighted(msg):
+        """
+        Returns a highlighted version of `msg`.
+        """
+
+        return msg
+
     ColorizingStreamHandler = logging.StreamHandler

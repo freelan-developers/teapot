@@ -6,7 +6,7 @@ import os
 import json
 import errno
 
-from tea_party.log import LOGGER
+from tea_party.log import LOGGER, highlighted
 from tea_party.source import make_sources
 from tea_party.path import mkdir, rmdir
 from tea_party.unpackers import get_unpacker_class_for_type
@@ -176,11 +176,11 @@ class Attendee(Filtered):
         Clean the cache directory.
         """
 
-        LOGGER.info('Cleaning cache directory: %s', self.build_path)
+        LOGGER.info('Cleaning cache directory: %s', highlighted(self.build_path))
 
         rmdir(self.cache_path)
 
-        LOGGER.info('Done cleaning cache directory for %s.', self)
+        LOGGER.info('Done cleaning cache directory for %s.', highlighted(self))
 
     def create_cache(self):
         """
@@ -202,11 +202,11 @@ class Attendee(Filtered):
         Clean the build directory.
         """
 
-        LOGGER.info('Cleaning build directory: %s', self.build_path)
+        LOGGER.info('Cleaning build directory: %s', highlighted(self.build_path))
 
         rmdir(self.build_path)
 
-        LOGGER.info('Done cleaning build directory for %s.', self)
+        LOGGER.info('Done cleaning build directory for %s.', highlighted(self))
 
     def create_build(self):
         """
@@ -225,18 +225,18 @@ class Attendee(Filtered):
 
         self.create_cache()
 
-        LOGGER.info('Fetching %s...', self)
+        LOGGER.info('Fetching %s...', highlighted(self))
 
         if not self.enabled_sources:
             raise RuntimeError('No active source found for %s' % self.name)
 
         for source in self.enabled_sources:
-            LOGGER.info('Trying from %s...', source)
+            LOGGER.info('Trying from %s...', highlighted(source))
 
             cache_info = source.fetch(root_path=self.cache_path)
 
             if cache_info:
-                LOGGER.success('%s fetched successfully.', self)
+                LOGGER.success('%s fetched successfully.', highlighted(self))
 
                 with open(os.path.join(self.cache_path, self.CACHE_FILE), 'w') as cache_file:
                     return json.dump(cache_info, cache_file)
@@ -254,12 +254,12 @@ class Attendee(Filtered):
 
         self.create_build()
 
-        LOGGER.info('Unpacking %s...', self)
+        LOGGER.info('Unpacking %s...', highlighted(self))
 
         build_info = get_unpacker_class_for_type(self.archive_type)(attendee=self).unpack()
 
         if build_info:
-            LOGGER.success('%s unpacked successfully at: %s', self, build_info.get('source_tree_path'))
+            LOGGER.success('%s unpacked successfully at: %s', highlighted(self), highlighted(build_info.get('source_tree_path')))
 
             with open(os.path.join(self.build_path, self.BUILD_FILE), 'w') as build_file:
                 return json.dump(build_info, build_file)
@@ -277,21 +277,21 @@ class Attendee(Filtered):
         self.create_build()
 
         if not builders:
-            LOGGER.warning('Not building %s because no builder matches the current settings.', self)
+            LOGGER.warning('Not building %s because no builder matches the current settings.', highlighted(self))
         else:
-            LOGGER.info('Building %s with %s builder(s)...', self, len(builders))
+            LOGGER.info('Building %s with %s builder(s)...', highlighted(self), len(builders))
 
             for builder in builders:
                 try:
-                    LOGGER.info('Starting build for %s using builder "%s"...', self, builder)
+                    LOGGER.info('Starting build for %s using builder "%s"...', highlighted(self), highlighted(builder))
                     builder.build(verbose=verbose)
 
                 except Exception as ex:
-                    LOGGER.error('Error while building %s: %s', self, ex)
+                    LOGGER.error('Error while building %s: %s', highlighted(self), ex)
 
                     raise
 
-            LOGGER.success('%s was built successfully.', self)
+            LOGGER.success('%s was built successfully.', highlighted(self))
 
     @property
     def cache_info(self):
@@ -365,10 +365,10 @@ class Attendee(Filtered):
         """
 
         if self.archive_path and os.path.isfile(self.archive_path):
-            LOGGER.debug('%s was already fetched.', self)
+            LOGGER.debug('%s was already fetched.', highlighted(self))
             return True
 
-        LOGGER.debug('%s needs fetching.', self)
+        LOGGER.debug('%s needs fetching.', highlighted(self))
 
     @property
     def source_tree_path(self):
@@ -385,7 +385,7 @@ class Attendee(Filtered):
         """
 
         if self.source_tree_path and os.path.isdir(self.source_tree_path):
-            LOGGER.debug('%s was already unpacked.', self)
+            LOGGER.debug('%s was already unpacked.', highlighted(self))
             return True
 
-        LOGGER.debug('%s needs unpacking.', self)
+        LOGGER.debug('%s needs unpacking.', highlighted(self))

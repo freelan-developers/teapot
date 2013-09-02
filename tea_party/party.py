@@ -8,7 +8,7 @@ import yaml
 
 from functools import wraps
 
-from tea_party.log import LOGGER
+from tea_party.log import LOGGER, highlighted
 from tea_party.attendee import Attendee, make_attendees
 from tea_party.path import read_path, rmdir
 from tea_party.defaults import *
@@ -23,7 +23,7 @@ def load_party_file(path):
     `path` must be a valid party-file name.
     """
 
-    LOGGER.debug('Opening party-file at %s...' % path)
+    LOGGER.debug('Opening party-file at %s...', highlighted(path))
 
     with open(path) as party_file:
         data = party_file.read()
@@ -42,7 +42,7 @@ def load_party_file(path):
         try:
             imp.load_source(name, abs_module_path)
         except Exception as ex:
-            LOGGER.error('Unable to load the extension module "%s" at "%s": %s', name, abs_module_path, ex)
+            LOGGER.error('Unable to load the extension module "%s" at "%s": %s', highlighted(name), highlighted(abs_module_path), ex)
 
     party = Party(
         path=path,
@@ -148,7 +148,7 @@ class Party(object):
         disk space.
         """
 
-        LOGGER.info('Cleaning the cache directory for: %s', ', '.join(map(str, attendees)))
+        LOGGER.info('Cleaning the cache directory for: %s', highlighted(', '.join(map(str, attendees))))
 
         map(Attendee.clean_cache, attendees)
 
@@ -161,7 +161,7 @@ class Party(object):
         disk space.
         """
 
-        LOGGER.info('Cleaning the build directory for: %s', ', '.join(map(str, attendees)))
+        LOGGER.info('Cleaning the build directory for: %s', highlighted(', '.join(map(str, attendees))))
 
         map(Attendee.clean_build, attendees)
 
@@ -180,7 +180,7 @@ class Party(object):
 
         if not attendees_to_fetch:
             if len(attendees) == 1:
-                LOGGER.info('%s was already fetched.', attendees[0])
+                LOGGER.info('%s was already fetched.', highlighted(attendees[0]))
             else:
                 LOGGER.info('None of the %s archives needs fetching.', len(attendees))
 
@@ -207,7 +207,7 @@ class Party(object):
 
         if not attendees_to_unpack:
             if len(attendees) == 1:
-                LOGGER.info('%s was already unpacked.', attendees[0])
+                LOGGER.info('%s was already unpacked.', highlighted(attendees[0]))
             else:
                 LOGGER.info('None of the %s archive(s) needs unpacking.', len(attendees))
 
