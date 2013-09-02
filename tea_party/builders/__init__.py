@@ -5,7 +5,6 @@ Contains all tea-party builders logic.
 import os
 import sys
 import math
-from StringIO import StringIO
 import subprocess
 
 from tea_party.log import LOGGER
@@ -127,10 +126,10 @@ class Builder(Filtered):
 
                 process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-                output_file = StringIO()
+                output = ''
 
                 for line in iter(process.stdout.readline, ''):
-                    output_file.write(line)
+                    output += line
 
                     if verbose:
                         sys.stdout.write(line)
@@ -138,6 +137,9 @@ class Builder(Filtered):
                 process.wait()
 
                 if process.returncode != 0:
+                    if not verbose:
+                        sys.stderr.write(output)
+
                     raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command)
         finally:
             os.chdir(current_dir)
