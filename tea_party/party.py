@@ -8,7 +8,8 @@ import yaml
 
 from functools import wraps
 
-from tea_party.log import LOGGER, hl
+from tea_party.log import LOGGER
+from tea_party.log import Highlight as hl
 from tea_party.attendee import Attendee, make_attendees
 from tea_party.path import read_path, rmdir
 from tea_party.defaults import *

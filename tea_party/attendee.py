@@ -6,7 +6,8 @@ import os
 import json
 import errno
 
-from tea_party.log import LOGGER, hl
+from tea_party.log import LOGGER
+from tea_party.log import Highlight as hl
 from tea_party.source import make_sources
 from tea_party.path import mkdir, rmdir
 from tea_party.unpackers import get_unpacker_class_for_type

@@ -2,7 +2,6 @@
 The tea-party logging facilities.
 """
 
-import re
 import sys
 import logging
 import colorama
@@ -11,6 +10,7 @@ import colorama
 LOGGER = logging.getLogger('tea-party')
 LOGGER.addHandler(logging.NullHandler())
 
+# Add new log levels
 def register_log_level(name, value):
     """
     Register a new log level.
@@ -27,12 +27,48 @@ def register_log_level(name, value):
 register_log_level('important', logging.INFO + 1)
 register_log_level('success', logging.INFO + 2)
 
-def hl(msg):
+# Extend the LogRecord class getMessage() method to support highlighting
+logging.LogRecord.getLegacyMessage = logging.LogRecord.getMessage
+
+def getMessage(self):
     """
-    Returns a highlighted version of `msg`.
+    Return the message from this LogRecord.
     """
 
-    return '<[{%s}]>' % msg
+    colorizer = getattr(self, 'colorizer', None)
+
+    if colorizer:
+        self.args = tuple(map(colorizer, self.args))
+
+    return self.getLegacyMessage()
+
+logging.LogRecord.getMessage = getMessage
+
+class Highlight(object):
+    """
+    Highlight an instance in the logs.
+    """
+
+    def __init__(self, msg):
+        """
+        Create a highlight object.
+        """
+
+        self.msg = msg
+
+    def __str__(self):
+        """
+        Return a string representation.
+        """
+
+        return self.msg
+
+    def render(self, color, reset):
+        """
+        Return a colorized representation.
+        """
+
+        return '%s%s%s' % (color, self.msg, reset)
 
 def print_normal(msg):
     """
@@ -80,15 +116,26 @@ class ColorizingStreamHandler(logging.StreamHandler):
         Format a record.
         """
 
+        if self.is_tty:
+            highlight_color = self.COLOR_MAP.get(logging.IMPORTANT)
+            log_color = self.COLOR_MAP.get(record.levelno, '')
+            reset = colorama.Style.RESET_ALL
+
+            def colorize(msg):
+
+                if isinstance(msg, Highlight):
+                    return msg.render(
+                        color=highlight_color,
+                        reset=reset + log_color,
+                    )
+
+                return msg
+
+            record.colorizer = colorize
+
         message = super(ColorizingStreamHandler, self).format(record)
 
         if self.is_tty:
-            highlight_color = self.COLOR_MAP.get(logging.IMPORTANT)
-            color = self.COLOR_MAP.get(record.levelno, '')
-            reset = colorama.Style.RESET_ALL
-            message = re.sub('<\[\{(.*?)\}\]>', lambda m: highlight_color + m.group(1) + reset + color, message)
-            message = '%s%s%s' % (color, message, reset)
-        else:
-            message = re.sub('<\[\{(.*?)\}\]>', lambda m: m.group(1), message)
+            message = '%s%s%s' % (log_color, message, reset)
 
         return message
