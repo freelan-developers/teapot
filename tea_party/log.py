@@ -27,7 +27,7 @@ def register_log_level(name, value):
 register_log_level('important', logging.INFO + 1)
 register_log_level('success', logging.INFO + 2)
 
-def highlighted(msg):
+def hl(msg):
     """
     Returns a highlighted version of `msg`.
     """
