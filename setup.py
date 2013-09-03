@@ -18,6 +18,7 @@ setup(
         'requests>=1.2.3',
         'rfc6266',
         'progressbar',
+        'colorama',
     ],
     entry_points={
         'console_scripts': [
