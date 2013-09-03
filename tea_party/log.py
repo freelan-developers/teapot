@@ -10,27 +10,21 @@ import logging
 LOGGER = logging.getLogger('tea-party')
 LOGGER.addHandler(logging.NullHandler())
 
-logging.IMPORTANT = logging.INFO + 1
-logging.SUCCESS = logging.IMPORTANT + 1
-logging.addLevelName(logging.IMPORTANT, 'IMPORTANT')
-logging.addLevelName(logging.SUCCESS, 'SUCCESS')
-
-def important(self, message, *args, **kwargs):
+def register_log_level(name, value):
     """
-    Outputs an important log.
+    Register a new log level.
     """
 
-    self._log(logging.IMPORTANT, message, args, **kwargs)
+    setattr(logging, name.upper(), value)
+    logging.addLevelName(value, name.upper())
 
-def success(self, message, *args, **kwargs):
-    """
-    Outputs a success log.
-    """
+    def log_func(self, message, *args, **kwargs):
+        self._log(value, message, args, **kwargs)
 
-    self._log(logging.SUCCESS, message, args, **kwargs)
+    setattr(logging.Logger, name, log_func)
 
-logging.Logger.important = important
-logging.Logger.success = success
+register_log_level('important', logging.INFO + 1)
+register_log_level('success', logging.INFO + 2)
 
 try:
     import colorama
