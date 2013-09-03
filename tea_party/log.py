@@ -3,6 +3,7 @@ The tea-party logging facilities.
 """
 
 import re
+import sys
 import logging
 
 
@@ -40,6 +41,20 @@ try:
         """
 
         return '<[{%s}]>' % msg
+
+    def print_normal(msg):
+        """
+        Print a normal line.
+        """
+
+        sys.stdout.write(colorama.Fore.BLUE + msg + colorama.Style.RESET_ALL)
+
+    def print_error(msg):
+        """
+        Print an error line.
+        """
+
+        sys.stdout.write(colorama.Fore.RED + msg + colorama.Style.RESET_ALL)
 
     class ColorizingStreamHandler(logging.StreamHandler):
         """

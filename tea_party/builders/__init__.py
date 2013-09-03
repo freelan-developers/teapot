@@ -7,8 +7,9 @@ import sys
 import math
 import subprocess
 
-from tea_party.log import LOGGER
+from tea_party.log import LOGGER, print_normal, print_error
 from tea_party.filters import Filtered
+from threading import Thread
 
 
 def make_builders(attendee, builders):
@@ -124,21 +125,41 @@ class Builder(Filtered):
             for index, command in enumerate(self.commands):
                 LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
 
-                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                output = ''
+                mixed_output = []
 
-                for line in iter(process.stdout.readline, ''):
-                    output += line
+                def read_stdout():
+                    for line in iter(process.stdout.readline, ''):
+                        mixed_output.append((print_normal, line))
 
-                    if verbose:
-                        sys.stdout.write(line)
+                        if verbose:
+                            print_normal(line)
+
+                def read_stderr():
+                    for line in iter(process.stderr.readline, ''):
+                        mixed_output.append((print_error, line))
+
+                        if verbose:
+                            print_error(line)
+
+                stdout_thread = Thread(target=read_stdout)
+                stdout_thread.daemon = True
+                stdout_thread.start()
+
+                stderr_thread = Thread(target=read_stderr)
+                stderr_thread.daemon = True
+                stderr_thread.start()
+
+                stdout_thread.join()
+                stderr_thread.join()
 
                 process.wait()
 
                 if process.returncode != 0:
                     if not verbose:
-                        sys.stderr.write(output)
+                        for func, line in mixed_output:
+                            func(line)
 
                     raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command)
         finally:
