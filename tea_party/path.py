@@ -63,7 +63,7 @@ def rmdir(path):
         LOGGER.debug('Removing directory at %s.', path)
 
         def onerror(func, path, excinfo):
-            if os.path.exist(path):
+            if os.path.exists(path):
                 LOGGER.warning('Unable to delete "%s": %s', path, excinfo[1])
 
         shutil.rmtree(path, ignore_errors=False, onerror=onerror)
