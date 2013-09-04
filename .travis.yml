@@ -1,10 +1,7 @@
 language: python
 python:
-    - "2.5"
-    - "2.6"
     - "2.7"
-    - "3.3"
 script:
-    - python setup.py build_ext -i
-    - python -m compileall -f .
+    - python setup.py build -i
+    - python setup.py build_sphinx html
     - python setup.py test
