@@ -3,6 +3,7 @@ A tea-party path-handling class.
 """
 
 import os
+import stat
 import shutil
 import errno
 
@@ -64,6 +65,13 @@ def rmdir(path):
 
         def onerror(func, path, excinfo):
             if os.path.exists(path):
+                LOGGER.debug('Was unable to delete "%s": %s', path, excinfo[1])
+                LOGGER.debug('Trying again after changing permissions...')
+                os.chmod(path, stat.S_IWUSR)
+
+                func(path)
+
+            else:
                 LOGGER.warning('Unable to delete "%s": %s', path, excinfo[1])
 
         shutil.rmtree(path, ignore_errors=False, onerror=onerror)
