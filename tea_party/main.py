@@ -9,7 +9,7 @@ import logging
 
 from functools import wraps
 
-from tea_party.log import LOGGER, ColorizingStreamHandler
+from tea_party.log import LOGGER, ColorizingStreamHandler, NullHandler
 from tea_party.party import load_party_file
 
 
@@ -76,6 +76,11 @@ def main():
         logging.getLogger().addHandler(handler)
         logging.getLogger().setLevel(logging.DEBUG)
     else:
+        # The logger hack is actually needed because of a bug in `rfc6266`
+        # See: https://github.com/g2p/rfc6266/pull/1
+        logging.getLogger().addHandler(handler)
+        logging.getLogger().setLevel(logging.CRITICAL)
+
         LOGGER.addHandler(handler)
         LOGGER.setLevel(logging.INFO)
 
