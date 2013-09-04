@@ -7,7 +7,6 @@ import urlparse
 import requests
 import shutil
 import mimetypes
-import logging
 from rfc6266 import parse_requests_response
 
 from tea_party.log import LOGGER
