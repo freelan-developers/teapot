@@ -292,7 +292,7 @@ class Attendee(Filtered):
 
                     raise
 
-            LOGGER.success('%s was built successfully.', hl(self))
+            LOGGER.success('%s built successfully.', hl(self))
 
     @property
     def cache_info(self):
