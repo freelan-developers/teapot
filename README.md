@@ -1,4 +1,4 @@
-[![Build Status](http://travis-ci.org/freelan-developers/tea-party.png)](http://travis-ci.org/freelan-developers/tea-party)
+[![Build Status](https://secure.travis-ci.org/freelan-developers/tea-party.png)](https://secure.travis-ci.org/freelan-developers/tea-party)
 
 tea-party
 =========
