@@ -69,10 +69,12 @@ def rmdir(path):
                 LOGGER.debug('Trying again after changing permissions...')
                 os.chmod(path, stat.S_IWUSR)
 
-                func(path)
+                try:
+                    func(path)
+                except Exception as ex:
+                    LOGGER.error('Unable to delete "%s": %s', path, excinfo[1])
 
-            else:
-                LOGGER.warning('Unable to delete "%s": %s', path, excinfo[1])
+                    raise
 
         shutil.rmtree(path, ignore_errors=False, onerror=onerror)
 
