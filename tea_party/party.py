@@ -49,6 +49,7 @@ def load_party_file(path):
         path=path,
         cache_path=values.get('cache'),
         build_path=values.get('build'),
+        prefix=values.get('prefix'),
     )
 
     party.attendees = make_attendees(party, values.get('attendees'))
@@ -101,7 +102,7 @@ class Party(object):
     different attendees (third-party softwares), and the party options.
     """
 
-    def __init__(self, path, cache_path, build_path, **kwargs):
+    def __init__(self, path, cache_path, build_path, prefix, **kwargs):
         """
         Create a Party instance.
 
@@ -114,6 +115,7 @@ class Party(object):
         self.attendees = []
         self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
         self.build_path = read_path(build_path, os.path.dirname(self.path), DEFAULT_BUILD_PATH)
+        self.prefix = read_path(prefix, os.path.dirname(self.path), DEFAULT_PREFIX)
         self.auto_fetch = True
         self.fetcher_callback_class = ProgressBarFetcherCallback
         self.unpacker_callback_class = ProgressBarUnpackerCallback

@@ -3,7 +3,7 @@ Contains all tea-party builders logic.
 """
 
 import os
-import sys
+import re
 import math
 import subprocess
 
@@ -43,6 +43,7 @@ def make_builder(attendee, name, attributes):
         commands = [commands]
 
     filters = attributes.get('filters')
+    prefix = attributes.get('prefix')
 
     return Builder(
         attendee=attendee,
@@ -51,6 +52,7 @@ def make_builder(attendee, name, attributes):
         commands=commands,
         filters=filters,
         directory=attributes.get('directory'),
+        prefix=prefix,
     )
 
 
@@ -60,7 +62,7 @@ class Builder(Filtered):
     A Builder represents a way to build an attendee.
     """
 
-    def __init__(self, attendee, name, tags, commands, filters=[], directory=None):
+    def __init__(self, attendee, name, tags, commands, filters=[], directory=None, prefix=None):
         """
         Initialize a builder attached to `attendee` with the specified `name`.
 
@@ -74,6 +76,9 @@ class Builder(Filtered):
 
         `directory`, if specified, is a directory relative to the source root,
         where to go before issuing the build commands.
+
+        `prefix` is a prefix that will be added to the right of the global
+        prefix inside the $PREFIX variable.
         """
 
         if not commands:
@@ -84,6 +89,7 @@ class Builder(Filtered):
         self.tags = tags
         self.commands = commands or []
         self.directory = directory or None
+        self.prefix = prefix or ''
 
         Filtered.__init__(self, filters=filters)
 
@@ -123,6 +129,7 @@ class Builder(Filtered):
             os.chdir(source_tree_path)
 
             for index, command in enumerate(self.commands):
+                command = self.replace_variables(command)
                 LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
 
                 process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -164,3 +171,27 @@ class Builder(Filtered):
                     raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command)
         finally:
             os.chdir(current_dir)
+
+    def replace_variables(self, command):
+        """
+        Replace the variables in the command.
+        """
+
+        variables = {
+            'attendee': self.attendee,
+            'builder': self.name,
+            'prefix': os.path.join(self.attendee.party.prefix, self.attendee.prefix, self.prefix),
+            'attendee_prefix': os.path.join(self.attendee.party.prefix, self.attendee.prefix),
+            'global_prefix': self.attendee.party.prefix,
+        }
+
+        def replace(match):
+            raw_key = next(value for value in match.groups() if value is not None)
+            key = raw_key.lower()
+
+            if not key in variables:
+                raise ValueError('Unknown variable ${%s} in command "%s"' % (raw_key, command))
+
+            return str(variables[key])
+
+        return re.sub(r'\$([a-zA-Z_]+)|\${([a-zA-Z_]+)}', replace, command)

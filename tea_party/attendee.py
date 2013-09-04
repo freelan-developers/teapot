@@ -37,6 +37,7 @@ def make_attendee(party, name, attributes):
         name=name,
         depends=make_depends(attributes.get('depends')),
         filters=attributes.get('filters'),
+        prefix=attributes.get('prefix'),
     )
 
     attendee.sources = make_sources(attendee, attributes.get('source'))
@@ -89,7 +90,7 @@ class Attendee(Filtered):
     CACHE_FILE = 'cache.json'
     BUILD_FILE = 'build.json'
 
-    def __init__(self, party, name, depends, filters=[]):
+    def __init__(self, party, name, depends, filters=[], prefix=None):
         """
         Create an attendee associated to a `party`.
 
@@ -105,6 +106,7 @@ class Attendee(Filtered):
         self.sources = []
         self.builders = []
         self.depends = depends
+        self.prefix = prefix or ''
 
         Filtered.__init__(self, filters=filters)
 

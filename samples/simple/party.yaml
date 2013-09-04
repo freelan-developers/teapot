@@ -5,9 +5,9 @@ attendees:
             unix:
                 filters: unix
                 commands:
-                    - ./configure
+                    - ./configure --prefix=$PREFIX
                     - make
-                #command: ./configure && make && make install --prefix=%PREFIX%
+                    - make install
     libcurl:
         source: http://curl.haxx.se/download/curl-7.32.0.tar.bz2
         builders:
