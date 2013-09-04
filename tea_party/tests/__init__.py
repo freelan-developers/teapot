@@ -25,5 +25,3 @@ class TestTeaParty(unittest.TestCase):
         attendees_names = set([attendee.name for attendee in party.attendees])
 
         self.assertEqual(set(['boost', 'libiconv', 'libfoo']), attendees_names)
-
-        print party.attendees
