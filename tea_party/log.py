@@ -6,9 +6,20 @@ import sys
 import logging
 import colorama
 
+try:
+    from logging import NullHandler
+
+except ImportError:
+    class NullHandler(logging.Handler):
+        """
+        A null handler class.
+        """
+
+        def emit(self, record):
+            pass
 
 LOGGER = logging.getLogger('tea-party')
-LOGGER.addHandler(logging.NullHandler())
+LOGGER.addHandler(NullHandler())
 
 # Add new log levels
 def register_log_level(name, value):

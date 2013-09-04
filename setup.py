@@ -26,4 +26,5 @@ setup(
         ],
     },
     test_suite='tea_party.tests',
+    use2to3=True,
 )
