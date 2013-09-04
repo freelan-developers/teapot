@@ -278,7 +278,7 @@ class Attendee(Filtered):
         self.create_build()
 
         if not builders:
-            LOGGER.warning('Not building %s because no builder matches the current settings.', hl(self))
+            LOGGER.warning('Not building %s because no builder matches the current settings. Did you forget to set a filter on the attendee ?', hl(self))
         else:
             LOGGER.info('Building %s with %s builder(s)...', hl(self), len(builders))
 
