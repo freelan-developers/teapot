@@ -61,7 +61,7 @@ class Highlight(object):
         Return a string representation.
         """
 
-        return self.msg
+        return str(self.msg)
 
     def render(self, color, reset):
         """
