@@ -7,7 +7,7 @@ python:
 install:
     - pip install . --use-mirrors
 script:
-    - python setup.py build -i
+    - python setup.py build
     - python setup.py test
 notifications:
     email:
