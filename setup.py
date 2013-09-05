@@ -33,4 +33,14 @@ setup(
         ],
     },
     test_suite='tea_party.tests',
+    classifiers=[
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Topic :: Software Development',
+    ],
 )
