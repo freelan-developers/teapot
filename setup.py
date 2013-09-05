@@ -3,10 +3,11 @@ from setuptools import setup
 import sys
 
 install_requires = [
-        'PyYaml',
-        'requests>=1.2.3',
-        'progressbar',
-        'colorama',
+    'PyYaml',
+    'requests>=1.2.3',
+    'progressbar',
+    'colorama',
+    'LEPL',
 ]
 
 if sys.version_info < (2, 7):
