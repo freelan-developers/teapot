@@ -2,6 +2,7 @@
 tea-party 'Source' class.
 """
 
+import json
 import hashlib
 
 from tea_party.log import LOGGER
@@ -162,6 +163,7 @@ class Source(Filtered):
                 cache_info['archive_type'] = self._type
 
             cache_info['archive_hash'] = self.hash_file(cache_info['archive_path'])
+            cache_info['source_hash'] = self.source_hash
 
             return cache_info
 
@@ -173,8 +175,6 @@ class Source(Filtered):
         Returns the hash of the specified file.
         """
 
-        LOGGER.debug('Computing hash for %s...', hl(path))
-
         algorithm = hashlib.sha1()
         read_size = algorithm.block_size * 256
 
@@ -184,6 +184,30 @@ class Source(Filtered):
             while data:
                 algorithm.update(_file.read())
                 data = _file.read(read_size)
+
+        result = algorithm.hexdigest()
+
+        LOGGER.debug('%s source hash is: %s', hl(self), hl(result))
+
+        return result
+
+    @property
+    def source_hash(self):
+        """
+        Get the source hash.
+        """
+
+        LOGGER.debug('Computing source hash for %s...', hl(self))
+
+        data = {
+            'location': self.location,
+            'type': self._type,
+            'fetcher_class': self.fetcher_class.__name__,
+            'fetcher_options': self.fetcher_options,
+        }
+
+        algorithm = hashlib.sha1()
+        algorithm.update(json.dumps(data))
 
         result = algorithm.hexdigest()
 

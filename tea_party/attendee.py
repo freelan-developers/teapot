@@ -344,6 +344,14 @@ class Attendee(Filtered):
         return {}
 
     @property
+    def source_hash(self):
+        """
+        Get the source hash.
+        """
+
+        return self.cache_info.get('source_hash')
+
+    @property
     def archive_path(self):
         """
         Get the archive path.
@@ -378,6 +386,18 @@ class Attendee(Filtered):
 
         if self.archive_path and os.path.isfile(self.archive_path):
             return True
+
+    @property
+    def source_hash_matches(self):
+        """
+        Check if one of source hashes match the one in the cache.
+        """
+
+        for source in self.enabled_sources:
+            if source.source_hash == self.source_hash:
+                return True
+
+        return False
 
     @property
     def source_tree_path(self):

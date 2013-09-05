@@ -179,7 +179,13 @@ class Party(object):
         if force:
             map(lambda x: x.clean_cache(), attendees)
 
-        attendees_to_fetch = [x for x in attendees if not x.fetched]
+        attendees_to_fetch = [x for x in attendees if not x.fetched or not x.source_hash_matches]
+
+        for attendee in attendees_to_fetch:
+            if not attendee.fetched:
+                LOGGER.debug('%s was never fetched. Doing it now.', hl(attendee))
+            elif not attendee.source_hash_matches:
+                LOGGER.info('The source has changed for %s since it was last fetched. Fetching again.', hl(attendee))
 
         if not attendees_to_fetch:
             if len(attendees) == 1:
