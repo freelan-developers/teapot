@@ -16,7 +16,6 @@ setup(
     install_requires=[
         'PyYaml',
         'requests>=1.2.3',
-        'rfc6266',
         'progressbar',
         'colorama',
     ],
