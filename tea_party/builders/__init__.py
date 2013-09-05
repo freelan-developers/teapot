@@ -129,6 +129,7 @@ class Builder(Filtered):
             os.chdir(source_tree_path)
 
             for index, command in enumerate(self.commands):
+                command = self.apply_extensions(command)
                 command = self.replace_variables(command)
                 LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
 
@@ -172,12 +173,14 @@ class Builder(Filtered):
         finally:
             os.chdir(current_dir)
 
-    def replace_variables(self, command):
+    def apply_extensions(self, command):
         """
-        Replace the variables in the command.
+        Apply the extensions to the command.
         """
 
-        variables = {
+        #TODO: Support arguments for extensions
+
+        extensions = {
             'attendee': self.attendee,
             'builder': self.name,
             'prefix': os.path.join(self.attendee.party.prefix, self.attendee.prefix, self.prefix),
@@ -186,12 +189,23 @@ class Builder(Filtered):
         }
 
         def replace(match):
-            raw_key = next(value for value in match.groups() if value is not None)
-            key = raw_key.lower()
+            key = next(value for value in match.groups() if value is not None)
 
-            if not key in variables:
-                raise ValueError('Unknown variable ${%s} in command "%s"' % (raw_key, command))
+            if not key in extensions:
+                raise ValueError('Unknown extension {{%s}} in command "%s"' % (key, command))
 
-            return str(variables[key])
+            return str(extensions[key])
+
+        return re.sub(r'\{{([a-zA-Z_]+)}}', replace, command)
+
+    def replace_variables(self, command):
+        """
+        Replace the environment variables in the command.
+        """
+
+        def replace(match):
+            key = next(value for value in match.groups() if value is not None)
+
+            return os.environ.get(key)
 
         return re.sub(r'\$([a-zA-Z_]+)|\${([a-zA-Z_]+)}', replace, command)
