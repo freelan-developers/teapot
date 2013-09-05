@@ -105,11 +105,14 @@ def command(func):
 
             return True
 
+        except KeyboardInterrupt:
+            pass
+
         except Exception as ex:
             if args.debug:
                 LOGGER.exception(ex)
 
-            return False
+        return False
 
     return decorated
 
