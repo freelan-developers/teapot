@@ -3,7 +3,11 @@ tea_party unit tests.
 """
 
 import os
-import unittest
+
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 from tea_party.party import load_party_file
 

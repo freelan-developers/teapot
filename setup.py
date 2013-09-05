@@ -1,5 +1,17 @@
 from setuptools import setup
 
+import sys
+
+install_requires = [
+        'PyYaml',
+        'requests>=1.2.3',
+        'progressbar',
+        'colorama',
+]
+
+if sys.version_info < (2, 7):
+    install_requires.append('unittest2')
+
 setup(
     name='tea-party',
     version='1.0',
@@ -13,12 +25,7 @@ setup(
         'tea_party.defaults',
         'tea_party.tests',
     ],
-    install_requires=[
-        'PyYaml',
-        'requests>=1.2.3',
-        'progressbar',
-        'colorama',
-    ],
+    install_requires=install_requires,
     entry_points={
         'console_scripts': [
             'teapot = tea_party.main:main',
