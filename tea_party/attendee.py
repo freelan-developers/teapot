@@ -263,6 +263,7 @@ class Attendee(Filtered):
 
         if build_info:
             LOGGER.success('%s unpacked successfully at: %s', hl(self), hl(build_info.get('source_tree_path')))
+            build_info['source_tree_origin_hash'] = self.archive_hash
 
             with open(os.path.join(self.build_path, self.BUILD_FILE), 'w') as build_file:
                 return json.dump(build_info, build_file)
@@ -362,16 +363,21 @@ class Attendee(Filtered):
             return tuple(result)
 
     @property
+    def archive_hash(self):
+        """
+        Get the archive hash.
+        """
+
+        return self.cache_info.get('archive_hash')
+
+    @property
     def fetched(self):
         """
         Check if the attendee was fetched already.
         """
 
         if self.archive_path and os.path.isfile(self.archive_path):
-            LOGGER.debug('%s was already fetched.', hl(self))
             return True
-
-        LOGGER.debug('%s needs fetching.', hl(self))
 
     @property
     def source_tree_path(self):
@@ -382,13 +388,26 @@ class Attendee(Filtered):
         return self.build_info.get('source_tree_path')
 
     @property
+    def source_tree_origin_hash(self):
+        """
+        Get the hash of the archive that was used to create this source tree.
+        """
+
+        return self.build_info.get('source_tree_origin_hash')
+
+    @property
     def unpacked(self):
         """
         Check if the attendee needs unpacking.
         """
 
         if self.source_tree_path and os.path.isdir(self.source_tree_path):
-            LOGGER.debug('%s was already unpacked.', hl(self))
             return True
 
-        LOGGER.debug('%s needs unpacking.', hl(self))
+    @property
+    def archive_hash_matches(self):
+        """
+        Check if the unpacked archive hash matches the one in the cache.
+        """
+
+        return self.archive_hash == self.source_tree_origin_hash

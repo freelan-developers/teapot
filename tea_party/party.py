@@ -206,7 +206,13 @@ class Party(object):
         if force:
             map(lambda x: x.clean_build(), attendees)
 
-        attendees_to_unpack = [x for x in attendees if not x.unpacked]
+        attendees_to_unpack = [x for x in attendees if not x.unpacked or not x.archive_hash_matches]
+
+        for attendee in attendees_to_unpack:
+            if not attendee.unpacked:
+                LOGGER.debug('%s was never unpacked. Doing it now.', hl(attendee))
+            elif not attendee.archive_hash_matches:
+                LOGGER.info('Source tree hash does not match the archive hash for %s. Unpacking again.', hl(attendee))
 
         if not attendees_to_unpack:
             if len(attendees) == 1:

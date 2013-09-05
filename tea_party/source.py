@@ -2,7 +2,10 @@
 tea-party 'Source' class.
 """
 
+import hashlib
+
 from tea_party.log import LOGGER
+from tea_party.log import Highlight as hl
 from tea_party.fetchers import get_fetcher_class_from_shortname, guess_fetcher_instance
 from tea_party.fetchers.callbacks import NullFetcherCallback
 from tea_party.filters import Filtered
@@ -158,7 +161,32 @@ class Source(Filtered):
             if self._type:
                 cache_info['archive_type'] = self._type
 
+            cache_info['archive_hash'] = self.hash_file(cache_info['archive_path'])
+
             return cache_info
 
         except Exception as ex:
             LOGGER.exception(ex)
+
+    def hash_file(self, path):
+        """
+        Returns the hash of the specified file.
+        """
+
+        LOGGER.debug('Computing hash for %s...', hl(path))
+
+        algorithm = hashlib.sha1()
+        read_size = algorithm.block_size * 256
+
+        with open(path, 'rb') as _file:
+            data = _file.read(read_size)
+
+            while data:
+                algorithm.update(_file.read())
+                data = _file.read(read_size)
+
+        result = algorithm.hexdigest()
+
+        LOGGER.debug('Hash is: %s', hl(result))
+
+        return result
