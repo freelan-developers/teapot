@@ -15,6 +15,7 @@ from tea_party.path import read_path, rmdir
 from tea_party.defaults import *
 from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
 from tea_party.unpackers.callbacks import ProgressBarUnpackerCallback
+from tea_party.environments import make_environments
 
 
 def load_party_file(path):
@@ -52,6 +53,7 @@ def load_party_file(path):
         prefix=values.get('prefix'),
     )
 
+    party.environments = make_environments(party, values.get('environments'))
     party.attendees = make_attendees(party, values.get('attendees'))
 
     return party
@@ -70,6 +72,22 @@ class NoSuchAttendeeError(ValueError):
 
         super(NoSuchAttendeeError, self).__init__(
             'No such attendee: %s' % attendee
+        )
+
+
+class NoSuchEnvironmentError(ValueError):
+
+    """
+    The specified environment does not exist.
+    """
+
+    def __init__(self, environment):
+        """
+        Create an NoSuchEnvironmentError for the specified `environment`.
+        """
+
+        super(NoSuchEnvironmentError, self).__init__(
+            'No such environment: %s' % environment
         )
 
 
@@ -113,6 +131,7 @@ class Party(object):
 
         self.path = os.path.abspath(path)
         self.attendees = []
+        self.environments = []
         self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
         self.build_path = read_path(build_path, os.path.dirname(self.path), DEFAULT_BUILD_PATH)
         self.prefix = read_path(prefix, os.path.dirname(self.path), DEFAULT_PREFIX)
@@ -143,6 +162,22 @@ class Party(object):
                 return attendee
 
         raise NoSuchAttendeeError(attendee=attendee)
+
+    def get_environment_by_name(self, name):
+        """
+        Get an environment by name, if it exists.
+
+        If no environment has the specified name, a NoSuchEnvironmentError is raised.
+        """
+
+        if isinstance(name, Environment):
+            return name
+
+        for environment in self.environments:
+            if environment.name == name:
+                return environment
+
+        raise NoSuchEnvironmentError(environment=environment)
 
     @has_attendees
     def clean_cache(self, attendees=[]):
