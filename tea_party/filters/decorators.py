@@ -18,6 +18,8 @@ class InvalidFilterError(ValueError):
         Create an InvalidFilterError for the specified filter `name`.
         """
 
+        self.name = name
+
         super(InvalidFilterError, self).__init__(
             'No filter with the specified name: %s' % name
             )
@@ -33,6 +35,8 @@ class DuplicateFilterError(ValueError):
         """
         Create a DuplicateFilterError for the specified filter `name`.
         """
+
+        self.name = name
 
         super(DuplicateFilterError, self).__init__(
             'Another filter was already registered with the name %r' % name

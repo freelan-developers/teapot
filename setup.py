@@ -20,6 +20,7 @@ setup(
     packages=[
         'tea_party',
         'tea_party.environments',
+        'tea_party.extensions',
         'tea_party.fetchers',
         'tea_party.unpackers',
         'tea_party.builders',
