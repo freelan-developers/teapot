@@ -98,4 +98,4 @@ class Environment(object):
             # cmd.exe
             result['COMSPEC'] = self.shell
 
-        return dict(key, value for key, value in result.iteritems() if value is not None)
+        return dict(((key, value) for key, value in result.iteritems() if value is not None))
