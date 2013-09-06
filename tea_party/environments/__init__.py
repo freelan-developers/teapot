@@ -2,6 +2,8 @@
 Tea-party environments.
 """
 
+import os
+
 
 def make_environments(party, environments):
     """
@@ -73,3 +75,27 @@ class Environment(object):
         self.variables = variables or {}
         self.inherit = bool(inherit)
         self.shell = shell
+
+    def get_env(self):
+        """
+        Get the environment variables in such a way that is suitable in a call
+        to Popen().
+        """
+
+        if self.inherit:
+            result = os.environ.copy()
+            result.update(self.variables)
+        else:
+            result = self.variables.copy()
+
+            for key, value in result.iteritems():
+                if value is None:
+                    result[key] = os.environ.get(key)
+
+        if self.shell:
+            # sh/bash/zsh
+            result['SHELL'] = self.shell
+            # cmd.exe
+            result['COMSPEC'] = self.shell
+
+        return dict(key, value for key, value in result.iteritems() if value is not None)

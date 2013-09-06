@@ -9,6 +9,7 @@ import subprocess
 
 from tea_party.log import LOGGER, print_normal, print_error
 from tea_party.filters import Filtered
+from tea_party.environments import make_environment
 from threading import Thread
 
 
@@ -45,11 +46,22 @@ def make_builder(attendee, name, attributes):
     filters = attributes.get('filters')
     prefix = attributes.get('prefix')
 
+    environment = attributes.get('environment')
+
+    if environment:
+        if isinstance(environment, basestring):
+            environment = attendee.party.get_environment_by_name(environment)
+        else:
+            environment = make_environment(attendee.party, '%s:<unnamed environment>' % attendee.name, environment)
+    else:
+        environment = make_environment(attendee.party, '%s:<unnamed environment>' % attendee.name, {})
+
     return Builder(
         attendee=attendee,
         name=name,
         tags=tags,
         commands=commands,
+        environment=environment,
         filters=filters,
         directory=attributes.get('directory'),
         prefix=prefix,
@@ -62,7 +74,7 @@ class Builder(Filtered):
     A Builder represents a way to build an attendee.
     """
 
-    def __init__(self, attendee, name, tags, commands, filters=[], directory=None, prefix=None):
+    def __init__(self, attendee, name, tags, commands, environment, filters=[], directory=None, prefix=None):
         """
         Initialize a builder attached to `attendee` with the specified `name`.
 
@@ -70,6 +82,8 @@ class Builder(Filtered):
 
         You must specify `commands`, a list of commands to call for the build to
         take place.
+
+        `environment` is the environment to use for the build.
 
         `filters` is a list of filters that must all validate in order for the
         build to be active in the current environment.
@@ -84,10 +98,13 @@ class Builder(Filtered):
         if not commands:
             raise ValueError('A builder must have at least one command.')
 
+        assert environment
+
         self.attendee = attendee
         self.name = name
         self.tags = tags
         self.commands = commands or []
+        self.environment = environment
         self.directory = directory or None
         self.prefix = prefix or ''
 
@@ -130,10 +147,9 @@ class Builder(Filtered):
 
             for index, command in enumerate(self.commands):
                 command = self.apply_extensions(command)
-                command = self.replace_variables(command)
                 LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
 
-                process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                process = subprocess.Popen(command, shell=True, env=self.environment.get_env(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                 mixed_output = []
 
@@ -197,15 +213,3 @@ class Builder(Filtered):
             return str(extensions[key])
 
         return re.sub(r'\{{([a-zA-Z_]+)}}', replace, command)
-
-    def replace_variables(self, command):
-        """
-        Replace the environment variables in the command.
-        """
-
-        def replace(match):
-            key = next(value for value in match.groups() if value is not None)
-
-            return os.environ.get(key)
-
-        return re.sub(r'\$([a-zA-Z_]+)|\${([a-zA-Z_]+)}', replace, command)

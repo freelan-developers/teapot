@@ -19,6 +19,7 @@ setup(
     long_description=__doc__,
     packages=[
         'tea_party',
+        'tea_party.environments',
         'tea_party.fetchers',
         'tea_party.unpackers',
         'tea_party.builders',
