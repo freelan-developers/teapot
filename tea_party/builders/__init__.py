@@ -202,4 +202,4 @@ class Builder(Filtered):
 
             return str(extensions[key])
 
-        return re.sub(r'\{{([\w\s]+)}}', replace, command)
+        return re.sub(r'\{{([\w\s()]+)}}', replace, command)
