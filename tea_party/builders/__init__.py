@@ -194,16 +194,6 @@ class Builder(Filtered):
         Apply the extensions to the command.
         """
 
-        #TODO: Support arguments for extensions
-
-        extensions = {
-            'attendee': self.attendee,
-            'builder': self.name,
-            'prefix': os.path.join(self.attendee.party.prefix, self.attendee.prefix, self.prefix),
-            'attendee_prefix': os.path.join(self.attendee.party.prefix, self.attendee.prefix),
-            'global_prefix': self.attendee.party.prefix,
-        }
-
         def replace(match):
             key = next(value for value in match.groups() if value is not None)
 
@@ -212,4 +202,4 @@ class Builder(Filtered):
 
             return str(extensions[key])
 
-        return re.sub(r'\{{([a-zA-Z_]+)}}', replace, command)
+        return re.sub(r'\{{([\w\s]+)}}', replace, command)

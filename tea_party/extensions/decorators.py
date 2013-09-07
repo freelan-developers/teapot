@@ -107,7 +107,7 @@ def parse_extension(code, builder):
     `builder` will be passed to the extension call as the `builder` argument.
     """
 
-    match = re.match(r'^(?P<name>[a-zA-Z_]+)(\((?P<args>(|(\s*[a-zA-Z_]+\s*)(,\s*\w+\s*)*))\)|)$', code)
+    match = re.match(r'^(?P<name>[a-zA-Z_]+)(\((?P<args>(|(\s*\w+\s*)(,\s*\w+\s*)*))\)|)$', code)
 
     if not match:
         raise ExtensionParsingError(code=code)
