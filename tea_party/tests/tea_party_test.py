@@ -60,23 +60,23 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(extension, test_extension)
 
         # We make sure the extension parsing code works.
-        parse_extension('%s(one, two)' % extension_name, builder="three")
+        parse_extension('%s(one, two)' % extension_name, builder='three')
 
         self.assertEqual(result_dict['foo'], 'one')
         self.assertEqual(result_dict['bar'], 'two')
         self.assertEqual(result_dict['builder'], 'three')
 
         # Parsing an extension with less than the expected count of parameters raises a TypeError.
-        self.assertRaises(TypeError, parse_extension, '%s(one)' % extension_name, builder="two")
+        self.assertRaises(TypeError, parse_extension, '%s(one)' % extension_name, builder='two')
 
         # Parsing an extension with more than the expected count of parameters raises a TypeError.
-        self.assertRaises(TypeError, parse_extension, '%s(one, two, three)' % extension_name, builder="four")
+        self.assertRaises(TypeError, parse_extension, '%s(one, two, three)' % extension_name, builder='four')
 
         # Parsing an unbalanced extension raises an ExtensionParsingError.
-        self.assertRaises(ExtensionParsingError, parse_extension, '%s(one, two' % extension_name, builder="three")
+        self.assertRaises(ExtensionParsingError, parse_extension, '%s(one, two' % extension_name, builder='three')
 
         # Requesting a non-existing extension raises a NoSuchExtensionError.
-        self.assertRaises(NoSuchExtensionError, parse_extension, '%s(one, two)' % 'non_existing_extension_name', builder="three")
+        self.assertRaises(NoSuchExtensionError, parse_extension, '%s(one, two)' % 'non_existing_extension_name', builder='three')
         self.assertRaises(NoSuchExtensionError, get_extension_by_name, 'non_existing_extension_name')
 
         # Registering an already existing extension raises a DuplicateExtensionError.
@@ -84,4 +84,21 @@ class TestTeaParty(unittest.TestCase):
 
         # Registering an already existing extension with override does not throw.
         @named_extension(extension_name, override=True)
-        def test_extension(builder, foo, bar): pass
+        def test_extension(builder, foo=None, bar=None):
+            result_dict['builder'] = builder
+            result_dict['foo'] = foo
+            result_dict['bar'] = bar
+
+        # We make sure the extension parsing code works even for function that can take no arguments.
+        parse_extension('%s()' % extension_name, builder='one')
+
+        self.assertEqual(result_dict['foo'], None)
+        self.assertEqual(result_dict['bar'], None)
+        self.assertEqual(result_dict['builder'], 'one')
+
+        # We make sure the extension parsing code works even for function that can take no arguments, when parenthesis are not specified.
+        parse_extension(extension_name, builder='two')
+
+        self.assertEqual(result_dict['foo'], None)
+        self.assertEqual(result_dict['bar'], None)
+        self.assertEqual(result_dict['builder'], 'two')
