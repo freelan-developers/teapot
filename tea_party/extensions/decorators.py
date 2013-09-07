@@ -7,7 +7,7 @@ import re
 
 EXTENSIONS = {}
 
-class InvalidExtensionError(ValueError):
+class NoSuchExtensionError(ValueError):
 
     """
     No extension exists with the specified name.
@@ -15,12 +15,12 @@ class InvalidExtensionError(ValueError):
 
     def __init__(self, name):
         """
-        Create an InvalidExtensionError for the specified extension `name`.
+        Create an NoSuchExtensionError for the specified extension `name`.
         """
 
         self.name = name
 
-        super(InvalidExtensionError, self).__init__(
+        super(NoSuchExtensionError, self).__init__(
             'No extension with the specified name: %s' % name
             )
 
@@ -66,7 +66,7 @@ class named_extension(object):
     Registers a function to be a extension.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, override=False):
         """
         Registers the function with the specified name.
 
@@ -92,11 +92,11 @@ def get_extension_by_name(name):
     """
     Get a extension by name.
 
-    If no extension matches the specified name, an InvalidExtensionError is raised.
+    If no extension matches the specified name, an NoSuchExtensionError is raised.
     """
 
     if not name in EXTENSIONS:
-        raise InvalidExtensionError(name=name)
+        raise NoSuchExtensionError(name=name)
 
     return EXTENSIONS[name]
 
