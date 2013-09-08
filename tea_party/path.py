@@ -80,3 +80,16 @@ def rmdir(path):
 
     except Exception as ex:
         LOGGER.debug(ex)
+
+def windows_to_unix_path(path):
+    """
+    Convert a Windows path to a UNIX path, in such a way that it can be used in
+    MSys or Cygwin.
+    """
+
+    drive, tail = os.path.splitdrive(path)
+
+    if drive:
+        drive = '/' + drive[0]
+
+    return drive + tail.replace('\\', '/')

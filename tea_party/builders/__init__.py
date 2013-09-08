@@ -5,12 +5,17 @@ Contains all tea-party builders logic.
 import os
 import re
 import math
+import signal
 import subprocess
 
+from contextlib import contextmanager
+from threading import Thread
+
 from tea_party.log import LOGGER, print_normal, print_error
+from tea_party.log import Highlight as hl
 from tea_party.filters import Filtered
 from tea_party.environments import make_environment
-from threading import Thread
+from tea_party.extensions import parse_extension
 
 
 def make_builders(attendee, builders):
@@ -130,64 +135,91 @@ class Builder(Filtered):
             self.commands,
         )
 
+    @contextmanager
+    def chdir(self, path):
+        """
+        Change the current directory.
+        """
+
+        old_path = os.getcwd()
+
+        LOGGER.debug('Moving to: %s', hl(path))
+        os.chdir(path)
+
+        try:
+            yield path
+        finally:
+            LOGGER.debug('Moving back to: %s', hl(old_path))
+            os.chdir(old_path)
+
     def build(self, verbose=False):
         """
         Build the attendee.
         """
 
-        current_dir = os.getcwd()
+        if self.directory:
+            source_tree_path = os.path.join(self.attendee.source_tree_path, self.directory)
+        else:
+            source_tree_path = self.attendee.source_tree_path
 
-        try:
-            if self.directory:
-                source_tree_path = os.path.join(self.attendee.source_tree_path, self.directory)
-            else:
-                source_tree_path = self.attendee.source_tree_path
-
+        with self.chdir(source_tree_path):
             os.chdir(source_tree_path)
 
-            for index, command in enumerate(self.commands):
-                command = self.apply_extensions(command)
-                LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
+            with self.environment.enable() as env:
+                for index, command in enumerate(self.commands):
+                    command = self.apply_extensions(command)
+                    LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
 
-                process = subprocess.Popen(command, shell=True, env=self.environment.get_env(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    if env:
+                        process = subprocess.Popen(env.shell + [command], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    else:
+                        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                mixed_output = []
+                    def handler(signum, frame):
+                        LOGGER.warning('The building process was interrupted by the user.')
+                        process.terminate()
 
-                def read_stdout():
-                    for line in iter(process.stdout.readline, ''):
-                        mixed_output.append((print_normal, line))
+                    previous_handler = signal.signal(signal.SIGINT, handler)
 
-                        if verbose:
-                            print_normal(line)
+                    try:
+                        mixed_output = []
 
-                def read_stderr():
-                    for line in iter(process.stderr.readline, ''):
-                        mixed_output.append((print_error, line))
+                        def read_stdout():
+                            for line in iter(process.stdout.readline, ''):
+                                mixed_output.append((print_normal, line))
 
-                        if verbose:
-                            print_error(line)
+                                if verbose:
+                                    print_normal(line)
 
-                stdout_thread = Thread(target=read_stdout)
-                stdout_thread.daemon = True
-                stdout_thread.start()
+                        def read_stderr():
+                            for line in iter(process.stderr.readline, ''):
+                                mixed_output.append((print_error, line))
 
-                stderr_thread = Thread(target=read_stderr)
-                stderr_thread.daemon = True
-                stderr_thread.start()
+                                if verbose:
+                                    print_error(line)
 
-                stdout_thread.join()
-                stderr_thread.join()
+                        stdout_thread = Thread(target=read_stdout)
+                        stdout_thread.daemon = True
+                        stdout_thread.start()
 
-                process.wait()
+                        stderr_thread = Thread(target=read_stderr)
+                        stderr_thread.daemon = True
+                        stderr_thread.start()
 
-                if process.returncode != 0:
-                    if not verbose:
-                        for func, line in mixed_output:
-                            func(line)
+                        stdout_thread.join()
+                        stderr_thread.join()
 
-                    raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command)
-        finally:
-            os.chdir(current_dir)
+                        process.wait()
+
+                    finally:
+                        signal.signal(signal.SIGINT, previous_handler)
+
+                    if process.returncode != 0:
+                        if not verbose:
+                            for func, line in mixed_output:
+                                func(line)
+
+                        raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command)
 
     def apply_extensions(self, command):
         """
@@ -195,11 +227,8 @@ class Builder(Filtered):
         """
 
         def replace(match):
-            key = next(value for value in match.groups() if value is not None)
+            code = match.group('code')
 
-            if not key in extensions:
-                raise ValueError('Unknown extension {{%s}} in command "%s"' % (key, command))
+            return parse_extension(code, self)
 
-            return str(extensions[key])
-
-        return re.sub(r'\{{([\w\s()]+)}}', replace, command)
+        return re.sub(r'\{{(?P<code>[\w\s()]+)}}', replace, command)

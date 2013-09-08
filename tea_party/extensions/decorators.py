@@ -105,6 +105,8 @@ def parse_extension(code, builder):
     Parse an extension call in `code` and calls it.
 
     `builder` will be passed to the extension call as the `builder` argument.
+
+    The function returns the result of the extension call.
     """
 
     match = re.match(r'^(?P<name>[a-zA-Z_]+)(\((?P<args>(|(\s*\w+\s*)(,\s*\w+\s*)*))\)|)$', code)
@@ -122,4 +124,4 @@ def parse_extension(code, builder):
 
     extension = get_extension_by_name(name)
 
-    extension(builder, *args)
+    return extension(builder, *args)

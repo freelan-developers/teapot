@@ -15,7 +15,7 @@ from tea_party.path import read_path, rmdir
 from tea_party.defaults import *
 from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
 from tea_party.unpackers.callbacks import ProgressBarUnpackerCallback
-from tea_party.environments import make_environments
+from tea_party.environments import make_environments, Environment, DEFAULT_ENVIRONMENT_NAME
 
 
 def load_party_file(path):
@@ -172,6 +172,9 @@ class Party(object):
 
         if isinstance(name, Environment):
             return name
+
+        if name == DEFAULT_ENVIRONMENT_NAME:
+            return Environment.get_default(self)
 
         for environment in self.environments:
             if environment.name == name:

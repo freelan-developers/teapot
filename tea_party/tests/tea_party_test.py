@@ -10,6 +10,7 @@ except ImportError:
     import unittest
 
 from tea_party.party import load_party_file
+from tea_party.environments import Environment
 from tea_party.extensions import get_extension_by_name, parse_extension
 from tea_party.extensions.decorators import named_extension, ExtensionParsingError, DuplicateExtensionError, NoSuchExtensionError
 
@@ -35,6 +36,87 @@ class TestTeaParty(unittest.TestCase):
         attendees_names = set([attendee.name for attendee in party.attendees])
 
         self.assertEqual(set(['boost', 'libiconv', 'libfoo']), attendees_names)
+
+    def test_builders(self):
+        """
+        The the builders.
+        """
+
+        #TODO: Parse a real party file and get a builder from it.
+        #builder = Builder()
+        pass
+
+    def test_environments(self):
+        """
+        Test the environments.
+        """
+
+        os.environ['DUMMY'] = 'DUMMY1'
+        os.environ['FOO'] = 'FOO1'
+        os.environ['HELLO'] = 'HELLO1'
+
+        default_environment = Environment.get_default(None)
+
+        # We test the variables before we enable the environment
+        self.assertEqual(os.environ.get('DUMMY'), 'DUMMY1')
+        self.assertEqual(os.environ.get('FOO'), 'FOO1')
+        self.assertEqual(os.environ.get('BAR'), None)
+        self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
+
+        # We test that variables within the default environment are the same than before
+        with default_environment.enable():
+            self.assertEqual(os.environ.get('DUMMY'), 'DUMMY1')
+            self.assertEqual(os.environ.get('FOO'), 'FOO1')
+            self.assertEqual(os.environ.get('BAR'), None)
+            self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
+
+        environment = Environment(
+            party=None,
+            name='test_environment',
+            variables={
+                'FOO': 'FOO2',
+                'BAR': 'BAR1',
+                'HELLO': None,
+            },
+            inherit=default_environment,
+        )
+
+        # We test the variables before we enable the environment
+        self.assertEqual(os.environ.get('DUMMY'), 'DUMMY1')
+        self.assertEqual(os.environ.get('FOO'), 'FOO1')
+        self.assertEqual(os.environ.get('BAR'), None)
+        self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
+
+        # We apply the environment and test those again
+        with environment.enable():
+            self.assertEqual(os.environ.get('DUMMY'), 'DUMMY1')
+            self.assertEqual(os.environ.get('FOO'), 'FOO2')
+            self.assertEqual(os.environ.get('BAR'), 'BAR1')
+            self.assertEqual(os.environ.get('HELLO'), None)
+
+        orphan_environment = Environment(
+            party=None,
+            name='test_environment',
+            variables={
+                'FOO': 'FOO3',
+                'BAR': 'BAR1',
+                'HELLO': None,
+            },
+            inherit=None,
+        )
+
+        # We test the variables before we enable the environment
+        self.assertEqual(os.environ.get('DUMMY'), 'DUMMY1')
+        self.assertEqual(os.environ.get('FOO'), 'FOO1')
+        self.assertEqual(os.environ.get('BAR'), None)
+        self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
+
+        # We apply the environment and test those again
+        with orphan_environment.enable():
+            self.assertEqual(os.environ.get('DUMMY'), None)
+            self.assertEqual(os.environ.get('FOO'), 'FOO3')
+            self.assertEqual(os.environ.get('BAR'), 'BAR1')
+            self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
 
     def test_extensions(self):
         """
