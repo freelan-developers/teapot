@@ -2,30 +2,8 @@ attendees:
     libiconv:
         source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
         builders:
-            unix:
-                filters: unix
+            default:
                 commands:
                     - ./configure --prefix={{prefix}}
                     - make
                     - make install
-            windows:
-                filters: windows
-                commands:
-                    - sh -c ./configure --prefix={{prefix}}
-                    - sh -c make
-                    - sh -c make install
-    libcurl:
-        source: http://curl.haxx.se/download/curl-7.32.0.tar.bz2
-        builders:
-            windows:
-                filters: msvc
-                directory: winbuild
-                commands: nmake /f Makefile.vc mode=static
-    boost:
-        source:
-            location: http://sourceforge.net/projects/boost/files/boost/1.54.0/boost_1_54_0.zip/download
-            type: application/zip
-    libiconvplus:
-        source: github:freelan-developers/libiconvplus/1.0
-cache: cache
-build: build
