@@ -7,3 +7,5 @@ attendees:
                     - ./configure --prefix={{prefix}}
                     - make
                     - make install
+cache: cache
+build: build
