@@ -166,6 +166,9 @@ class Builder(Filtered):
             os.chdir(source_tree_path)
 
             with self.environment.enable() as env:
+                for key, value in os.environ.iteritems():
+                    LOGGER.debug('%s: %s', key, hl(value))
+
                 for index, command in enumerate(self.commands):
                     command = self.apply_extensions(command)
                     LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)

@@ -146,21 +146,11 @@ class Environment(object):
 
         saved_environ = os.environ.copy()
 
-        LOGGER.debug('Entering environment %s...', hl(self))
-
         try:
-            def print_environment():
-                """
-                Print the current environment.
-                """
-
-                for key, value in os.environ.iteritems():
-                    LOGGER.debug('%s: %s', key, hl(value))
-
             if self.inherit:
-                LOGGER.debug('Inheriting environment from %s...', hl(self.inherit))
-
                 with self.inherit.enable():
+                    LOGGER.debug('Entering environment %s...', hl(self))
+
                     for key, value in self.variables.iteritems():
                         if value is not None:
                             os.environ[key] = value
@@ -168,11 +158,9 @@ class Environment(object):
                             if key in os.environ:
                                 del os.environ[key]
 
-                    print_environment()
-
                     yield self
             else:
-                LOGGER.debug('%s inheriting parent environment...', hl('Not'))
+                LOGGER.debug('Entering environment %s...', hl(self))
 
                 os.environ.clear()
 
@@ -182,8 +170,6 @@ class Environment(object):
                     else:
                         if key in saved_environ:
                             os.environ[key] = saved_environ.get(key)
-
-                print_environment()
 
                 yield self
 
