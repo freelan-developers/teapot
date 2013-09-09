@@ -71,6 +71,8 @@ class TestTeaParty(unittest.TestCase):
             self.assertEqual(os.environ.get('BAR'), None)
             self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
 
+        self.assertEqual(default_environment.shell, None)
+
         environment = Environment(
             party=None,
             name='test_environment',
@@ -82,6 +84,7 @@ class TestTeaParty(unittest.TestCase):
                 'FOO_EXTENDED_PLATFORM': '[%HELLO%]',
             },
             inherit=default_environment,
+            shell=['my shell'],
         )
 
         # We test the variables before we enable the environment
@@ -103,6 +106,17 @@ class TestTeaParty(unittest.TestCase):
                 self.assertEqual(os.environ.get('FOO_EXTENDED_PLATFORM'), '[HELLO1]')
             else:
                 self.assertEqual(os.environ.get('FOO_EXTENDED_PLATFORM'), '[%HELLO%]')
+
+        self.assertEqual(environment.shell, ['my shell'])
+
+        sub_environment = Environment(
+            party=None,
+            name='test_environment',
+            inherit=environment,
+            shell=True,
+        )
+
+        self.assertEqual(sub_environment.shell, ['my shell'])
 
         orphan_environment = Environment(
             party=None,
@@ -127,6 +141,8 @@ class TestTeaParty(unittest.TestCase):
             self.assertEqual(os.environ.get('FOO'), 'FOO3')
             self.assertEqual(os.environ.get('BAR'), 'BAR1')
             self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
+
+        self.assertEqual(orphan_environment.shell, None)
 
     def test_extensions(self):
         """

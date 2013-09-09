@@ -49,12 +49,6 @@ def make_environment(party, name, environment):
     if name == DEFAULT_ENVIRONMENT_NAME:
         raise ValueError('Cannot create an environment with name "%s": it is reserved for the default environment.' % name)
 
-    shell = environment.get('shell')
-
-    if shell is not None:
-        if isinstance(shell, basestring):
-            shell = shlex.split(shell)
-
     inherit = environment.get('inherit')
 
     if inherit:
@@ -62,6 +56,12 @@ def make_environment(party, name, environment):
             inherit = party.get_environment_by_name(inherit)
         else:
             inherit = make_environment(party, name + ':<unnamed base environment>', inherit)
+
+    shell = environment.get('shell', True)
+
+    if shell is not None:
+        if isinstance(shell, basestring):
+            shell = shlex.split(shell)
 
     return Environment(
         party=party,
@@ -106,12 +106,24 @@ class Environment(object):
 
         `shell`, if specified, is the shell to use to execute the commands
         during builds.
+
+        `shell` may also be equal to True, in which case it will also inherit
+        the shell from its inherited environment.
         """
 
         self.party = party
         self.name = name
         self.variables = variables or {}
         self.inherit = inherit
+
+        if shell is True:
+            if self.inherit:
+                shell = self.inherit.shell
+            else:
+                shell = None
+        elif shell is False:
+            shell = None
+
         self.shell = shell
 
     def __str__(self):
