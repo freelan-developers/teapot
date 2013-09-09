@@ -3,6 +3,8 @@ Tea-party environments.
 """
 
 import os
+import re
+import sys
 import shlex
 
 from contextlib import contextmanager
@@ -133,6 +135,29 @@ class Environment(object):
             self.shell,
         )
 
+    def perform_substitutions(self, value, parent_context):
+        """
+        Perform substitutions in the specified `value`.
+
+        Values are taken from the `parent_context`. If no value is found in the
+        parent context, the substitution is done with an empty string.
+
+        Substitutions are done for $KEY on all platforms, and also for %KEY% on
+        Windows.
+        """
+
+        if sys.platform.startswith('win32'):
+            pattern = '\$(?P<unix_key>[A-Za-z_][A-Za-z_0-9]*)|%(?P<windows_key>[A-Za-z_][A-Za-z_0-9]*)%'
+        else:
+            pattern = '\$(?P<unix_key>[A-Za-z_][A-Za-z_0-9]*)'
+
+        def substitute(match):
+            key = match.group('unix_key') or match.group('windows_key')
+
+            return parent_context.get(key, '')
+
+        return re.sub(pattern, substitute, value)
+
     @contextmanager
     def enable(self):
         """
@@ -153,7 +178,7 @@ class Environment(object):
 
                     for key, value in self.variables.iteritems():
                         if value is not None:
-                            os.environ[key] = value
+                            os.environ[key] = self.perform_substitutions(value, saved_environ)
                         else:
                             if key in os.environ:
                                 del os.environ[key]
@@ -166,7 +191,7 @@ class Environment(object):
 
                 for key, value in self.variables.iteritems():
                     if value is not None:
-                        os.environ[key] = value
+                        os.environ[key] = self.perform_substitutions(value, saved_environ)
                     else:
                         if key in saved_environ:
                             os.environ[key] = saved_environ.get(key)

@@ -3,6 +3,7 @@ tea_party unit tests.
 """
 
 import os
+import sys
 
 try:
     import unittest2 as unittest
@@ -77,6 +78,8 @@ class TestTeaParty(unittest.TestCase):
                 'FOO': 'FOO2',
                 'BAR': 'BAR1',
                 'HELLO': None,
+                'FOO_EXTENDED': '$FOO-$FOO-$NON_EXISTING_VAR-$FOO_EXTENDED',
+                'FOO_EXTENDED_PLATFORM': '[%HELLO%]',
             },
             inherit=default_environment,
         )
@@ -86,6 +89,7 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(os.environ.get('FOO'), 'FOO1')
         self.assertEqual(os.environ.get('BAR'), None)
         self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
+        self.assertEqual(os.environ.get('FOO_EXTENDED'), None)
 
         # We apply the environment and test those again
         with environment.enable():
@@ -93,6 +97,12 @@ class TestTeaParty(unittest.TestCase):
             self.assertEqual(os.environ.get('FOO'), 'FOO2')
             self.assertEqual(os.environ.get('BAR'), 'BAR1')
             self.assertEqual(os.environ.get('HELLO'), None)
+            self.assertEqual(os.environ.get('FOO_EXTENDED'), 'FOO1-FOO1--')
+
+            if sys.platform.startswith('win32'):
+                self.assertEqual(os.environ.get('FOO_EXTENDED_PLATFORM'), '[HELLO1]')
+            else:
+                self.assertEqual(os.environ.get('FOO_EXTENDED_PLATFORM'), '[%HELLO%]')
 
         orphan_environment = Environment(
             party=None,
