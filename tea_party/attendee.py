@@ -5,6 +5,9 @@ tea-party 'attendee' class.
 import os
 import json
 import errno
+import shutil
+
+from contextlib import contextmanager
 
 from tea_party.log import LOGGER
 from tea_party.log import Highlight as hl
@@ -200,6 +203,14 @@ class Attendee(Filtered):
 
         return os.path.join(self.party.build_path, self.name)
 
+    @property
+    def variant_builds_path(self):
+        """
+        The path to the variant builds.
+        """
+
+        return os.path.join(self.build_path, 'builds')
+
     def clean_build(self):
         """
         Clean the build directory.
@@ -241,7 +252,7 @@ class Attendee(Filtered):
             if cache_info:
                 LOGGER.success('%s fetched successfully.', hl(self))
 
-                self.cache_info = cache_info
+                self.write_cache_info(cache_info)
 
                 return source
 
@@ -264,7 +275,7 @@ class Attendee(Filtered):
             LOGGER.success('%s unpacked successfully at: %s', hl(self), hl(build_info.get('source_tree_path')))
             build_info['source_tree_origin_hash'] = self.archive_hash
 
-            self.build_info = build_info
+            self.write_build_info(build_info)
 
     def build(self, tags=None, verbose=False):
         """
@@ -286,7 +297,9 @@ class Attendee(Filtered):
             for builder in builders:
                 try:
                     LOGGER.info('Starting build for %s using builder "%s"...', hl(self), hl(builder))
-                    builder.build(verbose=verbose)
+
+                    with self.create_temporary_build_directory(builder) as build_directory:
+                        builder.build(build_directory=build_directory, verbose=verbose)
 
                 except Exception as ex:
                     LOGGER.error('Error while building %s: %s', hl(self), ex)
@@ -294,6 +307,29 @@ class Attendee(Filtered):
                     raise
 
             LOGGER.success('%s built successfully.', hl(self))
+
+    @contextmanager
+    def create_temporary_build_directory(self, builder, persistent=False):
+        """
+        Create a build directory that is a clone of the real build directory.
+
+        The directory name and location depend on the `builder` that will use
+        it.
+
+        The directory will be deleted, unless `persistent` is truthy.
+        """
+
+        build_directory = os.path.join(self.variant_builds_path, builder.name)
+
+        try:
+            LOGGER.info('Copying source tree to %s...', hl(build_directory))
+            shutil.copytree(self.source_tree_path, build_directory)
+
+            yield build_directory
+
+        finally:
+            if not persistent:
+                rmdir(build_directory)
 
     @property
     def cache_info(self):
@@ -318,10 +354,9 @@ class Attendee(Filtered):
 
         return {}
 
-    @cache_info.setter
-    def set_cache_info(self, value):
+    def write_cache_info(self, value):
         """
-        Set the associated cache info.
+        Write the associated cache info.
         """
 
         with open(os.path.join(self.cache_path, self.CACHE_FILE), 'w') as cache_file:
@@ -350,8 +385,7 @@ class Attendee(Filtered):
 
         return {}
 
-    @build_info.setter
-    def set_build_info(self, value):
+    def write_build_info(self, value):
         """
         Set the associated build info.
         """

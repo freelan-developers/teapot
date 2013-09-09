@@ -152,15 +152,15 @@ class Builder(Filtered):
             LOGGER.debug('Moving back to: %s', hl(old_path))
             os.chdir(old_path)
 
-    def build(self, verbose=False):
+    def build(self, build_directory, verbose=False):
         """
         Build the attendee.
         """
 
         if self.directory:
-            source_tree_path = os.path.join(self.attendee.source_tree_path, self.directory)
+            source_tree_path = os.path.join(build_directory, self.directory)
         else:
-            source_tree_path = self.attendee.source_tree_path
+            source_tree_path = build_directory
 
         with self.chdir(source_tree_path):
             os.chdir(source_tree_path)
