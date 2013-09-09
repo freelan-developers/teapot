@@ -277,7 +277,7 @@ class Attendee(Filtered):
 
             self.write_build_info(build_info)
 
-    def build(self, tags=None, verbose=False):
+    def build(self, tags=None, verbose=False, keep_builds=False):
         """
         Build the attendee, with the builders that match `tags`, if any.
         """
@@ -298,7 +298,7 @@ class Attendee(Filtered):
                 try:
                     LOGGER.info('Starting build for %s using builder "%s"...', hl(self), hl(builder))
 
-                    with self.create_temporary_build_directory(builder) as build_directory:
+                    with self.create_temporary_build_directory(builder, persistent=keep_builds) as build_directory:
                         builder.build(build_directory=build_directory, verbose=verbose)
 
                 except Exception as ex:
@@ -322,6 +322,8 @@ class Attendee(Filtered):
         build_directory = os.path.join(self.variant_builds_path, builder.name)
 
         try:
+            rmdir(build_directory)
+
             LOGGER.info('Copying source tree to %s...', hl(build_directory))
             shutil.copytree(self.source_tree_path, build_directory)
 
@@ -330,6 +332,8 @@ class Attendee(Filtered):
         finally:
             if not persistent:
                 rmdir(build_directory)
+            else:
+                LOGGER.info('Keeping build directory at %s', hl(build_directory))
 
     @property
     def cache_info(self):

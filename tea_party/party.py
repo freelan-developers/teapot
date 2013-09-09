@@ -272,7 +272,7 @@ class Party(object):
             LOGGER.info("Done unpacking archives.")
 
     @has_attendees
-    def build(self, attendees=[], tags=[], verbose=False, force=False):
+    def build(self, attendees=[], tags=[], verbose=False, force=False, keep_builds=False):
         """
         Build the archives.
         """
@@ -283,6 +283,6 @@ class Party(object):
         LOGGER.info("Building %s archive(s)...", len(attendees))
 
         for attendee in attendees:
-            attendee.build(tags=tags, verbose=verbose)
+            attendee.build(tags=tags, verbose=verbose, keep_builds=keep_builds)
 
         LOGGER.info("Done building archives.")
