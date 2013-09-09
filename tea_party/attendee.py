@@ -211,6 +211,14 @@ class Attendee(Filtered):
 
         return os.path.join(self.build_path, 'builds')
 
+    @property
+    def logs_path(self):
+        """
+        The path to the log files.
+        """
+
+        return os.path.join(self.build_path, 'logs')
+
     def clean_build(self):
         """
         Clean the build directory.
@@ -221,13 +229,6 @@ class Attendee(Filtered):
         rmdir(self.build_path)
 
         LOGGER.info('Done cleaning build directory for %s.', hl(self))
-
-    def create_build(self):
-        """
-        Create the build directory.
-        """
-
-        mkdir(self.build_path)
 
     def fetch(self):
         """
@@ -265,7 +266,7 @@ class Attendee(Filtered):
         If the unpacking suceeds, the archive source path is returned.
         """
 
-        self.create_build()
+        mkdir(self.build_path)
 
         LOGGER.info('Unpacking %s...', hl(self))
 
@@ -287,7 +288,8 @@ class Attendee(Filtered):
         else:
             builders = map(self.get_builders_by_tag, tags)
 
-        self.create_build()
+        mkdir(self.build_path)
+        mkdir(self.logs_path)
 
         if not builders:
             LOGGER.warning('Not building %s because no builder matches the current settings. Did you forget to set a filter on the attendee ?', hl(self))
@@ -299,7 +301,12 @@ class Attendee(Filtered):
                     LOGGER.info('Starting build for %s using builder "%s"...', hl(self), hl(builder))
 
                     with self.create_temporary_build_directory(builder, persistent=keep_builds) as build_directory:
-                        builder.build(build_directory=build_directory, verbose=verbose)
+                        with self.create_log_file(builder) as log_file:
+                            builder.build(
+                                build_directory=build_directory,
+                                log_file=log_file,
+                                verbose=verbose,
+                            )
 
                 except Exception as ex:
                     LOGGER.error('Error while building %s: %s', hl(self), ex)
@@ -307,6 +314,22 @@ class Attendee(Filtered):
                     raise
 
             LOGGER.success('%s built successfully.', hl(self))
+
+    @contextmanager
+    def create_log_file(self, builder):
+        """
+        Create a log file object and returns it.
+
+        `builder` is the builder that will write to the log file.
+        """
+
+        log_file = os.path.join(self.logs_path, '%s.txt' % builder.name)
+
+        try:
+            yield open(log_file, 'w')
+
+        finally:
+            LOGGER.info('Log file written to: %s', hl(log_file))
 
     @contextmanager
     def create_temporary_build_directory(self, builder, persistent=False):

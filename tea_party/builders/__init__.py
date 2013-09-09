@@ -10,6 +10,7 @@ import subprocess
 
 from contextlib import contextmanager
 from threading import Thread
+from datetime import datetime
 
 from tea_party.log import LOGGER, print_normal, print_error
 from tea_party.log import Highlight as hl
@@ -152,15 +153,25 @@ class Builder(Filtered):
             LOGGER.debug('Moving back to: %s', hl(old_path))
             os.chdir(old_path)
 
-    def build(self, build_directory, verbose=False):
+    def build(self, build_directory, log_file=None, verbose=False):
         """
         Build the attendee.
+
+        `build_directory` is the directory to build into.
+
+        `log_file`, if specified, is a file object to write the output to.
+
+        `verbose` is a flag that, if truthy, cause the build output to be
+        printed on standard output as the build progresses.
         """
 
         if self.directory:
             source_tree_path = os.path.join(build_directory, self.directory)
         else:
             source_tree_path = build_directory
+
+        if log_file:
+            log_file.write('Build started in %s at %s.\n' % (source_tree_path, datetime.now().strftime('%c')))
 
         with self.chdir(source_tree_path):
             os.chdir(source_tree_path)
@@ -171,7 +182,12 @@ class Builder(Filtered):
 
                 for index, command in enumerate(self.commands):
                     command = self.apply_extensions(command)
-                    LOGGER.important('%s: %s', ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index, command)
+                    numbered_prefix = ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index
+
+                    LOGGER.important('%s: %s', numbered_prefix, hl(command))
+
+                    if log_file:
+                        log_file.write('%s: %s\n' % (numbered_prefix, command))
 
                     if env:
                         process = subprocess.Popen(env.shell + [command], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -184,12 +200,15 @@ class Builder(Filtered):
 
                     previous_handler = signal.signal(signal.SIGINT, handler)
 
-                    try:
-                        mixed_output = []
+                    mixed_output = []
 
+                    try:
                         def read_stdout():
                             for line in iter(process.stdout.readline, ''):
                                 mixed_output.append((print_normal, line))
+
+                                if log_file:
+                                    log_file.write(line)
 
                                 if verbose:
                                     print_normal(line)
@@ -197,6 +216,9 @@ class Builder(Filtered):
                         def read_stderr():
                             for line in iter(process.stderr.readline, ''):
                                 mixed_output.append((print_error, line))
+
+                                if log_file:
+                                    log_file.write(line)
 
                                 if verbose:
                                     print_error(line)
@@ -217,12 +239,22 @@ class Builder(Filtered):
                     finally:
                         signal.signal(signal.SIGINT, previous_handler)
 
+                    if log_file:
+                        log_file.write('\n')
+
                     if process.returncode != 0:
                         if not verbose:
                             for func, line in mixed_output:
                                 func(line)
 
+                        if log_file:
+                            log_file.write('Command failed with status: %s\n' % process.returncode)
+                            log_file.write('Build failed at %s.\n' % datetime.now().strftime('%c'))
+
                         raise subprocess.CalledProcessError(returncode=process.returncode, cmd=command)
+
+        if log_file:
+            log_file.write('Build succeeded at %s.\n' % datetime.now().strftime('%c'))
 
     def apply_extensions(self, command):
         """
