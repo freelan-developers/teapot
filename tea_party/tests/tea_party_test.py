@@ -144,6 +144,29 @@ class TestTeaParty(unittest.TestCase):
 
         self.assertEqual(orphan_environment.shell, None)
 
+        shell_environment = Environment(
+            party=None,
+            name='test_environment',
+            variables={
+                'FOO': 'FOO3',
+            },
+            inherit=default_environment,
+            shell=['$FOO'],
+        )
+
+        self.assertEqual(shell_environment.shell, ['FOO1'])
+
+        orphan_shell_environment = Environment(
+            party=None,
+            name='test_environment',
+            variables={
+                'FOO': 'FOO3',
+            },
+            shell=['$FOO'],
+        )
+
+        self.assertEqual(orphan_shell_environment.shell, [''])
+
     def test_extensions(self):
         """
         Test the extensions.

@@ -71,6 +71,30 @@ def make_environment(party, name, environment):
         shell=shell,
     )
 
+def perform_substitutions(value, parent_context):
+    """
+    Perform substitutions in the specified `value`.
+
+    Values are taken from the `parent_context`. If no value is found in the
+    parent context, the substitution is done with an empty string.
+
+    Substitutions are done for $KEY on all platforms, and also for %KEY% on
+    Windows.
+    """
+
+    if sys.platform.startswith('win32'):
+        pattern = '\$(?P<unix_key>[A-Za-z_][A-Za-z_0-9]*)|%(?P<windows_key>[A-Za-z_][A-Za-z_0-9]*)%'
+    else:
+        pattern = '\$(?P<unix_key>[A-Za-z_][A-Za-z_0-9]*)'
+
+    def substitute(match):
+        key = match.group('unix_key') or match.group('windows_key')
+
+        return parent_context.get(key, '')
+
+    return re.sub(pattern, substitute, value)
+
+
 class Environment(object):
 
     """
@@ -115,16 +139,20 @@ class Environment(object):
         self.name = name
         self.variables = variables or {}
         self.inherit = inherit
+        self.shell = None
 
         if shell is True:
             if self.inherit:
                 shell = self.inherit.shell
             else:
                 shell = None
-        elif shell is False:
-            shell = None
 
-        self.shell = shell
+        if shell:
+            if self.inherit:
+                with self.inherit.enable(silent=True):
+                    self.shell = map(lambda arg: perform_substitutions(arg, os.environ), shell)
+            else:
+                self.shell = map(lambda arg: perform_substitutions(arg, {}), shell)
 
     def __str__(self):
         """
@@ -147,63 +175,42 @@ class Environment(object):
             self.shell,
         )
 
-    def perform_substitutions(self, value, parent_context):
-        """
-        Perform substitutions in the specified `value`.
-
-        Values are taken from the `parent_context`. If no value is found in the
-        parent context, the substitution is done with an empty string.
-
-        Substitutions are done for $KEY on all platforms, and also for %KEY% on
-        Windows.
-        """
-
-        if sys.platform.startswith('win32'):
-            pattern = '\$(?P<unix_key>[A-Za-z_][A-Za-z_0-9]*)|%(?P<windows_key>[A-Za-z_][A-Za-z_0-9]*)%'
-        else:
-            pattern = '\$(?P<unix_key>[A-Za-z_][A-Za-z_0-9]*)'
-
-        def substitute(match):
-            key = match.group('unix_key') or match.group('windows_key')
-
-            return parent_context.get(key, '')
-
-        return re.sub(pattern, substitute, value)
-
     @contextmanager
-    def enable(self):
+    def enable(self, silent=False):
         """
         Enable the environment and shell settings, if any.
 
         The current process environment is modified during the call, and
         restored when the function returns.
 
-        set_shell() is supposed to be used with a `with` statement.
+        If `silent` is truthy, no log output will be done.
+
+        enable() is supposed to be used with a `with` statement.
         """
 
         saved_environ = os.environ.copy()
 
         try:
             if self.inherit:
-                with self.inherit.enable():
-                    LOGGER.debug('Entering environment %s...', hl(self))
+                with self.inherit.enable(silent=silent):
+                    if not silent: LOGGER.debug('Entering environment %s...', hl(self))
 
                     for key, value in self.variables.iteritems():
                         if value is not None:
-                            os.environ[key] = self.perform_substitutions(value, saved_environ)
+                            os.environ[key] = perform_substitutions(value, saved_environ)
                         else:
                             if key in os.environ:
                                 del os.environ[key]
 
                     yield self
             else:
-                LOGGER.debug('Entering environment %s...', hl(self))
+                if not silent: LOGGER.debug('Entering environment %s...', hl(self))
 
                 os.environ.clear()
 
                 for key, value in self.variables.iteritems():
                     if value is not None:
-                        os.environ[key] = self.perform_substitutions(value, saved_environ)
+                        os.environ[key] = perform_substitutions(value, saved_environ)
                     else:
                         if key in saved_environ:
                             os.environ[key] = saved_environ.get(key)
@@ -211,7 +218,7 @@ class Environment(object):
                 yield self
 
         finally:
-            LOGGER.debug('Exiting environment %s...', hl(self))
+            if not silent: LOGGER.debug('Exiting environment %s...', hl(self))
 
             os.environ.clear()
             os.environ.update(saved_environ)
