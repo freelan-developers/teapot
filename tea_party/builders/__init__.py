@@ -189,7 +189,7 @@ class Builder(Filtered):
                     if log_file:
                         log_file.write('%s: %s\n' % (numbered_prefix, command))
 
-                    if env:
+                    if env.shell:
                         process = subprocess.Popen(env.shell + [command], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     else:
                         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
