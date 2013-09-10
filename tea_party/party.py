@@ -180,7 +180,7 @@ class Party(object):
             if environment.name == name:
                 return environment
 
-        raise NoSuchEnvironmentError(environment=environment)
+        raise NoSuchEnvironmentError(environment=name)
 
     @has_attendees
     def clean_cache(self, attendees=[]):
