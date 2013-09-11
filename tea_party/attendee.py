@@ -93,12 +93,15 @@ class Attendee(Filtered):
     CACHE_FILE = 'cache.json'
     BUILD_FILE = 'build.json'
 
-    def __init__(self, party, name, depends, filters=[], prefix=None):
+    def __init__(self, party, name, depends=[], filters=[], prefix=None):
         """
         Create an attendee associated to a `party`.
 
         `name` is the name of the attendee.
         `depends` is a list of Attendee names to depend on.
+        `filters` is the list of filters that must match for this attendee to
+        be active.
+        `prefix` is the prefix to use for that attendee.
         """
 
         if not party:
