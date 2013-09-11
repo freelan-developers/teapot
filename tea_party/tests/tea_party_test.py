@@ -254,3 +254,6 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(result_dict['foo'], None)
         self.assertEqual(result_dict['bar'], None)
         self.assertEqual(result_dict['builder'], 'two')
+
+if __name__ == '__main__':
+    unittest.main()
