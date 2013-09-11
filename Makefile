@@ -9,6 +9,10 @@ flake8:
 test:
 	python setup.py test
 
+coverage:
+	coverage run --include "tea_party/*" tea_party/tests/tea_party_test.py
+	coverage report
+
 # Aliases
 
 check: flake8
