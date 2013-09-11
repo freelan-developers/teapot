@@ -65,14 +65,34 @@ class NoSuchAttendeeError(ValueError):
     The specified attendee does not exist.
     """
 
-    def __init__(self, attendee):
+    def __init__(self, name):
         """
-        Create an NoSuchAttendeeError for the specified `attendee`.
+        Create an NoSuchAttendeeError for the specified `name`.
         """
 
         super(NoSuchAttendeeError, self).__init__(
-            'No such attendee: %s' % attendee
+            'No such attendee: %s' % name,
         )
+
+        self.name = name
+
+
+class CyclicDependencyError(ValueError):
+
+    """
+    The dependency graph is cyclic.
+    """
+
+    def __init__(self, cycle):
+        """
+        Create a CyclicDependencyError for the specified cycle.
+        """
+
+        super(CyclicDependencyError, self).__init__(
+            'The attendee dependency graph is cyclic: %s' % ' -> '.join(map(str, cycle)),
+        )
+
+        self.cycle = cycle
 
 
 def has_attendees(func):
@@ -96,6 +116,21 @@ def has_attendees(func):
 
     return result
 
+def has_ordered_attendees(func):
+    """
+    Ensures the function gets a list of real attendees instances, ordered, with
+    less dependant attendees first.
+    """
+
+    @wraps(func)
+    def result(self, *args, **kwargs):
+        attendees = kwargs.get('attendees', [])
+
+        kwargs['attendees'] = self.get_ordered_attendees(attendees)
+
+        return func(self, *args, **kwargs)
+
+    return result
 
 class Party(object):
 
@@ -119,16 +154,17 @@ class Party(object):
 
         return action
 
-    def __init__(self, path, cache_path, build_path, prefix, **kwargs):
+    def __init__(self, path=None, cache_path=None, build_path=None, prefix=None, **kwargs):
         """
         Create a Party instance.
 
         `path` is the path to the party file.
         `cache_path` is the root of the cache.
         `build_path` is the root of the build.
+        `prefix` is the prefix common to all attendees.
         """
 
-        self.path = os.path.abspath(path)
+        self.path = os.path.abspath(path or os.getcwd())
         self.attendees = []
         self.environment_register = EnvironmentRegister()
         self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
@@ -163,7 +199,63 @@ class Party(object):
             if attendee.name == name:
                 return attendee
 
-        raise NoSuchAttendeeError(attendee=attendee)
+        raise NoSuchAttendeeError(name=str(name))
+
+    @has_attendees
+    def get_ordered_attendees(self, attendees=[]):
+        """
+        Get a list of attendees ordered in such a way that the less dependent
+        attendees start the list.
+        """
+
+        graph = {}
+
+        def populate_graph(graph, attendees):
+
+            for attendee in attendees:
+                if not attendee.name in graph:
+                    graph[attendee.name] = set(attendee.depends)
+                    populate_graph(graph, map(self.get_attendee_by_name, attendee.depends))
+
+        populate_graph(graph, attendees)
+
+        ordered_attendees = []
+
+        while graph:
+
+            try:
+                attendee = next(node[0] for node in graph.iteritems() if not node[1])
+
+            except StopIteration:
+                # We have a cyclic graph. Raise an error and fail.
+
+                cycle = []
+                cyclic_graph = graph.copy()
+
+                while cyclic_graph:
+                    attendee = next(cyclic_graph.iteritems())[0]
+
+                    if attendee in cycle:
+                        break
+                    else:
+                        cycle.append(attendee)
+                        del cyclic_graph[attendee]
+
+                # Reduce the cycle to the smallest sequence.
+                cycle = cycle[cycle.index(list(graph[attendee])[0]):]
+
+                cycle = map(self.get_attendee_by_name, cycle)
+
+                raise CyclicDependencyError(cycle=cycle)
+
+            ordered_attendees.append(self.get_attendee_by_name(attendee))
+            del graph[attendee]
+
+            for node, depends in graph.iteritems():
+                if attendee in depends:
+                    depends.remove(attendee)
+
+        return ordered_attendees
 
     @has_attendees
     def clean_cache(self, attendees=[]):
@@ -254,7 +346,7 @@ class Party(object):
 
             LOGGER.info("Done unpacking archives.")
 
-    @has_attendees
+    @has_ordered_attendees
     def build(self, attendees=[], tags=[], verbose=False, force=False, keep_builds=False):
         """
         Build the archives.

@@ -10,7 +10,8 @@ try:
 except ImportError:
     import unittest
 
-from tea_party.party import load_party_file
+from tea_party.party import Party, NoSuchAttendeeError, CyclicDependencyError, load_party_file
+from tea_party.attendee import Attendee
 from tea_party.environments import Environment, EnvironmentRegister, create_default_environment
 from tea_party.environments.environment_register import NoSuchEnvironmentError, EnvironmentAlreadyRegisteredError
 from tea_party.extensions import get_extension_by_name, parse_extension
@@ -39,14 +40,77 @@ class TestTeaParty(unittest.TestCase):
 
         self.assertEqual(set(['boost', 'libiconv', 'libfoo']), attendees_names)
 
-    def test_builders(self):
+    def test_party(self):
         """
-        The the builders.
+        The the party object.
         """
 
-        #TODO: Parse a real party file and get a builder from it.
-        #builder = Builder()
-        pass
+        def attendee_name(num):
+            return 'attendee #%s' % num
+
+        party = Party()
+
+        # First test with a broken dependency graph.
+        party.attendees = [
+            Attendee(
+                party=party,
+                name=attendee_name(i),
+                depends=[attendee_name(i + 1)],
+            )
+            for i in range(5)
+        ]
+
+        attendees_copy = list(party.attendees)
+
+        with self.assertRaises(NoSuchAttendeeError) as context:
+            party.get_ordered_attendees()
+
+        self.assertEqual(context.exception.name, attendee_name(5))
+        self.assertEqual(attendees_copy, party.attendees)
+
+        # Test with a cyclic dependency graph.
+        party.attendees.append(
+            Attendee(
+                party=party,
+                name=attendee_name(5),
+                depends=[attendee_name(2)],
+            ),
+        )
+
+        attendees_copy = list(party.attendees)
+
+        with self.assertRaises(CyclicDependencyError) as context:
+            party.get_ordered_attendees()
+
+        self.assertEqual(context.exception.cycle, party.attendees[2:])
+        self.assertEqual(attendees_copy, party.attendees)
+
+        # Test with a complete dependency graph.
+        party.attendees[3].depends = []
+
+        attendees_copy = list(party.attendees)
+
+        self.assertEqual(
+            party.get_ordered_attendees(),
+            [party.attendees[i] for i in (3, 2, 1, 0, 5, 4)],
+        )
+
+        self.assertEqual(attendees_copy, party.attendees)
+
+        self.assertEqual(
+            party.get_ordered_attendees(attendees=[attendee_name(0)]),
+            [party.attendees[i] for i in (3, 2, 1, 0)],
+        )
+
+        self.assertEqual(attendees_copy, party.attendees)
+
+        self.assertEqual(
+            party.get_ordered_attendees(attendees=[attendee_name(5), attendee_name(1)]),
+            [party.attendees[i] for i in (3, 2, 1, 5)],
+        )
+
+        self.assertEqual(attendees_copy, party.attendees)
+
 
     def test_environments(self):
         """

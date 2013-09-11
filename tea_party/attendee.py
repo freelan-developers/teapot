@@ -108,7 +108,7 @@ class Attendee(Filtered):
         self.name = name
         self.sources = []
         self.builders = []
-        self.depends = depends
+        self.depends = set(depends)
         self.prefix = prefix or ''
 
         Filtered.__init__(self, filters=filters)
