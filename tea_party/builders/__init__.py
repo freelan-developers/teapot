@@ -264,6 +264,6 @@ class Builder(Filtered):
         def replace(match):
             code = match.group('code')
 
-            return parse_extension(code, self)
+            return str(parse_extension(code, self))
 
         return re.sub(r'\{{(?P<code>[\w\s()]+)}}', replace, command)

@@ -73,14 +73,24 @@ class NoSuchBuilderError(ValueError):
     The specified builder does not exist.
     """
 
-    def __init__(self, tag):
+    def __init__(self, name=None, tag=None):
         """
-        Create an NoSuchBuilderError for the specified `tag`.
+        Create an NoSuchBuilderError for the specified `name` or `tag`.
         """
 
-        super(NoSuchBuilderError, self).__init__(
-            'No builder found with that tag: %s' % tag
-        )
+        assert name or tag
+
+        if name:
+            super(NoSuchBuilderError, self).__init__(
+                'No builder found with that name: %s' % name
+            )
+        else:
+            super(NoSuchBuilderError, self).__init__(
+                'No builder found with that tag: %s' % tag
+            )
+
+        self.name = name
+        self.tag = tag
 
 
 class Attendee(Filtered):
@@ -159,6 +169,20 @@ class Attendee(Filtered):
             self.sources,
             self.depends,
         )
+
+    def get_builder_by_name(self, name):
+        """
+        Get all the builders that match the specified name.
+
+        If no builder has the specified name, a NoSuchBuilderError is raised.
+        """
+
+        result = [builder for builder in self.builders if builder.name == name]
+
+        if not result:
+            raise NoSuchBuilderError(name=name)
+
+        return result[0]
 
     def get_builders_by_tag(self, tag):
         """
