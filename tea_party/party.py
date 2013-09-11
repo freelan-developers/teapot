@@ -15,7 +15,7 @@ from tea_party.path import read_path, rmdir
 from tea_party.defaults import *
 from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
 from tea_party.unpackers.callbacks import ProgressBarUnpackerCallback
-from tea_party.environments import make_environments, Environment, DEFAULT_ENVIRONMENT_NAME
+from tea_party.environments import make_environments, Environment, EnvironmentRegister, create_default_environment
 
 
 def load_party_file(path):
@@ -53,7 +53,7 @@ def load_party_file(path):
         prefix=values.get('prefix'),
     )
 
-    party.environments = make_environments(party, values.get('environments'))
+    party.environments = make_environments(party.environment_register, values.get('environments'))
     party.attendees = make_attendees(party, values.get('attendees'))
 
     return party
@@ -72,22 +72,6 @@ class NoSuchAttendeeError(ValueError):
 
         super(NoSuchAttendeeError, self).__init__(
             'No such attendee: %s' % attendee
-        )
-
-
-class NoSuchEnvironmentError(ValueError):
-
-    """
-    The specified environment does not exist.
-    """
-
-    def __init__(self, environment):
-        """
-        Create an NoSuchEnvironmentError for the specified `environment`.
-        """
-
-        super(NoSuchEnvironmentError, self).__init__(
-            'No such environment: %s' % environment
         )
 
 
@@ -120,6 +104,21 @@ class Party(object):
     different attendees (third-party softwares), and the party options.
     """
 
+    POST_ACTIONS = []
+
+    @classmethod
+    def register_post_action(cls, action):
+        """
+        Register a post action.
+
+        Post action are called in the registration order, whenever a new Party
+        instance is created.
+        """
+
+        cls.POST_ACTIONS.append(action)
+
+        return action
+
     def __init__(self, path, cache_path, build_path, prefix, **kwargs):
         """
         Create a Party instance.
@@ -131,13 +130,16 @@ class Party(object):
 
         self.path = os.path.abspath(path)
         self.attendees = []
-        self.environments = []
+        self.environment_register = EnvironmentRegister()
         self.cache_path = read_path(cache_path, os.path.dirname(self.path), DEFAULT_CACHE_PATH)
         self.build_path = read_path(build_path, os.path.dirname(self.path), DEFAULT_BUILD_PATH)
         self.prefix = read_path(prefix, os.path.dirname(self.path), DEFAULT_PREFIX)
         self.auto_fetch = True
         self.fetcher_callback_class = ProgressBarFetcherCallback
         self.unpacker_callback_class = ProgressBarUnpackerCallback
+
+        for post_action in self.POST_ACTIONS:
+            post_action(self)
 
     @property
     def enabled_attendees(self):
@@ -162,25 +164,6 @@ class Party(object):
                 return attendee
 
         raise NoSuchAttendeeError(attendee=attendee)
-
-    def get_environment_by_name(self, name):
-        """
-        Get an environment by name, if it exists.
-
-        If no environment has the specified name, a NoSuchEnvironmentError is raised.
-        """
-
-        if isinstance(name, Environment):
-            return name
-
-        if name == DEFAULT_ENVIRONMENT_NAME:
-            return Environment.get_default(self)
-
-        for environment in self.environments:
-            if environment.name == name:
-                return environment
-
-        raise NoSuchEnvironmentError(environment=name)
 
     @has_attendees
     def clean_cache(self, attendees=[]):
@@ -286,3 +269,16 @@ class Party(object):
             attendee.build(tags=tags, verbose=verbose, keep_builds=keep_builds)
 
         LOGGER.info("Done building archives.")
+
+
+DEFAULT_ENVIRONMENT_NAME = 'default'
+
+@Party.register_post_action
+def add_default_environment(party):
+    """
+    Add the default environment to the party.
+    """
+
+    LOGGER.debug('Adding default environment as %s to the party.', hl(DEFAULT_ENVIRONMENT_NAME))
+
+    party.environment_register.register_environment(DEFAULT_ENVIRONMENT_NAME, create_default_environment())

@@ -11,7 +11,8 @@ except ImportError:
     import unittest
 
 from tea_party.party import load_party_file
-from tea_party.environments import Environment
+from tea_party.environments import Environment, EnvironmentRegister, create_default_environment
+from tea_party.environments.environment_register import NoSuchEnvironmentError, EnvironmentAlreadyRegisteredError
 from tea_party.extensions import get_extension_by_name, parse_extension
 from tea_party.extensions.decorators import named_extension, ExtensionParsingError, DuplicateExtensionError, NoSuchExtensionError
 
@@ -56,7 +57,7 @@ class TestTeaParty(unittest.TestCase):
         os.environ['FOO'] = 'FOO1'
         os.environ['HELLO'] = 'HELLO1'
 
-        default_environment = Environment.get_default(None)
+        default_environment = create_default_environment()
 
         # We test the variables before we enable the environment
         self.assertEqual(os.environ.get('DUMMY'), 'DUMMY1')
@@ -74,7 +75,6 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(default_environment.shell, None)
 
         environment = Environment(
-            party=None,
             name='test_environment',
             variables={
                 'FOO': 'FOO2',
@@ -110,7 +110,6 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(environment.shell, ['my shell'])
 
         sub_environment = Environment(
-            party=None,
             name='test_environment',
             inherit=environment,
             shell=True,
@@ -119,7 +118,6 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(sub_environment.shell, ['my shell'])
 
         orphan_environment = Environment(
-            party=None,
             name='test_environment',
             variables={
                 'FOO': 'FOO3',
@@ -145,7 +143,6 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(orphan_environment.shell, None)
 
         shell_environment = Environment(
-            party=None,
             name='test_environment',
             variables={
                 'FOO': 'FOO3',
@@ -157,7 +154,6 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(shell_environment.shell, ['FOO1'])
 
         orphan_shell_environment = Environment(
-            party=None,
             name='test_environment',
             variables={
                 'FOO': 'FOO3',
@@ -166,6 +162,31 @@ class TestTeaParty(unittest.TestCase):
         )
 
         self.assertEqual(orphan_shell_environment.shell, [''])
+
+    def test_environment_register(self):
+        """
+        Test the environment register.
+        """
+
+        register = EnvironmentRegister()
+
+        with self.assertRaises(NoSuchEnvironmentError) as context:
+            register.get_environment_by_name('foo')
+
+        self.assertEqual(context.exception.name, 'foo')
+
+        environment = Environment(
+            name='test_environment',
+        )
+
+        register.register_environment('foo', environment)
+
+        with self.assertRaises(EnvironmentAlreadyRegisteredError) as context:
+            register.register_environment('foo', environment)
+
+        self.assertEqual(context.exception.name, 'foo')
+
+        self.assertEqual(register.get_environment_by_name('foo'), environment)
 
     def test_extensions(self):
         """
