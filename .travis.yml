@@ -7,6 +7,7 @@ install:
     - pip install --editable .
 script:
     - make test
+    - make coverage
 notifications:
     email:
         on_success: change
