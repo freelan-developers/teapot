@@ -126,7 +126,7 @@ def has_ordered_attendees(func):
     def result(self, *args, **kwargs):
         attendees = kwargs.get('attendees', [])
 
-        kwargs['attendees'] = self.get_ordered_attendees(attendees)
+        kwargs['attendees'] = self.get_ordered_attendees(attendees=attendees)
 
         return func(self, *args, **kwargs)
 

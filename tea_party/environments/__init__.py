@@ -66,6 +66,6 @@ def make_environment(register, name, environment):
     )
 
     if name:
-        register.register_environment(result)
+        register.register_environment(name, result)
 
     return result

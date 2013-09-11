@@ -56,7 +56,7 @@ def make_builder(attendee, name, attributes):
 
     if environment:
         if isinstance(environment, basestring):
-            environment = attendee.party.get_environment_by_name(environment)
+            environment = attendee.party.environment_register.get_environment_by_name(environment)
         else:
             environment = make_environment(attendee.party, '%s:<unnamed environment>' % attendee.name, environment)
     else:

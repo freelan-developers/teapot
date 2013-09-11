@@ -10,10 +10,13 @@ attendees:
                     - make install
             default_x64:
                 environment: mingw_x64
-                inherit: default_x86
+                commands:
+                    - ./configure --prefix={{prefix(unix)}}
+                    - make
+                    - make install
 
-cache: cache
-build: build
+cache_path: cache
+build_path: build
 
 environments:
     mingw_x86:
@@ -23,6 +26,8 @@ environments:
             CFLAGS: -m32
             PATH: "C:\\MinGW64\\bin:%PATH%"
     mingw_x64:
-        inherit: mingw_x86
+        shell: ["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"]
+        inherit: default
         variables:
             CFLAGS: -m64
+            PATH: "C:\\MinGW64\\bin:%PATH%"
