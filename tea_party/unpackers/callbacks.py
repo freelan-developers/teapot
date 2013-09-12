@@ -62,7 +62,7 @@ class BaseUnpackerCallback(object):
         self.on_finish()
 
 
-class NullUnpackerCallbackCallback(BaseUnpackerCallback):
+class NullUnpackerCallback(BaseUnpackerCallback):
     """
     Provides no callback.
     """

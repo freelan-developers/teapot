@@ -12,6 +12,8 @@ except ImportError:
 
 from tea_party.party import Party, NoSuchAttendeeError, CyclicDependencyError, load_party_file
 from tea_party.attendee import Attendee
+from tea_party.fetchers.callbacks import NullFetcherCallback
+from tea_party.unpackers.callbacks import NullUnpackerCallback
 from tea_party.environments import Environment, EnvironmentRegister, create_default_environment
 from tea_party.environments.environment_register import NoSuchEnvironmentError, EnvironmentAlreadyRegisteredError
 from tea_party.extensions import get_extension_by_name, parse_extension
@@ -21,12 +23,17 @@ from tea_party.extensions.decorators import named_extension, ExtensionParsingErr
 class TestTeaParty(unittest.TestCase):
 
     def setUp(self):
+        """
+        Set up tests.
+        """
+
         self.fixtures_path = os.path.abspath(
             os.path.join(
                 os.path.dirname(__file__),
                 'fixtures'
             )
         )
+
         self.party_file = os.path.join(self.fixtures_path, 'party.yaml')
 
     def test_parsing(self):
@@ -36,9 +43,31 @@ class TestTeaParty(unittest.TestCase):
 
         party = load_party_file(self.party_file)
 
-        attendees_names = set([attendee.name for attendee in party.attendees])
+        party.fetcher_callback_class = NullFetcherCallback
+        party.unpacker_callback_class = NullUnpackerCallback
 
-        self.assertEqual(set(['boost', 'libiconv', 'libfoo']), attendees_names)
+        # Test the attendees.
+        self.assertEqual(
+            set([attendee.name for attendee in party.attendees]),
+            set(['alpha', 'beta', 'gamma']),
+        )
+
+        alpha = party.get_attendee_by_name('alpha')
+        beta = party.get_attendee_by_name('beta')
+        gamma = party.get_attendee_by_name('gamma')
+
+        self.assertEqual(len(alpha.sources), 1)
+        self.assertEqual(len(alpha.builders), 3)
+        self.assertEqual(len(alpha.enabled_builders), 2)
+
+        self.assertEqual(len(beta.sources), 1)
+        self.assertEqual(len(beta.builders), 1)
+        self.assertEqual(len(beta.enabled_builders), 1)
+
+        self.assertEqual(len(gamma.sources), 2)
+        self.assertEqual(len(gamma.depends), 2)
+        self.assertEqual(len(gamma.builders), 0)
+        self.assertEqual(len(gamma.enabled_builders), 0)
 
     def test_party(self):
         """

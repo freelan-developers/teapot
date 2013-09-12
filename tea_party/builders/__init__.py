@@ -36,8 +36,8 @@ def make_builder(attendee, name, attributes):
     Make a builder from its attributes.
     """
 
-    if not attributes:
-        attributes = {}
+    if not isinstance(attributes, dict):
+        raise ValueError('builder attributes must be a dictionary.')
 
     tags = attributes.get('tags')
 
@@ -63,9 +63,9 @@ def make_builder(attendee, name, attributes):
         if isinstance(environment, basestring):
             environment = attendee.party.environment_register.get_environment_by_name(environment)
         else:
-            environment = make_environment(attendee.party, '%s:<unnamed environment>' % attendee.name, environment)
+            environment = make_environment(attendee.party.environment_register, None, environment)
     else:
-        environment = make_environment(attendee.party, '%s:<unnamed environment>' % attendee.name, {})
+        environment = make_environment(attendee.party.environment_register, None, {})
 
     return Builder(
         attendee=attendee,

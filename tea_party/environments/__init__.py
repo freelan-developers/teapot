@@ -3,6 +3,7 @@ Tea-party environments.
 """
 
 import os
+import shlex
 
 from tea_party.environments.environment_register import EnvironmentRegister
 from tea_party.environments.environment import Environment
@@ -39,7 +40,8 @@ def make_environment(register, name, environment):
     """
     Make an environment from a dictionary of its attributes.
 
-    `name`, is the name of the environment.
+    `name`, is the name of the environment. If `name` is None, the environment
+    is anonymous and won't be registered.
 
     `environment` is a dictionary of attributes.
     """
@@ -50,7 +52,7 @@ def make_environment(register, name, environment):
         if isinstance(inherit, basestring):
             inherit = register.get_environment_by_name(inherit)
         else:
-            inherit = make_environment(register, name + ':<unnamed base environment>', inherit)
+            inherit = make_environment(register, None, inherit)
 
     shell = environment.get('shell', True)
 

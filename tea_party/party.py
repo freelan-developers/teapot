@@ -38,23 +38,29 @@ def load_party_file(path):
     #
     # This has to be done first, or the things defined in those extension
     # modules won't be accessible to the parsing functions.
+
+    modules = []
+
     for name, module_path in extension_modules.items():
         abs_module_path = os.path.join(os.path.dirname(path), module_path)
 
         try:
-            imp.load_source(name, abs_module_path)
+            modules.append(imp.load_source(name, abs_module_path))
         except Exception as ex:
             LOGGER.error('Unable to load the extension module "%s" at "%s": %s', hl(name), hl(abs_module_path), ex)
 
+            raise
+
     party = Party(
         path=path,
-        cache_path=values.get('cache'),
-        build_path=values.get('build'),
+        cache_path=values.get('cache_path'),
+        build_path=values.get('build_path'),
         prefix=values.get('prefix'),
     )
 
     party.environments = make_environments(party.environment_register, values.get('environments'))
     party.attendees = make_attendees(party, values.get('attendees'))
+    party.modules = modules
 
     return party
 
@@ -173,6 +179,7 @@ class Party(object):
         self.auto_fetch = True
         self.fetcher_callback_class = ProgressBarFetcherCallback
         self.unpacker_callback_class = ProgressBarUnpackerCallback
+        self.modules = []
 
         for post_action in self.POST_ACTIONS:
             post_action(self)

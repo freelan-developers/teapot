@@ -1,15 +1,76 @@
+# The extension modules.
+extension_modules:
+    filters: ../extension_modules/filters.py
+    fetchers: ../extension_modules/fetchers.py
+
+# The attendees.
 attendees:
-    boost:
-        source: http://sourceforge.net/projects/boost/files/boost/1.54.0/boost_1_54_0.tar.bz2/download
-        builder: jam
-    libiconv:
+    alpha:
+        source: foo://alpha
+        builders:
+            one:
+                filters: true_filter
+                commands:
+                    - command1
+                    - command2 && command3
+            two:
+                filters: [true_filter, false_filter]
+                commands:
+                    - command1
+                    - command2
+                environment: environment_one
+            three:
+                commands: command1
+                environment:
+                    shell: True
+                    variables:
+                        FOO: MYFOO
+                        BAR: MYBAR
+                    inherit: environment_two
+                prefix: builder_prefix
+
+    beta:
         source:
-            - /tmp/libiconv-1.14.tar.gz
-            - http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-        builder: autotools
-    libfoo:
+            location: foo://beta
+            type: application/foo-archive
+            filters: true_filter
+        depends: alpha
+        prefix: True
+        builders:
+            one:
+                environment: default
+                commands:
+                    - command 1
+
+    gamma:
         source:
-            location: /tmp/libfoo.zip
-            fetcher: file
+            - foo://gamma
+            - foo://gamma2
+        filters:
+            - false_filter
+            - true_filter
         depends:
-            - boost
+            - alpha
+            - beta
+        prefix: gamma_path
+
+# The global settings.
+cache_path: mycache
+build_path: mybuild
+prefix: myprefix
+
+# The environments.
+environments:
+    environment_one:
+        inherit: default
+        variables:
+            HELLO: WORLD
+        shell: someshell -a -b -c
+    environment_two:
+        variables:
+            HELLO: WORLD2
+            shell:
+                - someshell
+                - -a
+                - -b
+                - -c
