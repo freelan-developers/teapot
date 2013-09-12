@@ -118,7 +118,7 @@ class Environment(object):
         try:
             if self.inherit:
                 with self.inherit.enable(silent=True):
-                    if not silent: LOGGER.debug('Entering environment %s...', hl(self))
+                    if not silent: LOGGER.info('Entering environment %s...', hl(self))
 
                     for key, value in self.variables.iteritems():
                         if value is not None:
@@ -129,7 +129,7 @@ class Environment(object):
 
                     yield self
             else:
-                if not silent: LOGGER.debug('Entering environment %s...', hl(self))
+                if not silent: LOGGER.info('Entering environment %s...', hl(self))
 
                 os.environ.clear()
 
@@ -143,7 +143,7 @@ class Environment(object):
                 yield self
 
         finally:
-            if not silent: LOGGER.debug('Exiting environment %s...', hl(self))
+            if not silent: LOGGER.info('Exiting environment %s...', hl(self))
 
             os.environ.clear()
             os.environ.update(saved_environ)

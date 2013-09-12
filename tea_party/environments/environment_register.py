@@ -2,6 +2,9 @@
 An environment register class.
 """
 
+from tea_party.log import LOGGER
+from tea_party.log import Highlight as hl
+
 
 class NoSuchEnvironmentError(ValueError):
 
@@ -62,6 +65,8 @@ class EnvironmentRegister(object):
 
         `environment` is the environment to register.
         """
+
+        LOGGER.debug('Registering environment "%s" as %s.', hl(environment.name), hl(name))
 
         if name in self.environments:
             raise EnvironmentAlreadyRegisteredError(name=name)

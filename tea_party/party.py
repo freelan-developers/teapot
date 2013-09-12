@@ -371,6 +371,4 @@ def add_default_environment(party):
     Add the default environment to the party.
     """
 
-    LOGGER.debug('Adding default environment as %s to the party.', hl(DEFAULT_ENVIRONMENT_NAME))
-
     party.environment_register.register_environment(DEFAULT_ENVIRONMENT_NAME, create_default_environment())

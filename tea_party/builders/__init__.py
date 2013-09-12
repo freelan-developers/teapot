@@ -177,6 +177,17 @@ class Builder(Filtered):
             os.chdir(source_tree_path)
 
             with self.environment.enable() as env:
+                if env.shell:
+                    LOGGER.info('Building within: %s', hl(' '.join(env.shell)))
+                else:
+                    LOGGER.info('Building within %s.', hl('the default system shell'))
+
+                if log_file:
+                    if env.shell:
+                        log_file.write('Using "%s" as a shell.\n' % ' '.join(env.shell))
+                    else:
+                        log_file.write('Using system shell.\n')
+
                 for key, value in os.environ.iteritems():
                     LOGGER.debug('%s: %s', key, hl(value))
 
