@@ -6,6 +6,7 @@ import os
 import json
 import errno
 import shutil
+import itertools
 
 from contextlib import contextmanager
 
@@ -201,6 +202,8 @@ class Attendee(Filtered):
         if not result:
             raise NoSuchBuilderError(tag=tag)
 
+        return result
+
     @property
     def cache_path(self):
         """
@@ -310,15 +313,24 @@ class Attendee(Filtered):
 
             self.write_build_info(build_info)
 
-    def build(self, tags=None, verbose=False, keep_builds=False):
+    def build(self, tags=None, verbose=False, keep_builds=False, force=False):
         """
         Build the attendee, with the builders that match `tags`, if any.
+
+        If `verbose` is specified, the build output will be printed on stdout
+        as the build progresses.
+
+        If `keep_builds` is specified, the build directory won't be erased
+        until the next rebuild.
+
+        If `force` is truthy, all builds will be done, no matter what their
+        previous status is.
         """
 
         if not tags:
             builders = self.enabled_builders
         else:
-            builders = map(self.get_builders_by_tag, tags)
+            builders = list(itertools.chain(*map(self.get_builders_by_tag, tags)))
 
         mkdir(self.build_path)
         mkdir(self.logs_path)
@@ -330,15 +342,33 @@ class Attendee(Filtered):
 
             for builder in builders:
                 try:
-                    LOGGER.info('Starting build for %s using builder "%s"...', hl(self), hl(builder))
+                    build_info = self.build_info
+                    signature = build_info.setdefault('builds', {}).get(builder.name)
 
-                    with self.create_temporary_build_directory(builder, persistent=keep_builds) as build_directory:
-                        with self.create_log_file(builder) as log_file:
-                            builder.build(
-                                build_directory=build_directory,
-                                log_file=log_file,
-                                verbose=verbose,
-                            )
+                    if signature == builder.signature and not force:
+                        LOGGER.info('Last build for %s was successful. Not rebuilding unless force rebuild is requested.', hl(builder.name))
+
+                    else:
+                        if not signature:
+                            LOGGER.info('Starting first build for %s using builder "%s"...', hl(self), hl(builder))
+                        elif not force:
+                            LOGGER.info('Build signature changed: starting rebuild for %s using builder "%s"...', hl(self), hl(builder))
+                        else:
+                            LOGGER.info('Forcing rebuild for %s using builder "%s"...', hl(self), hl(builder))
+
+                            build_info.setdefault('builds', {})[builder.name] = None
+                            self.write_build_info(build_info)
+
+                        with self.create_temporary_build_directory(builder, persistent=keep_builds) as build_directory:
+                            with self.create_log_file(builder) as log_file:
+                                builder.build(
+                                    build_directory=build_directory,
+                                    log_file=log_file,
+                                    verbose=verbose,
+                                )
+
+                                build_info.setdefault('builds', {})[builder.name] = builder.signature
+                                self.write_build_info(build_info)
 
                 except Exception as ex:
                     LOGGER.error('Error while building %s: %s', hl(self), ex)

@@ -4,6 +4,7 @@ attendees:
         builders:
             default_x86:
                 environment: mingw_x86
+                tags: x86
                 commands:
                     - ./configure --prefix={{prefix(unix)}}
                     - make
@@ -11,6 +12,7 @@ attendees:
                 prefix: True
             default_x64:
                 environment: mingw_x64
+                tags: x64
                 commands:
                     - ./configure --prefix={{prefix(unix)}}
                     - make
@@ -25,11 +27,9 @@ environments:
         shell: ["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"]
         inherit: default
         variables:
-            CFLAGS: -m32
-            PATH: "C:\\MinGW64\\bin:%PATH%"
+            PATH: "C:\\MinGW32\\bin:%PATH%"
     mingw_x64:
         shell: ["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"]
         inherit: default
         variables:
-            CFLAGS: -m64
             PATH: "C:\\MinGW64\\bin:%PATH%"

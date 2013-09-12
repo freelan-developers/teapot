@@ -347,18 +347,18 @@ class Party(object):
             LOGGER.info("Done unpacking archives.")
 
     @has_ordered_attendees
-    def build(self, attendees=[], tags=[], verbose=False, force=False, keep_builds=False):
+    def build(self, attendees=[], tags=[], verbose=False, force_unpack=False, keep_builds=False, force_build=False):
         """
         Build the archives.
         """
 
         if self.auto_fetch:
-            self.unpack(attendees=attendees, force=force)
+            self.unpack(attendees=attendees, force=force_unpack)
 
         LOGGER.info("Building %s archive(s)...", len(attendees))
 
         for attendee in attendees:
-            attendee.build(tags=tags, verbose=verbose, keep_builds=keep_builds)
+            attendee.build(tags=tags, verbose=verbose, keep_builds=keep_builds, force=force_build)
 
         LOGGER.info("Done building archives.")
 

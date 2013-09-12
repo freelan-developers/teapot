@@ -5,7 +5,9 @@ Tea-party environment class.
 import os
 import re
 import sys
+import json
 import shlex
+import hashlib
 
 from contextlib import contextmanager
 
@@ -147,3 +149,25 @@ class Environment(object):
 
             os.environ.clear()
             os.environ.update(saved_environ)
+
+    @property
+    def signature(self):
+        """
+        Get the signature of the environment.
+        """
+
+        data = {
+            'name': self.name,
+            'variables': self.variables,
+            'inherit': self.inherit.signature if self.inherit else None,
+            'shell': self.shell,
+        }
+
+        algorithm = hashlib.sha1()
+        algorithm.update(json.dumps(data))
+
+        result = algorithm.hexdigest()
+
+        LOGGER.debug('%s\'s signature is: %s', hl(self), hl(result))
+
+        return result

@@ -64,7 +64,8 @@ def main():
     build_command_parser.set_defaults(func=build)
     build_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to build.')
     build_command_parser.add_argument('-t', '--tags', metavar='tag', action='append', default=[], help='The tags to build.')
-    build_command_parser.add_argument('-f', '--force', action='store_true', help='Clean build directories before trying to build. archives even if they already exist in the build.')
+    build_command_parser.add_argument('-u', '--force_unpack', action='store_true', help='Delete and reunpack all source tree directories before attempting a build.')
+    build_command_parser.add_argument('-f', '--force_build', action='store_true', help='Run all builders even if their last run was successful.')
     build_command_parser.add_argument('-k', '--keep-builds', action='store_true', help='Keep the build directories for inspection.')
 
     args = parser.parse_args()
@@ -182,6 +183,7 @@ def build(party, args):
         attendees=args.attendees,
         tags=args.tags,
         verbose=args.verbose,
-        force=args.force,
+        force_unpack=args.force_unpack,
         keep_builds=args.keep_builds,
+        force_build=args.force_build,
     )

@@ -4,8 +4,10 @@ Contains all tea-party builders logic.
 
 import os
 import re
+import json
 import math
 import signal
+import hashlib
 import subprocess
 
 from contextlib import contextmanager
@@ -281,3 +283,27 @@ class Builder(Filtered):
             return str(parse_extension(code, self))
 
         return re.sub(r'\{{(?P<code>[\w\s()]+)}}', replace, command)
+
+    @property
+    def signature(self):
+        """
+        Get the signature of the builder.
+        """
+
+        data = {
+            'name': self.name,
+            'tags': self.tags,
+            'commands': self.commands,
+            'environment': self.environment.signature,
+            'directory': self.directory,
+            'prefix': self.prefix,
+        }
+
+        algorithm = hashlib.sha1()
+        algorithm.update(json.dumps(data))
+
+        result = algorithm.hexdigest()
+
+        LOGGER.debug('%s\'s signature is: %s', hl(self), hl(result))
+
+        return result
