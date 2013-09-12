@@ -52,6 +52,9 @@ def make_builder(attendee, name, attributes):
     filters = attributes.get('filters')
     prefix = attributes.get('prefix')
 
+    if prefix is True:
+        prefix = name
+
     environment = attributes.get('environment')
 
     if environment:

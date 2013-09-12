@@ -35,12 +35,17 @@ def make_attendee(party, name, attributes):
     Create an attendee from a name a dictionary of attributes.
     """
 
+    prefix = attributes.get('prefix')
+
+    if prefix is True:
+        prefix = name
+
     attendee = Attendee(
         party=party,
         name=name,
         depends=make_depends(attributes.get('depends')),
         filters=attributes.get('filters'),
-        prefix=attributes.get('prefix'),
+        prefix=prefix,
     )
 
     attendee.sources = make_sources(attendee, attributes.get('source'))

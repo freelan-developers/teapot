@@ -8,12 +8,14 @@ attendees:
                     - ./configure --prefix={{prefix(unix)}}
                     - make
                     - make install
+                prefix: True
             default_x64:
                 environment: mingw_x64
                 commands:
                     - ./configure --prefix={{prefix(unix)}}
                     - make
                     - make install
+                prefix: True
 
 cache_path: cache
 build_path: build
