@@ -80,7 +80,7 @@ class EnvironmentRegister(object):
         If no environment has the specified name, a NoSuchEnvironmentError is raised.
         """
 
-        for name in self.environments:
+        if name in self.environments:
             return self.environments[name]
 
         raise NoSuchEnvironmentError(name=name)

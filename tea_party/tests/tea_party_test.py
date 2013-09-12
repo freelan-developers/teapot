@@ -239,18 +239,23 @@ class TestTeaParty(unittest.TestCase):
 
         self.assertEqual(context.exception.name, 'foo')
 
-        environment = Environment(
-            name='test_environment',
-        )
+        environments = []
 
-        register.register_environment('foo', environment)
+        for index in xrange(50):
+            environment = Environment(
+                name='test_environment_%s' % index,
+            )
+
+            environments.append(environment)
+            register.register_environment('env%s' % index, environment)
 
         with self.assertRaises(EnvironmentAlreadyRegisteredError) as context:
-            register.register_environment('foo', environment)
+            register.register_environment('env5', environment)
 
-        self.assertEqual(context.exception.name, 'foo')
+        self.assertEqual(context.exception.name, 'env5')
 
-        self.assertEqual(register.get_environment_by_name('foo'), environment)
+        for index, environment in enumerate(environments):
+            self.assertEqual(register.get_environment_by_name('env%s' % index), environment)
 
     def test_extensions(self):
         """
