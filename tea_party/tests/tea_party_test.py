@@ -69,6 +69,41 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(len(gamma.builders), 0)
         self.assertEqual(len(gamma.enabled_builders), 0)
 
+        # Signature changes tests
+        signatures = [builder.signature for builder in alpha.builders]
+
+        # Changing filters should not change signature
+        for builder in alpha.builders:
+            builder.filters[:] = []
+
+        for signature, builder in zip(signatures, alpha.builders):
+            self.assertEqual(signature, builder.signature)
+
+        # Changing commands must change the signature
+        for builder in alpha.builders:
+            builder.commands.append('foo')
+
+        for signature, builder in zip(signatures, alpha.builders):
+            self.assertNotEqual(signature, builder.signature)
+
+        signatures = [builder.signature for builder in alpha.builders]
+
+        # Changing prefix must change the signature
+        for builder in alpha.builders:
+            builder.prefix += 'foo'
+
+        for signature, builder in zip(signatures, alpha.builders):
+            self.assertNotEqual(signature, builder.signature)
+
+        signatures = [builder.signature for builder in alpha.builders]
+
+        # Changing environment must change the signature
+        for builder in alpha.builders:
+            builder.environment.variables['NEWVARIABLE'] = 'foo'
+
+        for signature, builder in zip(signatures, alpha.builders):
+            self.assertNotEqual(signature, builder.signature)
+
     def test_party(self):
         """
         The the party object.
@@ -255,6 +290,40 @@ class TestTeaParty(unittest.TestCase):
         )
 
         self.assertEqual(orphan_shell_environment.shell, [''])
+
+        # Test signatures changes
+
+        signature = environment.signature
+        sub_signature = sub_environment.signature
+
+        environment.variables['NEWVARIABLE'] = 'bar'
+
+        self.assertNotEqual(signature, environment.signature)
+        self.assertNotEqual(sub_environment, sub_environment.signature)
+
+        signature = environment.signature
+        sub_signature = sub_environment.signature
+
+        environment.shell = ['foo', 'goo']
+
+        self.assertNotEqual(signature, environment.signature)
+        self.assertNotEqual(sub_environment, sub_environment.signature)
+
+        signature = environment.signature
+        sub_signature = sub_environment.signature
+
+        sub_environment.variables['NEWVARIABLE'] = 'bar'
+
+        self.assertEqual(signature, environment.signature)
+        self.assertNotEqual(sub_environment, sub_environment.signature)
+
+        signature = environment.signature
+        sub_signature = sub_environment.signature
+
+        sub_environment.shell = ['foo', 'goo', 'boo']
+
+        self.assertEqual(signature, environment.signature)
+        self.assertNotEqual(sub_environment, sub_environment.signature)
 
     def test_environment_register(self):
         """
