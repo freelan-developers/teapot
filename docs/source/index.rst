@@ -12,6 +12,8 @@ Contents:
    :maxdepth: 2
 
 
+.. automodule:: tea_party
+.. autoclass:: tea_party.party.Party
 
 Indices and tables
 ==================
