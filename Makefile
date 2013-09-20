@@ -1,5 +1,7 @@
 # Targets
 
+default: test
+
 pep8:
 	find . -type f -name \*.py | xargs autopep8 -a -a -i
 
