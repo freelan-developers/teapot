@@ -55,6 +55,67 @@ Here is an example that declares two attendees:
       libcurl:
         source: http://curl.haxx.se/download/curl-7.32.0.tar.gz
 
+This example, while perfectly valid, is not quite complete: as they are written, those attendees would be able to download and unpack the specified archives, but they don't know how to build the software they constitute.
+
+Here is a more complete party file with an attendee that actually does something:
+
+.. code-block:: yaml
+
+    attendees:
+      libiconv:
+        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+        builders:
+          default:
+            commands:
+              - ./configure --prefix={{prefix}}
+              - make
+              - make install
+
+This party file defines completely the way to build *libicon, version 1.14*. The archive will be downloaded from the specified URL, it will be extracted and build with the usuall autotools scenario (`./configure && make && make install`).
+
+In the `./configure` command, you may notice the specific `--prefix={{prefix}}` syntax. This makes uses of an *extension* that will be replaced on runtime by the *prefix* path for this build.
+
+Sources
++++++++
+
+The `source` directive in an *attendee* can take several forms.
+
+The simpler form is a *location string*. The possible formats for this depends on the registered *fetchers*.
+
+By default, the following string formats are supported:
+
++-----------------------------------+---------+------------------------------------------------------------------------------------------+
+| Format                            | Fetcher | Description                                                                              |
++===================================+=========+==========================================================================================+
+| ``http://host/path/archive.zip``  | http    | Fetches an archive from a web URL in a fashion similar to the ``wget`` command.          |
+|                                   |         |                                                                                          |
+| ``https://host/path/archive.zip`` |         | This is the most commonly used fetcher.                                                  |
++-----------------------------------+---------+------------------------------------------------------------------------------------------+
+| ``~/archives/archive.tar.gz``     | file    | Fetches an archive from a "local" path (local can also mean a network-mounted location). |
+|                                   |         |                                                                                          |
+| ``C:\archives\archive.zip``       |         |                                                                                          |
++-----------------------------------+---------+------------------------------------------------------------------------------------------+
+| ``github:user/repository/ref``    | github  | Generates then fetches an archive from a Github-hosted project.                          |
++-----------------------------------+---------+------------------------------------------------------------------------------------------+
+
+`source` can also be a dict of attributes, like so:
+
+.. code-block:: yaml
+
+    attendees:
+      libiconv:
+        source:
+          location: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+          type: application/x-gzip
+          fetcher: http
+          fetcher_options:
+          filters: unix
+
+All these attributes, except `location` are optional.
+
+`location` is a *location string* as they were just described.
+
+`type` is the mimetype to associate to the archive. Can also be a couple `(mimetype, encoding)` for more complex types.
 
 .. toctree::
    :maxdepth: 2
