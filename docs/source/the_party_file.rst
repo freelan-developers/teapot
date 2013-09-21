@@ -117,7 +117,7 @@ All these attributes, except `location` are optional.
 
 `type` is the mimetype of the archive. Can also be a list of two elements `[mimetype, encoding]` for more complex mimetypes.
 
-`fetcher` is the fetcher to use. Specifying a fetcher disable the automatic fetcher type selection. Specifying a fetcher only makes sense if the location string is ambiguous, which cannot happen with the built-in fetchers.
+`fetcher` is the fetcher to use. Specifying a fetcher disables the automatic fetcher type selection. Specifying a fetcher only makes sense if the location string is ambiguous, which cannot happen with the built-in fetchers.
 
 `fetcher_options` is a dictionary of options for the fetcher. Built-in fetchers do not take any option.
 
