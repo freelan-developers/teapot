@@ -115,7 +115,13 @@ All these attributes, except `location` are optional.
 
 `location` is a *location string* as they were just described.
 
-`type` is the mimetype to associate to the archive. Can also be a couple `(mimetype, encoding)` for more complex types.
+`type` is the mimetype of the archive. Can also be a list of two elements `[mimetype, encoding]` for more complex mimetypes.
+
+`fetcher` is the fetcher to use. Specifying a fetcher disable the automatic fetcher type selection. Specifying a fetcher only makes sense if the location string is ambiguous, which cannot happen with the built-in fetchers.
+
+`fetcher_options` is a dictionary of options for the fetcher. Built-in fetchers do not take any option.
+
+`filters` is a list of filters that the current execution environment must match in order for the source to be active. For instance, one can use filters to specify different sources for Windows and Linux, within the same attendee.
 
 .. toctree::
    :maxdepth: 2
