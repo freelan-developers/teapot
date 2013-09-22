@@ -39,3 +39,4 @@ What's next ?
 
    the_party_file
    inside_the_party
+   glossary

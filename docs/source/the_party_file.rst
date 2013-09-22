@@ -1,32 +1,12 @@
-The party file
-**************
+The :term:`party file`
+**********************
 
-The *party file* is at the heart of **tea-party**. It describes the different third-party softwares to build, and how to build them.
-
-Terminology
-===========
-
-Before going any further, here are something that could come handy:
-
-party file
-  The party file is a YAML file, named `party.yaml` that can be located anywhere. Within this file, almost all paths are relative to the party file directory.
-attendee
-  An attendee is a fancy name for a third-party software to build. A *party file* can contain as many attendees as you like, and different attendees can even represent the same third-party software if that makes sense in your situation.
-source
-  A source designates the location and the method where and how to fetch the source files for an attendee. While the most common case is downloading a file using HTTP, one can also copy a file locally, through a network share or from Github.
-fetcher
-  A fetcher is the entity that is responsible for handling a specific type of source. Usually, fetchers are smart enough to recognize sources from their format and you should not have to care too much about them.
-unpacker
-  An unpacker is the entity that is responsible for turning a compressed archive (ZIP file or `.tar.gz` for instance) into a source tree.
-builder
-  A builder is the list of commands to execute in order to transform the attendee source into a compiled set of binaries (or whatever a build process can produce). Builders rely a lot on *environments*.
-environment
-  An environment is a set of environment variables, shell value and inheritance parameters that wraps one or several builds. An environment defines the tools to use and their options.
+The :term:`party file` is at the heart of **tea-party**. It describes the different third-party softwares to build, and how to build them.
 
 Structure
 =========
 
-The party file is a YAML file whose root element is a dictionary. While YAML files can make use of a lot of complex data structures, **tea-party** only makes use of the common ones, namely:
+The :term:`party file` is a YAML file whose root element is a dictionary. While YAML files can make use of a lot of complex data structures, **tea-party** only makes use of the common ones, namely:
 
  - dictionaries
  - lists
@@ -43,9 +23,9 @@ Strings can be any unicode string, however it is **strongly** recommended that y
 Attendees
 ---------
 
-The attendees are a first-level element of the root dictionary. They are declared within a dictionary named `attendees` whose each key is the index of an attendee, and whose values are the attendees themselves.
+The :term:`attendees<attendee>` are a first-level element of the root dictionary. They are declared within a dictionary named :term:`attendees<attendee>` whose each key is the index of an :term:`attendee`, and whose values are the :term:`attendees<attendee>` themselves.
 
-Here is an example that declares two attendees:
+Here is an example that declares two :term:`attendees<attendee>`:
 
 .. code-block:: yaml
 
@@ -55,9 +35,9 @@ Here is an example that declares two attendees:
       libcurl:
         source: http://curl.haxx.se/download/curl-7.32.0.tar.gz
 
-This example, while perfectly valid, is not quite complete: as they are written, those attendees would be able to download and unpack the specified archives, but they don't know how to build the software they constitute.
+This example, while perfectly valid, is not quite complete: as they are written, those :term:`attendees<attendee>` would be able to download and unpack the specified archives, but they don't know how to build the software they constitute.
 
-Here is a more complete party file with an attendee that actually does something:
+Here is a more complete :term:`party file` with an :term:`attendee` that actually does something:
 
 .. code-block:: yaml
 
@@ -71,16 +51,49 @@ Here is a more complete party file with an attendee that actually does something
               - make
               - make install
 
-This party file defines completely the way to build *libicon, version 1.14*. The archive will be downloaded from the specified URL, it will be extracted and build with the usuall autotools scenario (`./configure && make && make install`).
+This :term:`party file` defines completely the way to build *libicon, version 1.14*. The archive will be downloaded from the specified URL, it will be extracted and built with the usuall autotools scenario (`./configure && make && make install`).
 
 In the ``./configure`` command, you may notice the specific ``--prefix={{prefix}}`` syntax. This makes uses of an *extension* that will be replaced on runtime by the *prefix* path for this build.
 
-You may find more information on builders in the :ref:`builders` section.
+You may find more information on :term:`builders<builder>` in the :ref:`builders` section.
+
+An attendee can have the following attributes:
+
+`source`
+  The source of the attendee. More on that in :ref:`sources`.
+
+`filters`
+  A list of :term:`filters<filter>` that the current execution environment must match in order for the attendee to be active. For instance, one can use filters to specify different attendees for Windows and Linux, within the same :term:`party file`.
+
+`builders`
+  A dictionary of :term:`builders<builder>` that specify what to do with the source code. More on that in :ref:`builders`.
+
+`depends`
+  A list of names of other :term:`attendees<attendee>` that this :term:`attendee` depends on for building.
+
+  `depends` can also be a single string in case the :term:`attendee` only depends on one other :term:`attendee`.
+
+`prefix`
+  The :term:`attendee` specific prefix.
+
+  The content of this value is used by the `prefix` extension at runtime.
+
+  If `prefix` is a relative path, it will be appended to the :term:`party file`'s prefix.
+
+  If `prefix` is an absolute path, it will be taken as it is. 
+
+  If `prefix` is `True`, it will take the name of the :term:`attendee` as a value. Use this to differentiate builds outputs directories for different :term:`attendees<attendee>`.
+
+.. warning::
+
+    If the dependency graph is cyclic, :term:`teapot` will notice it before even starting the build and will warn you about the problem.
+
+.. _sources:
 
 Sources
 +++++++
 
-The `source` directive in an *attendee* can take several forms.
+The `source` directive in an :term:`attendee` can take several forms.
 
 The simpler form is a *location string*. The possible formats for this depends on the registered *fetchers*.
 
@@ -134,7 +147,7 @@ All these attributes, except `location` are optional.
   A dictionary of options for the fetcher. Built-in fetchers do not take any option.
 
 `filters`
-  A list of filters that the current execution environment must match in order for the source to be active. For instance, one can use filters to specify different sources for Windows and Linux, within the same attendee.
+  A list of filters that the current execution environment must match in order for the source to be active. For instance, one can use filters to specify different sources for Windows and Linux, within the same :term:`attendee`.
 
 For more complex situations, `source` can also be a list of either *location strings* or attributes dictionary (optionaly mixed), like so:
 
@@ -151,16 +164,16 @@ For more complex situations, `source` can also be a list of either *location str
             filters: windows
           - http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
 
-Sources are tried in the declaration order for a given attendee. In this example, when `teapot` tries to download the archive for the attendee, it will first try the first one, only on Windows. If the first one fails (say because of a network error), or if `teapot` is run on a Unix variant, it will skip to the second source.
+Sources are tried in the declaration order for a given :term:`attendee`. In this example, when :term:`teapot` tries to download the archive for the :term:`attendee`, it will first try the first one, only on Windows. If the first one fails (say because of a network error), or if :term:`teapot` is run on a Unix variant, it will skip to the second source.
 
 You may also extend tea-party and implement your own fetchers, should you have specific needs.
 
 Unpackers
 +++++++++
 
-At some point before the build, `teapot` must convert a downloaded (often compressed) archive into a source tree. This is what *unpackers* are for.
+At some point before the build, :term:`teapot` must convert a downloaded (often compressed) archive into a source tree. This is what *unpackers* are for.
 
-The unpacker selection is done automatically, depending on the mimetype of the downloaded archive. That is, the only way to choose which unpacker to use, is to change the mimetype of the attendee.
+The unpacker selection is done automatically, depending on the mimetype of the downloaded archive. That is, the only way to choose which unpacker to use, is to change the mimetype of the :term:`attendee`.
 
 By default, *tea-party* provides the following unpackers:
 
@@ -183,7 +196,7 @@ You may also extend tea-party and implement your own unpackers, should you have 
 Builders
 ++++++++
 
-One of the most important thing to declare into an attendee, is its builders. A builder is responsible for taking an unarchived source tree and creating something by issuing a series of commands.
+One of the most important thing to declare into an :term:`attendee`, is its :term:`builders<builder>`. A :term:`builder` is responsible for taking an unarchived source tree and creating something by issuing a series of commands.
 
 Builders are declared like so:
 
@@ -199,18 +212,56 @@ Builders are declared like so:
               - make
               - make install
 
-In this simple example, `teapot` will go into the source tree unpacked from `libiconv-1.14.tar.gz` and will issue the following commands, in order:
+In this simple example, :term:`teapot` will go into the source tree unpacked from `libiconv-1.14.tar.gz` and will issue the following commands, in order:
  - ``./configure --prefix={{prefix}}``
  - ``make``
  - ``make install``
 
 If all of these commands succeed, the build is considered successful as well.
 
-.. note:: Here ``{{prefix}}`` is an extension that resolves at runtime as the current prefix for the builder. You can learn more about extensions in the :ref:`extensions` section.
+.. note:: Here ``{{prefix}}`` is an extension that resolves at runtime as the current prefix for the :term:`builder`. You can learn more about extensions in the :ref:`extensions` section.
 
-One attendee can have as many different builders as you want it to have. All the builders are entries of the `builders` dictionary where the key is the builder name, and the value if a dictionary of attributes for the builder.
+One :term:`attendee` can have as many different :term:`builders<builder>` as you want it to have. All the :term:`builders<builder>` are entries of the `builders` dictionary where the key is the :term:`builder` name, and the value if a dictionary of attributes for the :term:`builder`.
 
-A builder supports the following attributes:
+Here is an example of a more complex :term:`attendee`:
+
+.. code-block:: yaml
+
+    attendees:
+      libiconv:
+        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+        builders:
+          default_x86:
+            filters:
+              - windows
+              - mingw
+            environment: mingw_x86
+            tags: x86
+            commands:
+              - ./configure --prefix={{prefix(unix)}}
+              - make
+              - make install
+            prefix: True
+
+          default_x64:
+            filters:
+              - windows
+              - mingw
+            environment: mingw_x64
+            tags: x64
+            commands:
+              - ./configure --prefix={{prefix(unix)}}
+              - make
+              - make install
+            prefix: True
+
+In this example, we define two builders (`default_x86` and `default_x64`) that have exactly the same build commands.
+
+Both are to be executed if, and only if, MinGW is available in the execution environment. They each make use of a customized :term:`environment` (more on that in :ref:`environments`).
+
+Also note that a tag has been added for every one of them, so that the user can easily choose between x86 and x64 builds when using :term:`teapot`.
+
+Inside the :term:`party file`, the `builder` dictionary supports the following attributes:
 
 `commands`
   Can be either a string with a single command to execute or a list of commands to execute.
@@ -220,35 +271,117 @@ A builder supports the following attributes:
 `environment`
   The environment in which the build must take place.
 
-  If no environment is specified, the *default* environment is taken, which is the one the `teapot` command is running in.
+  If no environment is specified, the *default* environment is taken, which is the one the :term:`teapot` command is running in.
 
   You can learn more about environments in the :ref:`environments` section.
 
 `tags`
-  A list of tags for the builder.
+  A list of tags for the :term:`builder`.
 
-  Tags can be used later on by the `teapot` command to restrict the builders to run dynamically.
+  Tags can be used later on by the :term:`teapot` command to restrict the :term:`builders<builder>` to run dynamically.
 
-  One common use for tags is to differentiate builders for different build architectures (`x86` and `x64` for instance).
+  One common use for tags is to differentiate :term:`builders<builder>` for different build architectures (`x86` and `x64` for instance).
 
 `filters`
-  A list of filters that the current execution environment must match in order for the builder to be active. For instance, one can use filters to specify different sources for Windows and Linux, within the same attendee.
+  A list of filters that the current execution environment must match in order for the :term:`builder` to be active. For instance, one can use filters to specify different builders for Windows and Linux, within the same :term:`attendee`.
 
 `prefix`
-  The builder specific prefix.
+  The :term:`builder` specific prefix.
 
   The content of this value is used by the `prefix` extension at runtime.
 
-  If `prefix` is a relative path, it will be appended to the attendee's prefix.
+  If `prefix` is a relative path, it will be appended to the :term:`attendee`'s prefix.
 
   If `prefix` is an absolute path, it will be taken as it is. 
 
-  If `prefix` is `True`, it will take the name of the builder as a value. Use this to differentiate builds outputs easily for a given attendee.
+  If `prefix` is `True`, it will take the name of the :term:`builder` as a value. Use this to differentiate builds outputs easily for a given :term:`attendee`.
 
 .. _environments:
 
 Environments
 ------------
+
+Environments define the execution environment of a :term:`builder`.
+
+They can be defined either at the attendee level (within a :term:`builder` declaration), or inside the global `environments` dictionary, at the root of :term:`party file`.
+
+An :term:`environment` can inherit from another **named** :term:`environment`.
+
+Here is an example of :term:`party file` that defines environments:
+
+.. code-block:: yaml
+
+    attendees:
+      libiconv:
+        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+        builders:
+          default_x86:
+            environment: mingw_x86
+            tags: x86
+            commands:
+              - ./configure --prefix={{prefix(unix)}}
+              - make
+              - make install
+            prefix: True
+
+          default_x64:
+            environment: mingw_x64
+            tags: x64
+            commands:
+              - ./configure --prefix={{prefix(unix)}}
+              - make
+              - make install
+            prefix: True
+
+    environments:
+      mingw_x86:
+        shell: ["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"]
+        inherit: default
+        variables:
+          PATH: "C:\\MinGW32\\bin:%PATH%"
+
+      mingw_x64:
+        shell: ["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"]
+        inherit: default
+        variables:
+          PATH: "C:\\MinGW64\\bin:%PATH%"
+
+In this example, we define two environments that use the same :term:`shell` (here, `bash` for Windows). They both inherit from the `default` environment and each (re)define the :envvar:`PATH` environment variable.
+
+An `environment` dictionary understands the following attributes:
+
+`shell`
+  The :term:`shell` to use.
+
+  `shell` can be a list of command arguments (with the executable as the first argument). This is the recommended way of specifying the :term:`shell` as it is unambiguous.
+
+  If `shell` is a string, it will be parsed and split into a list using :func:`shlex.split`. This method of defining the shell and its arguments can be ambiguous and is therefore **not recommended**.
+
+  `shell` can also be :const:`True` (the default), in which case its value will be taken from the inherited :term:`environment`, if it has one.
+
+  If no `shell` is specified, the default one from the system will be taken as specified in :func:`subprocess.call`.
+
+`variables`
+  A dictionary of environment variables to set, remove or override.
+
+  Each variable can be set to either a string, or to ``null`` (the YAML equivalent of :const:`None`).
+
+  The behavior a null value depends on the value of `inherit`.
+
+  If the :term:`environment` inherits its attributes from another :term:`environment`, a null value indicates that the environment variable should be **removed** from the environment. This is **not** equivalent to setting its value to an empty string (in this case the variable would still be part of the environment, but would just be empty).
+
+  If the :term:`environment` does not inherit its attributes from another :term:`environment`, a null value indicates that the value for this environment variable should be the one of the execution environment (the environment into which :term:`teapot` was called). If the environment variable was not set within the execution environment, it won't be set in the new environment if its value was ``null``.
+
+`inherit`
+  `inherit` can be null (the default), or it can be the name of a named :term:`environment` to inherit from.
+
+  If `inherit` is null, no environment variable is inherited and only the ones defined in the `variables` attribute will be set.
+
+.. note::
+
+    By default, *tea-party* exposes the execution environment through the name ``default``.
+
+    This ``default`` environment has all the environment variables that were set right before the call to :term:`teapot` and uses the default system :term:`shell`.
 
 .. _filters:
 
@@ -263,8 +396,5 @@ Extensions
 Other settings
 --------------
 
-Using `teapot`
-==============
-
-.. toctree::
-   :maxdepth: 2
+Using :term:`teapot`
+====================
