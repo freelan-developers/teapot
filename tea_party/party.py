@@ -15,7 +15,7 @@ from tea_party.path import read_path, rmdir
 from tea_party.defaults import *
 from tea_party.fetchers.callbacks import ProgressBarFetcherCallback
 from tea_party.unpackers.callbacks import ProgressBarUnpackerCallback
-from tea_party.environments import make_environments, Environment, EnvironmentRegister, create_default_environment
+from tea_party.environments import make_environments, Environment, EnvironmentRegister, create_default_environment, DEFAULT_ENVIRONMENT_NAME
 
 
 def load_party_file(path):
@@ -369,8 +369,6 @@ class Party(object):
 
         LOGGER.info("Done building archives.")
 
-
-DEFAULT_ENVIRONMENT_NAME = 'default'
 
 @Party.register_post_action
 def add_default_environment(party):

@@ -17,7 +17,7 @@ from datetime import datetime
 from tea_party.log import LOGGER, print_normal, print_error
 from tea_party.log import Highlight as hl
 from tea_party.filters import Filtered
-from tea_party.environments import make_environment
+from tea_party.environments import make_environment, DEFAULT_ENVIRONMENT_NAME
 from tea_party.extensions import parse_extension
 
 
@@ -57,7 +57,7 @@ def make_builder(attendee, name, attributes):
     if prefix is True:
         prefix = name
 
-    environment = attributes.get('environment')
+    environment = attributes.get('environment', DEFAULT_ENVIRONMENT_NAME)
 
     if environment:
         if isinstance(environment, basestring):

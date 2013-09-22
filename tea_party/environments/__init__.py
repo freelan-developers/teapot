@@ -9,6 +9,8 @@ from tea_party.environments.environment_register import EnvironmentRegister
 from tea_party.environments.environment import Environment
 
 
+DEFAULT_ENVIRONMENT_NAME = 'default'
+
 def create_default_environment():
     """
     Create a default environment, holding the current process environment
