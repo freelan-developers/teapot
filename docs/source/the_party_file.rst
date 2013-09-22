@@ -375,7 +375,7 @@ An `environment` dictionary understands the following attributes:
 `inherit`
   `inherit` can be null (the default), or it can be the name of a named :term:`environment` to inherit from.
 
-  If `inherit` is null, no environment variable is inherited and only the ones defined in the `variables` attribute will be set.
+  If `inherit` is null, none of the existing environment variables are inherited and only the ones defined in the `variables` attribute will be set.
 
 .. note::
 
