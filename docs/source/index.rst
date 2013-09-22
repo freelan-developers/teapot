@@ -28,7 +28,7 @@ Why this stupid name ?
 
 No reason really. I just don't like spending too much time finding catchy names.
 
-.. note:: I realized, a bit too late, that "The Tea Party" is also a (famous ?) politic movement in the U.S.A: I absolutely have no idea what they stand for nor do I actually care about it. Unless their goal is to ease the compilation of third-party softwares, we probably have nothing in common.
+.. note:: I realized, a bit too late, that "The Tea Party" is also a (famous ?) politic movement in the U.S.A: I absolutely have no idea what they stand for nor do I actually care about it. Unless their goal is to ease the compilation of third-party softwares, we are completely unrelated.
 
 What's next ?
 =============

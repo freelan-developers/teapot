@@ -15,11 +15,11 @@ attendee
 source
   A source designates the location and the method where and how to fetch the source files for an attendee. While the most common case is downloading a file using HTTP, one can also copy a file locally, through a network share or from Github.
 fetcher
-  A fetcher is the entity that is responsible for handling a specific type of source. Usually, fetchers are smart enough to recognize sources from their format and you should have to care too much about them.
+  A fetcher is the entity that is responsible for handling a specific type of source. Usually, fetchers are smart enough to recognize sources from their format and you should not have to care too much about them.
 unpacker
-  An unpacker is the entity that is responsible for turning a compressed archive (ZIP file or `.tar.gz` for instance) into a source files directory.
-build
-  A build is the list of commands to execute in order to transform the attendee source into a compiled set of binaries (or whatever a build process can produce). Builds rely a lot on *environments*.
+  An unpacker is the entity that is responsible for turning a compressed archive (ZIP file or `.tar.gz` for instance) into a source tree.
+builder
+  A builder is the list of commands to execute in order to transform the attendee source into a compiled set of binaries (or whatever a build process can produce). Builders rely a lot on *environments*.
 environment
   An environment is a set of environment variables, shell value and inheritance parameters that wraps one or several builds. An environment defines the tools to use and their options.
 
@@ -73,7 +73,9 @@ Here is a more complete party file with an attendee that actually does something
 
 This party file defines completely the way to build *libicon, version 1.14*. The archive will be downloaded from the specified URL, it will be extracted and build with the usuall autotools scenario (`./configure && make && make install`).
 
-In the `./configure` command, you may notice the specific `--prefix={{prefix}}` syntax. This makes uses of an *extension* that will be replaced on runtime by the *prefix* path for this build.
+In the ``./configure`` command, you may notice the specific ``--prefix={{prefix}}`` syntax. This makes uses of an *extension* that will be replaced on runtime by the *prefix* path for this build.
+
+You may find more information on builders in the :ref:`builders` section.
 
 Sources
 +++++++
@@ -82,21 +84,27 @@ The `source` directive in an *attendee* can take several forms.
 
 The simpler form is a *location string*. The possible formats for this depends on the registered *fetchers*.
 
-By default, the following string formats are supported:
+Here are the default fetchers and their supported formats:
 
-+-----------------------------------+---------+------------------------------------------------------------------------------------------+
-| Format                            | Fetcher | Description                                                                              |
-+===================================+=========+==========================================================================================+
-| ``http://host/path/archive.zip``  | http    | Fetches an archive from a web URL in a fashion similar to the ``wget`` command.          |
-|                                   |         |                                                                                          |
-| ``https://host/path/archive.zip`` |         | This is the most commonly used fetcher.                                                  |
-+-----------------------------------+---------+------------------------------------------------------------------------------------------+
-| ``~/archives/archive.tar.gz``     | file    | Fetches an archive from a "local" path (local can also mean a network-mounted location). |
-|                                   |         |                                                                                          |
-| ``C:\archives\archive.zip``       |         |                                                                                          |
-+-----------------------------------+---------+------------------------------------------------------------------------------------------+
-| ``github:user/repository/ref``    | github  | Generates then fetches an archive from a Github-hosted project.                          |
-+-----------------------------------+---------+------------------------------------------------------------------------------------------+
+`http`
+  Fetches an archive from a web URL in a fashion similar to the :command:`wget` command. This is the most commonly used fetcher.
+
+  Example formats:
+   - ``http://host/path/archive.zip``
+   - ``https://host/path/archive.zip``
+
+`file`
+  Fetches an archive from a filesystem path. The path can be either local or a network mount point.
+
+  Example formats:
+   - ``~/archives/archive.tar.gz``
+   - ``C:\archives\archive.zip``
+
+`github`
+  Generates and fetches an archive from a Github-hosted project.
+
+  Example formats:
+   - ``github:user/repository/ref``
 
 `source` can also be a dict of attributes, like so:
 
@@ -113,15 +121,150 @@ By default, the following string formats are supported:
 
 All these attributes, except `location` are optional.
 
-`location` is a *location string* as they were just described.
+`location`
+  A *location string* as they were just described.
 
-`type` is the mimetype of the archive. Can also be a list of two elements `[mimetype, encoding]` for more complex mimetypes.
+`type`
+  The mimetype of the archive. Can also be a list of two elements `[mimetype, encoding]` for more complex mimetypes.
 
-`fetcher` is the fetcher to use. Specifying a fetcher disables the automatic fetcher type selection. Specifying a fetcher only makes sense if the location string is ambiguous, which cannot happen with the built-in fetchers.
+`fetcher`
+  The fetcher to use. Specifying a fetcher disables the automatic fetcher type selection. Specifying a fetcher only makes sense if the location string is ambiguous, which cannot happen with the built-in fetchers.
 
-`fetcher_options` is a dictionary of options for the fetcher. Built-in fetchers do not take any option.
+`fetcher_options`
+  A dictionary of options for the fetcher. Built-in fetchers do not take any option.
 
-`filters` is a list of filters that the current execution environment must match in order for the source to be active. For instance, one can use filters to specify different sources for Windows and Linux, within the same attendee.
+`filters`
+  A list of filters that the current execution environment must match in order for the source to be active. For instance, one can use filters to specify different sources for Windows and Linux, within the same attendee.
+
+For more complex situations, `source` can also be a list of either *location strings* or attributes dictionary (optionaly mixed), like so:
+
+.. code-block:: yaml
+
+    attendees:
+      libiconv:
+        source:
+          -
+            location: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14_some-variant.tar.gz
+            type: application/x-gzip
+            fetcher: http
+            fetcher_options:
+            filters: windows
+          - http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+
+Sources are tried in the declaration order for a given attendee. In this example, when `teapot` tries to download the archive for the attendee, it will first try the first one, only on Windows. If the first one fails (say because of a network error), or if `teapot` is run on a Unix variant, it will skip to the second source.
+
+You may also extend tea-party and implement your own fetchers, should you have specific needs.
+
+Unpackers
++++++++++
+
+At some point before the build, `teapot` must convert a downloaded (often compressed) archive into a source tree. This is what *unpackers* are for.
+
+The unpacker selection is done automatically, depending on the mimetype of the downloaded archive. That is, the only way to choose which unpacker to use, is to change the mimetype of the attendee.
+
+By default, *tea-party* provides the following unpackers:
+
+Tarball unpacker
+  An unpacker that can uncompress tarballs (`.tar.gz` and `.tar.bz2` files).
+
+  It recognizes the following mimetypes:
+   - :mimetype:`application/x-gzip`
+   - :mimetype:`application/x-bzip2`
+
+Zipfile unpacker
+  An unpacker that can uncompress zip archives (`.zip` files).
+
+  It recognizes only the :mimetype:`application/zip` mimetype.
+
+You may also extend tea-party and implement your own unpackers, should you have specific needs.
+
+.. _builders:
+
+Builders
+++++++++
+
+One of the most important thing to declare into an attendee, is its builders. A builder is responsible for taking an unarchived source tree and creating something by issuing a series of commands.
+
+Builders are declared like so:
+
+.. code-block:: yaml
+
+    attendees:
+      libiconv:
+        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+        builders:
+          mybuild:
+            commands:
+              - ./configure --prefix={{prefix}}
+              - make
+              - make install
+
+In this simple example, `teapot` will go into the source tree unpacked from `libiconv-1.14.tar.gz` and will issue the following commands, in order:
+ - ``./configure --prefix={{prefix}}``
+ - ``make``
+ - ``make install``
+
+If all of these commands succeed, the build is considered successful as well.
+
+.. note:: Here ``{{prefix}}`` is an extension that resolves at runtime as the current prefix for the builder. You can learn more about extensions in the :ref:`extensions` section.
+
+One attendee can have as many different builders as you want it to have. All the builders are entries of the `builders` dictionary where the key is the builder name, and the value if a dictionary of attributes for the builder.
+
+A builder supports the following attributes:
+
+`commands`
+  Can be either a string with a single command to execute or a list of commands to execute.
+
+  Commands can contain :ref:`extensions<extensions>` and environment variables that will be substituted upon execution.
+
+`environment`
+  The environment in which the build must take place.
+
+  If no environment is specified, the *default* environment is taken, which is the one the `teapot` command is running in.
+
+  You can learn more about environments in the :ref:`environments` section.
+
+`tags`
+  A list of tags for the builder.
+
+  Tags can be used later on by the `teapot` command to restrict the builders to run dynamically.
+
+  One common use for tags is to differentiate builders for different build architectures (`x86` and `x64` for instance).
+
+`filters`
+  A list of filters that the current execution environment must match in order for the builder to be active. For instance, one can use filters to specify different sources for Windows and Linux, within the same attendee.
+
+`prefix`
+  The builder specific prefix.
+
+  The content of this value is used by the `prefix` extension at runtime.
+
+  If `prefix` is a relative path, it will be appended to the attendee's prefix.
+
+  If `prefix` is an absolute path, it will be taken as it is. 
+
+  If `prefix` is `True`, it will take the name of the builder as a value. Use this to differentiate builds outputs easily for a given attendee.
+
+.. _environments:
+
+Environments
+------------
+
+.. _filters:
+
+Filters
+-------
+
+.. _extensions:
+
+Extensions
+----------
+
+Other settings
+--------------
+
+Using `teapot`
+==============
 
 .. toctree::
    :maxdepth: 2
