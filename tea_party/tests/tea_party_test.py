@@ -210,6 +210,7 @@ class TestTeaParty(unittest.TestCase):
                 'HELLO': None,
                 'FOO_EXTENDED': '$FOO-$FOO-$NON_EXISTING_VAR-$FOO_EXTENDED',
                 'FOO_EXTENDED_PLATFORM': '[%HELLO%]',
+                'NON_EXISTING': None,
             },
             inherit=default_environment,
             shell=['my shell'],
@@ -221,6 +222,7 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(os.environ.get('BAR'), None)
         self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
         self.assertEqual(os.environ.get('FOO_EXTENDED'), None)
+        self.assertTrue('NON_EXISTING' not in os.environ)
 
         # We apply the environment and test those again
         with environment.enable():
@@ -229,6 +231,7 @@ class TestTeaParty(unittest.TestCase):
             self.assertEqual(os.environ.get('BAR'), 'BAR1')
             self.assertEqual(os.environ.get('HELLO'), None)
             self.assertEqual(os.environ.get('FOO_EXTENDED'), 'FOO1-FOO1--')
+            self.assertTrue('NON_EXISTING' not in os.environ)
 
             if sys.platform.startswith('win32'):
                 self.assertEqual(os.environ.get('FOO_EXTENDED_PLATFORM'), '[HELLO1]')
@@ -251,6 +254,7 @@ class TestTeaParty(unittest.TestCase):
                 'FOO': 'FOO3',
                 'BAR': 'BAR1',
                 'HELLO': None,
+                'NON_EXISTING': None,
             },
             inherit=None,
         )
@@ -260,6 +264,7 @@ class TestTeaParty(unittest.TestCase):
         self.assertEqual(os.environ.get('FOO'), 'FOO1')
         self.assertEqual(os.environ.get('BAR'), None)
         self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
+        self.assertTrue('NON_EXISTING' not in os.environ)
 
         # We apply the environment and test those again
         with orphan_environment.enable():
@@ -267,6 +272,7 @@ class TestTeaParty(unittest.TestCase):
             self.assertEqual(os.environ.get('FOO'), 'FOO3')
             self.assertEqual(os.environ.get('BAR'), 'BAR1')
             self.assertEqual(os.environ.get('HELLO'), 'HELLO1')
+            self.assertTrue('NON_EXISTING' not in os.environ)
 
         self.assertEqual(orphan_environment.shell, None)
 
