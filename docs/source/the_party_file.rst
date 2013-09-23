@@ -453,40 +453,40 @@ Valid syntaxes for calling extensions within commands are:
 
 *tea-party* comes with several built-in extensions:
 
-======================== ======================== =====================================================================================================================================
-Extension                Parameters               Role
-======================== ======================== =====================================================================================================================================
-prefix                   style                    Get the complete prefix for the current attendee/builder.
+========================== ======================== =====================================================================================================================================
+Extension                  Parameters               Role
+========================== ======================== =====================================================================================================================================
+`prefix`                   style                    Get the complete prefix for the current attendee/builder.
 
-                                                  Returns the complete path, in an operating system specific manner.
+                                                    Returns the complete path, in an operating system specific manner.
 
-                                                  On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+                                                    On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
-                                                  If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
-prefix_for               attendee, builder, style Get the complete prefix for the specified attendee/builder.
+                                                    If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+`prefix_for`               attendee, builder, style Get the complete prefix for the specified attendee/builder.
 
-                                                  You must at least specify the `attendee` parameter.
+                                                    You must at least specify the `attendee` parameter.
 
-                                                  Returns the complete path, in an operating system specific manner.
+                                                    Returns the complete path, in an operating system specific manner.
 
-                                                  On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+                                                    On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
-                                                  If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
-current_attendee                                  Returns the current attendee name.
-current_builder                                   Returns the current builder name.
-current_archive_path     style                    Returns the current archive path.
+                                                    If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+`current_attendee`                                  Returns the current attendee name.
+`current_builder`                                   Returns the current builder name.
+`current_archive_path`     style                    Returns the current archive path.
 
-                                                  On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+                                                    On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
-                                                  If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
-current_source_tree_path style                    Returns the current source tree path.
+                                                    If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+`current_source_tree_path` style                    Returns the current source tree path.
 
-                                                  On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+                                                    On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
-                                                  If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+                                                    If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
 
-                                                  Since source trees are copied to a temporary location before the build, this is **not** the path were the build actually takes place.
-======================== ======================== =====================================================================================================================================
+                                                    Since source trees are copied to a temporary location before the build, this is **not** the path were the build actually takes place.
+========================== ======================== =====================================================================================================================================
 
 You may also define your own extensions, see :ref:`extension_modules`.
 
