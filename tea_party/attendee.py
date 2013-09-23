@@ -383,6 +383,8 @@ class Attendee(Filtered):
 
                     raise
 
+                LOGGER.success('Builder "%s" was successful.', hl(builder))
+
             build_info['signature'] = attendee_signature
             self.write_build_info(build_info)
 
