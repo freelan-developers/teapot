@@ -316,7 +316,12 @@ class Party(object):
         else:
             LOGGER.info("Fetching %s/%s archive(s)...", len(attendees_to_fetch), len(self.enabled_attendees))
 
-            map(Attendee.fetch, attendees_to_fetch)
+            try:
+                map(Attendee.fetch, attendees_to_fetch)
+            except Exception as ex:
+                LOGGER.error('Error: %s', ex)
+
+                raise RuntimeError('Fetching of %s failed' % self)
 
             LOGGER.info("Done fetching archives.")
 

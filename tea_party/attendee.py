@@ -37,6 +37,9 @@ def make_attendee(party, name, attributes):
     Create an attendee from a name a dictionary of attributes.
     """
 
+    if not attributes:
+        attributes = {}
+
     prefix = attributes.get('prefix')
 
     if prefix is True:

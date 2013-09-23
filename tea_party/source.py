@@ -154,6 +154,9 @@ class Source(Filtered):
         Returns dict, containing the information about the archive.
         """
 
+        if not self.fetcher:
+            return
+
         try:
             cache_info = self.fetcher.fetch(
                 target=root_path,
