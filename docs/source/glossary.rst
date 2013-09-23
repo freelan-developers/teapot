@@ -44,3 +44,8 @@ Glossary
 
     shell
       A shell is a command line interpreter that will execute the different commands of a builder.
+
+    extension
+      An extension is an entity the resides in builder commands and that gets replaced when the command is evaluated.
+
+      Extension are python function that can optionally take parameters.

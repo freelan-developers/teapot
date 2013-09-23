@@ -525,5 +525,21 @@ Depending on your project, you may want to set the `cache_path` to a more local 
 Writing extension modules
 -------------------------
 
+*tea-party* was designed from the start to be extensible.
+
+Using the `extension_modules` attribute at the root of :term:`party file`, you can extend *tea-party* any way you want.
+
+Those extensions modules are regular Python modules into which you can define :term:`filters<filter>`, :term:`extensions<extension>`, :term:`environments<environment>` or anything else you want.
+
+The `extension_modules` attribute is a dictionary located at the root of the :term:`party file` where keys are the shortnames for the modules, and the values are the path to those modules:
+
+.. code-block:: yaml
+
+    extension_modules:
+      myfilter: modules/myfilter.py
+      myenvironment: modules/myenvironment.py
+
+To get more details about how to write filters, extensions and environments, take a look at :doc:`inside_the_party`.
+
 Using :term:`teapot`
 ====================
