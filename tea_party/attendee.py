@@ -4,6 +4,7 @@ tea-party 'attendee' class.
 
 import os
 import json
+import hashlib
 import errno
 import shutil
 import itertools
@@ -340,23 +341,30 @@ class Attendee(Filtered):
         else:
             LOGGER.info('Building %s with %s builder(s)...', hl(self), len(builders))
 
+            build_info = self.build_info
+            build_info.setdefault('builds', {})
+
+            attendee_signature = self.signature
+            saved_attendee_signature = build_info.get('signature')
+
             for builder in builders:
                 try:
-                    build_info = self.build_info
-                    signature = build_info.setdefault('builds', {}).get(builder.name)
+                    signature = build_info['builds'].get(builder.name)
 
-                    if signature == builder.signature and not force:
+                    if (attendee_signature == saved_attendee_signature) and (signature == builder.signature) and not force:
                         LOGGER.info('Last build for %s was successful. Not rebuilding unless force rebuild is requested.', hl(builder.name))
 
                     else:
-                        if not signature:
+                        if attendee_signature != saved_attendee_signature:
+                            LOGGER.info('Signature for %s changed since last successful build. Building using "%s"...', hl(self), hl(builder))
+                        elif not signature:
                             LOGGER.info('Starting first build for %s using builder "%s"...', hl(self), hl(builder))
                         elif not force:
                             LOGGER.info('Build signature changed: starting rebuild for %s using builder "%s"...', hl(self), hl(builder))
                         else:
                             LOGGER.info('Forcing rebuild for %s using builder "%s"...', hl(self), hl(builder))
 
-                            build_info.setdefault('builds', {})[builder.name] = None
+                            build_info['builds'][builder.name] = None
                             self.write_build_info(build_info)
 
                         with self.create_temporary_build_directory(builder, persistent=keep_builds) as build_directory:
@@ -367,13 +375,16 @@ class Attendee(Filtered):
                                     verbose=verbose,
                                 )
 
-                                build_info.setdefault('builds', {})[builder.name] = builder.signature
+                                build_info['builds'][builder.name] = builder.signature
                                 self.write_build_info(build_info)
 
                 except Exception as ex:
                     LOGGER.error('Error while building %s: %s', hl(self), ex)
 
                     raise
+
+            build_info['signature'] = attendee_signature
+            self.write_build_info(build_info)
 
             LOGGER.success('%s built successfully.', hl(self))
 
@@ -570,3 +581,26 @@ class Attendee(Filtered):
         """
 
         return self.archive_hash == self.source_tree_origin_hash
+
+    @property
+    def signature(self):
+        """
+        Get the attendee signature.
+        """
+
+        LOGGER.debug('Computing source hash for %s...', hl(self))
+
+        data = {
+            'sources': [source.source_hash for source in self.sources],
+            'depends': [self.party.get_attendee_by_name(depend).signature for depend in self.depends],
+            'builders': [builder.signature for builder in self.builders],
+        }
+
+        algorithm = hashlib.sha1()
+        algorithm.update(json.dumps(data))
+
+        result = algorithm.hexdigest()
+
+        LOGGER.debug('Hash is: %s', hl(result))
+
+        return result
