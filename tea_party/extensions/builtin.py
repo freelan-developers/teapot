@@ -57,17 +57,27 @@ def current_builder(builder):
     return builder
 
 @named_extension('current_archive_path')
-def current_builder(builder):
+def current_archive_path(builder, style='default'):
     """
     Get the current archive path.
     """
 
-    return builder.attendee.archive_path
+    result = builder.attendee.archive_path
+
+    if sys.platform.startswith('win32') and style == 'unix':
+        result = windows_to_unix_path(result)
+
+    return result
 
 @named_extension('current_source_tree_path')
-def current_builder(builder):
+def current_source_tree_path(builder, style='default'):
     """
     Get the current source tree path.
     """
 
-    return builder.attendee.source_tree_path
+    result = builder.attendee.source_tree_path
+
+    if sys.platform.startswith('win32') and style == 'unix':
+        result = windows_to_unix_path(result)
+
+    return result
