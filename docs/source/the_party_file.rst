@@ -388,13 +388,142 @@ An `environment` dictionary understands the following attributes:
 Filters
 -------
 
+Filters are a way to differentiate :term:`teapot` execution accross platforms and environments. A :term:`filter` is basically a test whose result is boolean. It answers a simple question like: am on Windows ? Is MinGW available ?
+
+*tea-party* comes with several built-in filters:
+
+========= ====================================================================================
+Filter    Role
+========= ====================================================================================
+`windows` Check that :term:`teapot` is currently running on Windows.
+`linux`   Check that :term:`teapot` is currently running on Linux.
+`darwin`  Check that :term:`teapot` is currently running on Darwin (Mac OS X).
+`unix`    Check that :term:`teapot` is currently running on UNIX (Linux or Darwin).
+`msvc`    Check that Microsoft Visual Studio is actually available in the current environment.
+
+          It usually means :term:`teapot` was started from a MSVC command shell.
+`mingw`   Check that MinGW is available in the current environment.
+
+          The filter will try to find `gcc.exe`.
+========= ====================================================================================
+
+.. note::
+
+    When defining several :term:`filters<filter>` in an :term:`attendee`, a :term:`source` or a :term:`builder`, note that **all** filters must be verified for the validation to pass.
+
+You may also define your own filters, see :ref:`extension_modules`.
+
 .. _extensions:
 
 Extensions
 ----------
 
+Extensions are simple functions, that optionally have parameters, which can occur in a :term:`builder` command.
+
+For instance the `prefix` extension is resolved at runtime and replaced with the complete prefix (as defined at the root of the :term:`party file`, the :term:`attendee` and the :term:`builder`).
+
+Here is an example:
+
+.. code-block:: yaml
+
+    attendees:
+      libiconv:
+        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+        builders:
+          default_x86:
+            filters: mingw
+            commands:
+              - ./configure --prefix={{prefix(unix)}}
+              - make
+              - make install
+            prefix: True
+
+In this example, designed to run from within a MSys environment on Windows, we make use of the `prefix` extension and we supply the `style` parameter. Upon runtime, the expression gets replaced with the UNIX-style path to the prefix, as defined in the :term:`party file`.
+
+Valid syntaxes for calling extensions within commands are:
+
+.. code-block:: yaml
+
+    {{extension}}             # No parameters.
+    {{extension()}}           # No parameters. No difference with the first call.
+    {{extension(arg1)}}       # Call with one parameter.
+    {{extension(arg1,arg2)}}  # Call with two parameters.
+    {{extension(,arg2)}}      # Call with two parameters, the first one being omitted.
+    {{extension(arg1,,arg3)}} # Call with three parameters, the second one being omitted.
+
+*tea-party* comes with several built-in extensions:
+
+======================== ======================== =====================================================================================================================================
+Extension                Parameters               Role
+======================== ======================== =====================================================================================================================================
+prefix                   style                    Get the complete prefix for the current attendee/builder.
+
+                                                  Returns the complete path, in an operating system specific manner.
+
+                                                  On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+
+                                                  If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+prefix_for               attendee, builder, style Get the complete prefix for the specified attendee/builder.
+
+                                                  You must at least specify the `attendee` parameter.
+
+                                                  Returns the complete path, in an operating system specific manner.
+
+                                                  On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+
+                                                  If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+current_attendee                                  Returns the current attendee name.
+current_builder                                   Returns the current builder name.
+current_archive_path     style                    Returns the current archive path.
+
+                                                  On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+
+                                                  If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+current_source_tree_path style                    Returns the current source tree path.
+
+                                                  On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+
+                                                  If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+
+                                                  Since source trees are copied to a temporary location before the build, this is **not** the path were the build actually takes place.
+======================== ======================== =====================================================================================================================================
+
+You may also define your own extensions, see :ref:`extension_modules`.
+
 Other settings
 --------------
+
+:term:`teapot` runs with the following defaults:
+
+============ ======================================= ======================================================================================================
+Parameter    Default value                           Meaning
+============ ======================================= ======================================================================================================
+`cache_path` ``~/.tea-party.cache`` (UNIX)           The path where the archives are downloaded to.
+
+             ``%APPDATA%/tea-party/cache`` (Windows)
+`build_path` ``~/.tea-party.build`` (UNIX)           The path where the builds take place.
+
+             ``%APPDATA%/tea-party/build`` (Windows)
+`prefix`     ``install``                             The default :term:`party file` prefix that gets prepended to all :term:`attendees<attendee>` prefixes.
+============ ======================================= ======================================================================================================
+
+These settings are to be set at the root of the :term:`party file`, like so:
+
+.. code-block:: yaml
+
+    attendees:
+      libiconv:
+        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+
+    cache_path: cache
+    build_path: build
+
+Depending on your project, you may want to set the `cache_path` to a more local location (you may choose to add them to version control for instance).
+
+.. _extension_modules:
+
+Writing extension modules
+-------------------------
 
 Using :term:`teapot`
 ====================
