@@ -543,3 +543,134 @@ To get more details about how to write filters, extensions and environments, tak
 
 Using :term:`teapot`
 ====================
+
+:term:`teapot` is the command line tool that ships with *tea-party*.
+
+.. code-block:: bash
+
+    $ teapot --help
+    usage: teapot [-h] [-d] [-v] [-p PARTY_FILE]
+                  {clean,fetch,unpack,build} ...
+
+    Manage third-party software.
+
+    positional arguments:
+      {clean,fetch,unpack,build}
+                            The available commands.
+        clean               Clean the party.
+        fetch               Fetch all the archives.
+        unpack              Unpack all the fetched archives.
+        build               Build the archives.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -d, --debug           Enable debug output.
+      -v, --verbose         Be more explicit about what happens.
+      -p PARTY_FILE, --party-file PARTY_FILE
+                            The party-file to read.
+
+The `clean` command
+-------------------
+
+:term:`teapot` fetches the sources archives and stores them in the `cache` directory. It also build attendees and stores the temporary results inside the `build` directory.
+
+Use ``teapot clean`` to clean either the `cache` or the `build` directory (or both).
+
+The use of this command in normally not needed as `tea-party` knows how to compute dependencies and detect changes automatically.
+
+.. code-block:: bash
+
+    $ teapot clean --help
+    usage: teapot clean [-h] {cache,build,all} ...
+
+    positional arguments:
+      {cache,build,all}  The available commands.
+        cache            Clean the party cache.
+        build            Clean the party build.
+        all              Clean the party cache and build.
+
+    optional arguments:
+      -h, --help         show this help message and exit
+
+The `clean cache` command
++++++++++++++++++++++++++
+
+Cleans the *tea-party* cache directory, where the source archives are stored.
+
+Use this command if, for whatever reason you think the archive cache was corrupted.
+
+If no `attendee` is specified, all the attendees are cleaned.
+
+.. code-block:: bash
+
+    $ teapot clean cache --help
+    usage: teapot clean cache [-h] [attendee [attendee ...]]
+
+    positional arguments:
+      attendee    The attendees to clean.
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+The `clean build` command
++++++++++++++++++++++++++
+
+Cleans the *tea-party* build directory, where the build results are stored.
+
+Use this command if, for whatever reason you think the build results were corrupted.
+
+If no `attendee` is specified, all the attendees are cleaned.
+
+.. code-block:: bash
+
+    $ teapot clean build --help
+    usage: teapot clean build [-h] [attendee [attendee ...]]
+
+    positional arguments:
+      attendee    The attendees to clean.
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+The `clean cache` command
++++++++++++++++++++++++++
+
+Cleans the *tea-party* cache and build directories.
+
+Use this command if, for whatever reason you want to reset the status of your current *tea-party* project.
+
+If no `attendee` is specified, all the attendees are cleaned.
+
+.. code-block:: bash
+
+    $ teapot clean all --help
+    usage: teapot clean all [-h] [attendee [attendee ...]]
+
+    positional arguments:
+      attendee    The attendees to clean.
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+The `fetch` command
+-------------------
+
+Fetches the source archives of the specified :term:`attendees<attendee>`.
+
+``teapot fetch`` makes sure all the source archives are downloaded for the specified attendees.
+
+If no `attendee` is specified, the source archives for all :term:`attendees<attendee>` are fetched.
+
+By default, this command only fetches archives that weren't already downloaded. Use the ``--force`` option to force the download of all :term:`attendees<attendee>`.
+
+.. code-block:: bash
+
+    $ teapot fetch --help
+    usage: teapot fetch [-h] [-f] [attendee [attendee ...]]
+
+    positional arguments:
+      attendee     The attendees to fetch.
+
+    optional arguments:
+      -h, --help   show this help message and exit
+      -f, --force  Fetch archives even if they already exist in the cache.
