@@ -54,7 +54,14 @@ class named_filter(object):
         Registers the function with the specified name.
 
         If another function was registered with the same name, a
-        DuplicateFilterError will be raised, unless `override` is truthy.
+        `DuplicateFilterError` will be raised, unless `override` is truthy.
+
+        `depends` can be either:
+            - `None`, if the filter does not depend on any other filter.
+            - A `str` instance, being the registered name of another filter to depend on.
+            - A `list` of `str` instances, being the list of registered names of other filters to depend on.
+
+        If a filter depends on other filters, those will be checked *before* the actual filter gets run.
         """
 
         if name in FILTERS and not override:
