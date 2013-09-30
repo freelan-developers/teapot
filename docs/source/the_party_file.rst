@@ -569,6 +569,8 @@ Using :term:`teapot`
       -p PARTY_FILE, --party-file PARTY_FILE
                             The party-file to read.
 
+By default, :term:`teapot` looks for a file named ``party.yaml`` in the current directory. You may change the location of this file by using the ``--party-file`` option.
+
 The `clean` command
 -------------------
 
