@@ -674,3 +674,29 @@ By default, this command only fetches archives that weren't already downloaded. 
     optional arguments:
       -h, --help   show this help message and exit
       -f, --force  Fetch archives even if they already exist in the cache.
+
+The `unpack` command
+--------------------
+
+Unpacks the fetched source archive to prepare for a build.
+
+If no `attendee` is specified, all the attendees are unpacked.
+
+.. code-block:: bash
+
+    $ teapot unpack --help
+    usage: teapot unpack [-h] [-f] [attendee [attendee ...]]
+
+    positional arguments:
+      attendee     The attendees to unpack.
+
+    optional arguments:
+      -h, --help   show this help message and exit
+      -f, --force  Unpack archives even if they already exist in the build.
+
+This step is usually not required as it performed automatically whenever needed. Use it when you don't want to build right away but want the next build to be as fast as possible.
+
+Calling `unpack` automatically fetches the source archives if they are not present.
+
+The `build` command
+-------------------
