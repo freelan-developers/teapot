@@ -702,3 +702,31 @@ Calling `unpack` automatically fetches the source archives if they are not prese
 
 The `build` command
 -------------------
+
+Builds the attendees.
+
+If no `attendee` is specified, all the attendees are built. If a list of `attendees<attendee>` is specified, only those attendees and the ones they depend on will be built.
+
+.. code-block:: bash
+
+    $ teapot build --help
+    usage: teapot build [-h] [-t tag] [-u] [-f] [-k] [attendee [attendee ...]]
+
+    positional arguments:
+      attendee            The attendees to build.
+
+    optional arguments:
+      -h, --help          show this help message and exit
+      -t tag, --tags tag  The tags to build.
+      -u, --force-unpack  Delete and reunpack all source tree directories before
+                          attempting a build.
+      -f, --force-build   Run all builders even if their last run was successful.
+      -k, --keep-builds   Keep the build directories for inspection.
+
+By default, all variants from all builders are taken. You may specify the ``--tags`` option to build only specific variants (like `x86` or `x64` for instance).
+
+Only the builders that didn't succeeded the last time or the one that changed since the last build are run. To change that behavior, specify the ``--force-build`` option.
+
+**tea-party** will not try to re-unpack archives that were already unpacked unless ``--force-unpack`` is specified.
+
+Temporary build directories are deleted automatically whenever a build terminates (either with a success or a failure), unless the ``--keep-builds`` option is specified. In that case, the build directory remains until the build gets restarted.
