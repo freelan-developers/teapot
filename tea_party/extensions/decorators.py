@@ -71,7 +71,7 @@ class named_extension(object):
         Registers the function with the specified name.
 
         If another function was registered with the same name, a
-        DuplicateExtensionError will be raised, unless `override` is truthy.
+        `DuplicateExtensionError` will be raised, unless `override` is truthy.
         """
 
         if name in EXTENSIONS and not override:
