@@ -152,8 +152,8 @@ class Party(object):
         """
         Register a post action.
 
-        Post action are called in the registration order, whenever a new Party
-        instance is created.
+        Post action are called in the registration order, every time a new
+        `Party` instance is created.
         """
 
         cls.POST_ACTIONS.append(action)

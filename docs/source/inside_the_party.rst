@@ -241,3 +241,21 @@ All callback classes derive from :class:`tea_party.unpackers.callbacks.BaseUnpac
 
 Party post-actions
 ==================
+
+*post-actions* are simple function that takes a :class:`tea_party.party.Party` instance as a parameter, and that gets executed right after a such instance was initialized.
+
+You can register a *post-action* using the :func:`tea_party.party.Party.register_post_action` decorator.
+
+.. automethod:: tea_party.party.Party.register_post_action
+
+Here is an example a built-in *post-action* that registers the defaut environment:
+
+.. code-block:: python
+
+    @Party.register_post_action
+    def add_default_environment(party):
+        """
+        Add the default environment to the party.
+        """
+
+        party.environment_register.register_environment(DEFAULT_ENVIRONMENT_NAME, create_default_environment())
