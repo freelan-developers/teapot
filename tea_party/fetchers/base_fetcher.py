@@ -57,7 +57,7 @@ class BaseFetcher(object):
 
     If you intend to expose your fetcher to users, you must also declare a
     unique class-level `shortname`. This is what the user will specify in the
-    :term:`party-file` to use a specific fetcher.
+    :term:`party file` to use a specific fetcher.
     """
 
     index = {}
