@@ -51,9 +51,13 @@ class BaseFetcher(object):
     """
     Base class for all fetcher classes.
 
-    If you subclass this class, you will have to re-implement the do_fetch()
-    and read_source() methods in your subclass to provide your fetcher
-    specific fetch logic.
+    If you subclass this class, you will have to re-implement the
+    :func:`read_source` and :func:`do_fetch` methods in your subclass to
+    provide your fetcher specific fetch logic.
+
+    If you intend to expose your fetcher to users, you must also declare a
+    unique class-level `shortname`. This is what the user will specify in the
+    :term:`party-file` to use a specific fetcher.
     """
 
     index = {}
@@ -131,9 +135,9 @@ class BaseFetcher(object):
         truthy value if the fetcher supports the specified source.
 
         You may set custom instance variable in this method as it is guaranteed
-        that it gets called before the fetch() method. For instance, one could
-        parse a source URL and get the meaningful components into member
-        variables for later use in do_fetch().
+        that it gets called before the :func:`do_fetch` method. For instance,
+        one could parse a source URL and get the meaningful components into
+        member variables for later use in :func:`do_fetch`.
         """
 
         raise NotImplementedError
@@ -158,15 +162,18 @@ class BaseFetcher(object):
         `target` is the suggested target filename.
 
         This method must return a dict with the following keys:
-            - archive_path: The archive absolute path.
-            - archive_type: A couple containing the mimetype, then the encoding
-            of the archive. Example: ('application/x-gzip', None)
+            - `archive_path`: The archive absolute path.
+            - `archive_type`: A couple containing the mimetype, then the
+              encoding of the archive. Example: ``('application/x-gzip', None)``
 
         It must raise an exception on error.
 
-        You can provide feedback on the fetching operation by calling
-        `self.progress.on_start`, `self.progress.on_update` and
+        You can (and should) provide feedback on the fetching operation by
+        calling `self.progress.on_start`, `self.progress.on_update` and
         `self.progress.on_finish` at the appropriate time.
+
+        See :class:`tea_party.fetchers.callbacks.BaseFetcherCallback`
+        documentation for details.
         """
 
         raise NotImplementedError

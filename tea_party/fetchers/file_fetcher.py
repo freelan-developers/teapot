@@ -41,6 +41,10 @@ class FileFetcher(BaseFetcher):
 
         shutil.copyfile(self.file_path, archive_path)
 
+        # No real interactive progress to show here.
+        #
+        # This could be fixed though.
+
         self.progress.on_update(progress=size)
         self.progress.on_finish()
 

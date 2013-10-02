@@ -22,9 +22,10 @@ class BaseFetcherCallback(object):
 
     def on_start(self, target, size):
         """
-        The fetch just started.
+        Call this method when the fetch is about to begin.
 
-        `target` is a user friendly name for the target being fetched.
+        `target` is the user-friendly name for the target being fetched.
+        `size` is the size, in bytes, of the archive that is being fetched.
 
         You may use a None `size` to indicate that the overall size is unknown.
         """
@@ -33,24 +34,28 @@ class BaseFetcherCallback(object):
 
     def on_update(self, progress):
         """
-        The fetch was updated.
+        Call this method whenever the fetch had some progress.
+
+        `progress` is the number of bytes that were already fetched.
         """
 
         pass
 
     def on_finish(self):
         """
-        The fetch finished.
+        Call this method when the fetch is over.
         """
 
         pass
 
     def on_exception(self, exception):
         """
-        The fetch failed.
+        Call this method when a fatal exception is raised that must abort the
+        fetch.
 
-        Don't forget to call the on_finish() method if you override this
-        method.
+        The base implementation calls the :func:`on_finish` method and if you
+        override this method, you must do the same (or just call the base
+        method).
         """
 
         self.on_finish()
