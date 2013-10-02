@@ -24,7 +24,7 @@ class BaseUnpackerCallback(object):
 
     def on_start(self, count):
         """
-        The unpack just started.
+        Call this method when the unpacking is about to start.
 
         `count` indicates the total count of files in the archive.
 
@@ -36,7 +36,7 @@ class BaseUnpackerCallback(object):
 
     def on_update(self, current_file, progress):
         """
-        The unpack was updated.
+        Call this method when the unpacking had some progress.
 
         `current_file` indicates the file currently being unpacked.
         `progress` indicates the number of the current file in the archive.
@@ -46,17 +46,19 @@ class BaseUnpackerCallback(object):
 
     def on_finish(self):
         """
-        The unpack finished.
+        Call this method when the unpacking is complete.
         """
 
         pass
 
     def on_exception(self, exception):
         """
-        The unpack failed.
+        Call this method when a fatal exception is raised that must abort the
+        unpack.
 
-        Don't forget to call the on_finish() method if you override this
-        method.
+        The base implementation calls the :func:`on_finish` method and if you
+        override this method, you must do the same (or just call the base
+        method).
         """
 
         self.on_finish()

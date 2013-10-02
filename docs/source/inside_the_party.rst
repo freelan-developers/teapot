@@ -153,5 +153,91 @@ All callback classes derive from :class:`tea_party.fetchers.callbacks.BaseFetche
 Unpackers
 =========
 
+:term:`Unpackers<unpacker>` are responsible for extracting the content of the source archives into an exploitable source tree.
+
+To define a new unpacker, just derive from :class:`tea_party.unpackers.base_unpacker.BaseUnpacker`.
+
+.. autoclass:: tea_party.unpackers.base_unpacker.BaseUnpacker
+    :members: do_unpack
+
+Here is an example with the built-in *tarball* unpacker:
+
+.. code-block:: python
+
+    from tea_party.unpackers.base_unpacker import BaseUnpacker
+
+    import os
+    import tarfile
+
+
+    class TarballUnpacker(BaseUnpacker):
+
+        """
+        An unpacker class that deals with .tgz files.
+        """
+
+        types = [
+            ('application/x-gzip', None),
+            ('application/x-bzip2', None),
+        ]
+
+        def do_unpack(self):
+            """
+            Uncompress the archive.
+
+            Return the path of the extracted folder.
+            """
+
+            if not tarfile.is_tarfile(self.archive_path):
+                raise InvalidTarballError(archive_path=self.archive_path)
+
+            tar = tarfile.open(self.archive_path, 'r')
+
+            # We get the common prefix for all archive members.
+            prefix = os.path.commonprefix(tar.getnames())
+
+            # An archive member with the prefix as a name should exist in the archive.
+            while True:
+                try:
+                    prefix_member = tar.getmember(prefix)
+
+                    if prefix_member.isdir:
+                        break
+
+                except KeyError:
+                    pass
+
+                new_prefix = os.path.dirname(prefix)
+
+                if prefix == new_prefix:
+                    raise TarballHasNoCommonPrefixError(archive_path=self.archive_path)
+                else:
+                    prefix = new_prefix
+
+            source_tree_path = os.path.join(self.attendee.build_path, prefix_member.name)
+
+            self.progress.on_start(count=len(tar.getmembers()))
+
+            for index, member in enumerate(tar.getmembers()):
+                if os.path.isabs(member.name):
+                    raise ValueError('Refusing to extract archive that contains absolute filenames.')
+
+                self.progress.on_update(current_file=member.name, progress=index)
+                tar.extract(member, path=self.attendee.build_path)
+
+            self.progress.on_finish()
+
+            return {
+                'source_tree_path': source_tree_path,
+            }
+
+Callbacks
+---------
+
+All callback classes derive from :class:`tea_party.unpackers.callbacks.BaseUnpackerCallback`.
+
+.. autoclass:: tea_party.unpackers.callbacks.BaseUnpackerCallback
+    :members: on_start, on_update, on_finish, on_exception
+
 Party post-actions
 ==================

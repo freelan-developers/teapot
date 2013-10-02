@@ -32,8 +32,12 @@ class BaseUnpacker(object):
     """
     Base class for all unpacker classes.
 
-    If you subclass this class, you will have to re-implement the unpack()
-    method.
+    If you subclass this class, you will have to re-implement the
+    :func:`do_unpack` method to provide your specific unpacker logic.
+
+    If you desire to attach your unpacker to certain mimetypes, please do so by
+    defining the class-level member `types` that must be a list of couples
+    `(mimetype, encoding)`.
     """
 
     index = {}
@@ -125,13 +129,16 @@ class BaseUnpacker(object):
         The archive to unpack can be reached at `self.archive_path`.
 
         This method must return a dict with the following keys:
-            - source_tree_path: The extracted source tree path.
+            - `source_tree_path`: The extracted source tree path.
 
         It must raise an exception on error.
 
         You can provide feedback on the unpacking operation by calling
         `self.progress.on_start`, `self.progress.on_update` and
         `self.progress.on_finish` at the appropriate time.
+
+        See :class:`tea_party.unpackers.callbacks.BaseUnpackerCallback` for
+        further details.
         """
 
         raise NotImplementedError
