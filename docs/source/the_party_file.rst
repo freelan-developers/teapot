@@ -456,6 +456,13 @@ Valid syntaxes for calling extensions within commands are:
 ========================== ======================== =====================================================================================================================================
 Extension                  Parameters               Role
 ========================== ======================== =====================================================================================================================================
+`root`                     style                    Get the absolute path to the root of the :term:`party file`.
+
+                                                    Returns the complete path, in an operating system specific manner.
+
+                                                    On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
+
+                                                    If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
 `prefix`                   style                    Get the complete prefix for the current attendee/builder.
 
                                                     Returns the complete path, in an operating system specific manner.

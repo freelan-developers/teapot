@@ -9,6 +9,19 @@ from tea_party.path import windows_to_unix_path
 from tea_party.extensions.decorators import named_extension
 
 
+@named_extension('root')
+def root(builder, style='default'):
+    """
+    Get the builder prefix.
+    """
+
+    result = os.path.dirname(builder.attendee.party.path)
+
+    if sys.platform.startswith('win32') and style == 'unix':
+        result = windows_to_unix_path(result)
+
+    return result
+
 @named_extension('prefix')
 def prefix(builder, style='default'):
     """
