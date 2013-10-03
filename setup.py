@@ -42,6 +42,7 @@ to add your own modules and extend its scope.
         'tea_party.filters',
         'tea_party.defaults',
         'tea_party.tests',
+        'tea_party.extra',
     ],
     install_requires=install_requires,
     entry_points={
