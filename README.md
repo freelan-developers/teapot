@@ -13,7 +13,7 @@ tea-party is a Python library, and its associated command-line tool, that eases 
 How to use it ?
 ---------------
 
-To be written.
+*tea-party*'s documentation can be reached at [http://tea-party.readthedocs.org/en/latest/].
 
 Licensing
 ---------
