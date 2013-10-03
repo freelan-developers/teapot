@@ -44,5 +44,6 @@ setup(
         'Operating System :: POSIX',
         'Programming Language :: Python',
         'Topic :: Software Development',
+        'License :: OSI Approved :: MIT License',
     ],
 )
