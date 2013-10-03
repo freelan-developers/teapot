@@ -19,7 +19,7 @@ register:
 	python setup.py register
 
 upload:
-	python setup.py sdist bdist_egg upload
+	python setup.py sdist upload
 
 # Aliases
 
