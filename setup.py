@@ -15,8 +15,23 @@ if sys.version_info < (2, 7):
 
 setup(
     name='tea-party',
+    url='http://tea-party.readthedocs.org/en/latest/index.html',
+    author='Julien Kauffmann',
+    author_email='julien.kauffmann@freelan.org',
+    license='MIT License',
     version='1.0',
-    long_description=__doc__,
+    description="A multi-platform tool to automate the download, unpack and build of third-party softwares.",
+    long_description="""\
+tea-party is a python library and a command-line tool that eases the
+downloading, the unpacking and the building of third-party softwares in a
+project.
+
+tea-party comes with the command-line tool `teapot` that does all the
+necessary work.
+
+tea-party is designed with extension in mind, which means it is very easy
+to add your own modules and extend its scope.
+""",
     packages=[
         'tea_party',
         'tea_party.environments',
