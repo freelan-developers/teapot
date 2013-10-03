@@ -19,7 +19,7 @@ setup(
     author='Julien Kauffmann',
     author_email='julien.kauffmann@freelan.org',
     license='MIT License',
-    version='1.0',
+    version=open('VERSION').read().strip(),
     description="A multi-platform tool to automate the download, unpack and build of third-party softwares.",
     long_description="""\
 tea-party is a python library and a command-line tool that eases the
