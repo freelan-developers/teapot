@@ -17,7 +17,7 @@ The second chapter, :doc:`inside_the_party`, explains the internals of the :mod:
 Why should I use **tea-party** ?
 ================================
 
-Because you probably have more interesting things to do that dealing with third-party softwares.
+Because you probably have more interesting things to do than dealing with third-party softwares.
 
 Most of the time, people and companies end up writing their own set of scripts to build their dependencies. It can go from a simple `wget` call that fetches precompiled binaries from some server, to more complex systems that download and build them from source and try to do so as reliably as they can.
 
