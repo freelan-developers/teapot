@@ -13,7 +13,7 @@ teapot is a Python library, and its associated command-line tool, that eases fet
 How to use it ?
 ---------------
 
-*teapot*'s documentation can be reached at [http://teapot.readthedocs.org/en/latest/].
+*teapot*'s documentation can be reached at [http://teapot-builder.readthedocs.org/en/latest/].
 
 Licensing
 ---------

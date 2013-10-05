@@ -15,7 +15,7 @@ if sys.version_info < (2, 7):
 
 setup(
     name='teapot',
-    url='http://teapot.readthedocs.org/en/latest/index.html',
+    url='http://teapot-builder.readthedocs.org/en/latest/index.html',
     author='Julien Kauffmann',
     author_email='julien.kauffmann@freelan.org',
     license='MIT License',
