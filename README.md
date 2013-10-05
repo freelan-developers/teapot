@@ -1,21 +1,21 @@
-[![Build Status](https://secure.travis-ci.org/freelan-developers/tea-party.png)](https://secure.travis-ci.org/freelan-developers/tea-party)
+[![Build Status](https://secure.travis-ci.org/freelan-developers/teapot.png)](https://secure.travis-ci.org/freelan-developers/teapot)
 
-tea-party
+teapot
 =========
 
 A tool to handle third-party softwares in projects.
 
-What is tea-party ?
+What is teapot ?
 -------------------
 
-tea-party is a Python library, and its associated command-line tool, that eases fetching and compilation of third-party softwares.
+teapot is a Python library, and its associated command-line tool, that eases fetching and compilation of third-party softwares.
 
 How to use it ?
 ---------------
 
-*tea-party*'s documentation can be reached at [http://tea-party.readthedocs.org/en/latest/].
+*teapot*'s documentation can be reached at [http://teapot.readthedocs.org/en/latest/].
 
 Licensing
 ---------
 
-tea-party is licensed under the [MIT license](http://opensource.org/licenses/MIT).
+teapot is licensed under the [MIT license](http://opensource.org/licenses/MIT).

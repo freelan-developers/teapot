@@ -14,43 +14,43 @@ if sys.version_info < (2, 7):
     install_requires.append('unittest2')
 
 setup(
-    name='tea-party',
-    url='http://tea-party.readthedocs.org/en/latest/index.html',
+    name='teapot',
+    url='http://teapot.readthedocs.org/en/latest/index.html',
     author='Julien Kauffmann',
     author_email='julien.kauffmann@freelan.org',
     license='MIT License',
     version=open('VERSION').read().strip(),
     description="A multi-platform tool to automate the download, unpack and build of third-party softwares.",
     long_description="""\
-tea-party is a python library and a command-line tool that eases the
+teapot is a python library and a command-line tool that eases the
 downloading, the unpacking and the building of third-party softwares in a
 project.
 
-tea-party comes with the command-line tool `teapot` that does all the
+teapot comes with the command-line tool `teapot` that does all the
 necessary work.
 
-tea-party is designed with extension in mind, which means it is very easy
+teapot is designed with extension in mind, which means it is very easy
 to add your own modules and extend its scope.
 """,
     packages=[
-        'tea_party',
-        'tea_party.environments',
-        'tea_party.extensions',
-        'tea_party.fetchers',
-        'tea_party.unpackers',
-        'tea_party.builders',
-        'tea_party.filters',
-        'tea_party.defaults',
-        'tea_party.tests',
-        'tea_party.extra',
+        'teapot',
+        'teapot.environments',
+        'teapot.extensions',
+        'teapot.fetchers',
+        'teapot.unpackers',
+        'teapot.builders',
+        'teapot.filters',
+        'teapot.defaults',
+        'teapot.tests',
+        'teapot.extra',
     ],
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
-            'teapot = tea_party.main:main',
+            'teapot = teapot.main:main',
         ],
     },
-    test_suite='tea_party.tests',
+    test_suite='teapot.tests',
     classifiers=[
         'Environment :: Console',
         'Intended Audience :: Developers',

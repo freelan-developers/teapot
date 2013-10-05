@@ -1,7 +1,7 @@
 Inside the party
 ****************
 
-This chapter describes how to write custom module-extensions for *tea-party*.
+This chapter describes how to write custom module-extensions for *teapot*.
 
 Filters
 =======
@@ -10,9 +10,9 @@ We already seen in :ref:`filters` what a :term:`filter` is. Now is the time to w
 
 A :term:`filter` is a simple function that takes no parameters and returns a boolean value.
 
-To register a new :term:`filter`, use the :func:`tea_party.filters.decorators.named_filter` decorator.
+To register a new :term:`filter`, use the :func:`teapot.filters.decorators.named_filter` decorator.
 
-.. autoclass:: tea_party.filters.decorators.named_filter
+.. autoclass:: teapot.filters.decorators.named_filter
     :members: __init__
 
 Here is an example of some built-in :term:`filters<filter>`:
@@ -22,7 +22,7 @@ Here is an example of some built-in :term:`filters<filter>`:
     import os
     import sys
 
-    from tea_party.filters.decorators import named_filter
+    from teapot.filters.decorators import named_filter
 
     @named_filter('windows')
     def windows():
@@ -45,11 +45,11 @@ Extensions
 
 As seen in :ref:`extensions`, an :term:`extension` is a function, that always takes a `builder` argument, optionally takes string parameters and returns a string.
 
-:term:`Extensions<extension>` are to **tea-party** what macros are to the C language.
+:term:`Extensions<extension>` are to **teapot** what macros are to the C language.
 
-To register a new :term:`extension`, use the :func:`tea_party.extensions.decorators.named_extension` decorator.
+To register a new :term:`extension`, use the :func:`teapot.extensions.decorators.named_extension` decorator.
 
-.. autoclass:: tea_party.extensions.decorators.named_extension
+.. autoclass:: teapot.extensions.decorators.named_extension
     :members: __init__
 
 Here is an example of some built-in :term:`extensions<extension>`:
@@ -59,8 +59,8 @@ Here is an example of some built-in :term:`extensions<extension>`:
     import os
     import sys
 
-    from tea_party.path import windows_to_unix_path
-    from tea_party.extensions.decorators import named_extension
+    from teapot.path import windows_to_unix_path
+    from teapot.extensions.decorators import named_extension
 
     @named_extension('prefix')
     def prefix(builder, style='default'):
@@ -75,16 +75,16 @@ Here is an example of some built-in :term:`extensions<extension>`:
 
         return result
 
-Note that the function **must** always have first `builder` argument that will be valued with the current :class:`tea_party.builders.Builder` instance.
+Note that the function **must** always have first `builder` argument that will be valued with the current :class:`teapot.builders.Builder` instance.
 
 Fetchers
 ========
 
 :term:`Fetchers<fetcher>` are responsible for downloading or copying the source archives from a specified location.
 
-To define a new fetcher, just derive from :class:`tea_party.fetchers.base_fetcher.BaseFetcher`.
+To define a new fetcher, just derive from :class:`teapot.fetchers.base_fetcher.BaseFetcher`.
 
-.. autoclass:: tea_party.fetchers.base_fetcher.BaseFetcher
+.. autoclass:: teapot.fetchers.base_fetcher.BaseFetcher
     :members: read_source, do_fetch
 
 Here is an example with the built-in *file* fetcher:
@@ -95,7 +95,7 @@ Here is an example with the built-in *file* fetcher:
     import shutil
     import mimetypes
 
-    from tea_party.fetchers.base_fetcher import BaseFetcher
+    from teapot.fetchers.base_fetcher import BaseFetcher
 
 
     class FileFetcher(BaseFetcher):
@@ -145,9 +145,9 @@ Here is an example with the built-in *file* fetcher:
 Callbacks
 ---------
 
-All callback classes derive from :class:`tea_party.fetchers.callbacks.BaseFetcherCallback`.
+All callback classes derive from :class:`teapot.fetchers.callbacks.BaseFetcherCallback`.
 
-.. autoclass:: tea_party.fetchers.callbacks.BaseFetcherCallback
+.. autoclass:: teapot.fetchers.callbacks.BaseFetcherCallback
     :members: on_start, on_update, on_finish, on_exception
 
 Unpackers
@@ -155,16 +155,16 @@ Unpackers
 
 :term:`Unpackers<unpacker>` are responsible for extracting the content of the source archives into an exploitable source tree.
 
-To define a new unpacker, just derive from :class:`tea_party.unpackers.base_unpacker.BaseUnpacker`.
+To define a new unpacker, just derive from :class:`teapot.unpackers.base_unpacker.BaseUnpacker`.
 
-.. autoclass:: tea_party.unpackers.base_unpacker.BaseUnpacker
+.. autoclass:: teapot.unpackers.base_unpacker.BaseUnpacker
     :members: do_unpack
 
 Here is an example with the built-in *tarball* unpacker:
 
 .. code-block:: python
 
-    from tea_party.unpackers.base_unpacker import BaseUnpacker
+    from teapot.unpackers.base_unpacker import BaseUnpacker
 
     import os
     import tarfile
@@ -234,19 +234,19 @@ Here is an example with the built-in *tarball* unpacker:
 Callbacks
 ---------
 
-All callback classes derive from :class:`tea_party.unpackers.callbacks.BaseUnpackerCallback`.
+All callback classes derive from :class:`teapot.unpackers.callbacks.BaseUnpackerCallback`.
 
-.. autoclass:: tea_party.unpackers.callbacks.BaseUnpackerCallback
+.. autoclass:: teapot.unpackers.callbacks.BaseUnpackerCallback
     :members: on_start, on_update, on_finish, on_exception
 
 Party post-actions
 ==================
 
-*post-actions* are simple function that takes a :class:`tea_party.party.Party` instance as a parameter, and that gets executed right after a such instance was initialized.
+*post-actions* are simple function that takes a :class:`teapot.party.Party` instance as a parameter, and that gets executed right after a such instance was initialized.
 
-You can register a *post-action* using the :func:`tea_party.party.Party.register_post_action` decorator.
+You can register a *post-action* using the :func:`teapot.party.Party.register_post_action` decorator.
 
-.. automethod:: tea_party.party.Party.register_post_action
+.. automethod:: teapot.party.Party.register_post_action
 
 Here is an example a built-in *post-action* that registers the defaut environment:
 

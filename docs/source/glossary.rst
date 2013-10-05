@@ -40,7 +40,7 @@ Glossary
       For instance, the `windows` filter checks that `teapot` has been run on Windows. Another example is the `mingw` filter whose role is to check that MinGW is currently available in the execution environment.
 
     teapot
-      `teapot` is the name of the command-line tool that implements all tea-party logic.
+      `teapot` is the name of the command-line tool that implements all teapot logic.
 
     shell
       A shell is a command line interpreter that will execute the different commands of a builder.

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Tea-Party documentation build configuration file, created by
+# teapot documentation build configuration file, created by
 # sphinx-quickstart on Sun Sep 15 23:07:23 2013.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Tea-Party'
+project = u'teapot'
 copyright = u'2013, Julien Kauffmann'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -164,7 +164,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Tea-Partydoc'
+htmlhelp_basename = 'teapotdoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -183,7 +183,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Tea-Party.tex', u'Tea-Party Documentation',
+  ('index', 'teapot.tex', u'teapot Documentation',
    u'Julien Kauffmann', 'manual'),
 ]
 
@@ -213,7 +213,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'tea-party', u'Tea-Party Documentation',
+    ('index', 'teapot', u'teapot Documentation',
      [u'Julien Kauffmann'], 1)
 ]
 
@@ -227,8 +227,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Tea-Party', u'Tea-Party Documentation',
-   u'Julien Kauffmann', 'Tea-Party', 'One line description of project.',
+  ('index', 'teapot', u'teapot Documentation',
+   u'Julien Kauffmann', 'teapot', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -245,7 +245,7 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'Tea-Party'
+epub_title = u'teapot'
 epub_author = u'Julien Kauffmann'
 epub_publisher = u'Julien Kauffmann'
 epub_copyright = u'2013, Julien Kauffmann'

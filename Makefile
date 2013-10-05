@@ -6,13 +6,13 @@ pep8:
 	find . -type f -name \*.py | xargs autopep8 -a -a -i
 
 flake8:
-	flake8 tea_party
+	flake8 teapot
 
 test:
 	python setup.py test
 
 coverage:
-	coverage run --include "tea_party/*" tea_party/tests/tea_party_test.py
+	coverage run --include "teapot/*" teapot/tests/teapot.py
 	coverage report
 
 register:

@@ -1,12 +1,12 @@
 The :term:`party file`
 **********************
 
-The :term:`party file` is at the heart of **tea-party**. It describes the different third-party softwares to build, and how to build them.
+The :term:`party file` is at the heart of **teapot**. It describes the different third-party softwares to build, and how to build them.
 
 Structure
 =========
 
-The :term:`party file` is a YAML file whose root element is a dictionary. While YAML files can make use of a lot of complex data structures, **tea-party** only makes use of the common ones, namely:
+The :term:`party file` is a YAML file whose root element is a dictionary. While YAML files can make use of a lot of complex data structures, **teapot** only makes use of the common ones, namely:
 
  - dictionaries
  - lists
@@ -14,9 +14,9 @@ The :term:`party file` is a YAML file whose root element is a dictionary. While 
  - booleans
  - null
 
-.. note:: The fact that **tea-party** doesn't make use of other data structures doesn't mean you can't use those; you can actually do and use whatever you want when writing custom extensions.
+.. note:: The fact that **teapot** doesn't make use of other data structures doesn't mean you can't use those; you can actually do and use whatever you want when writing custom extensions.
 
-The definition order of all elements in dictionaries is unspecified. This means **tea-party** will not care at all in which order you write the keys of a dictionary.
+The definition order of all elements in dictionaries is unspecified. This means **teapot** will not care at all in which order you write the keys of a dictionary.
 
 Strings can be any unicode string, however it is **strongly** recommended that you stick with ANSI characters, especially when it comes to indexes.
 
@@ -166,7 +166,7 @@ For more complex situations, `source` can also be a list of either *location str
 
 Sources are tried in the declaration order for a given :term:`attendee`. In this example, when :term:`teapot` tries to download the archive for the :term:`attendee`, it will first try the first one, only on Windows. If the first one fails (say because of a network error), or if :term:`teapot` is run on a Unix variant, it will skip to the second source.
 
-You may also extend tea-party and implement your own fetchers, should you have specific needs.
+You may also extend teapot and implement your own fetchers, should you have specific needs.
 
 Unpackers
 +++++++++
@@ -175,7 +175,7 @@ At some point before the build, :term:`teapot` must convert a downloaded (often 
 
 The unpacker selection is done automatically, depending on the mimetype of the downloaded archive. That is, the only way to choose which unpacker to use, is to change the mimetype of the :term:`attendee`.
 
-By default, *tea-party* provides the following unpackers:
+By default, *teapot* provides the following unpackers:
 
 Tarball unpacker
   An unpacker that can uncompress tarballs (`.tar.gz` and `.tar.bz2` files).
@@ -189,7 +189,7 @@ Zipfile unpacker
 
   It recognizes only the :mimetype:`application/zip` mimetype.
 
-You may also extend tea-party and implement your own unpackers, should you have specific needs.
+You may also extend teapot and implement your own unpackers, should you have specific needs.
 
 .. _builders:
 
@@ -379,7 +379,7 @@ An `environment` dictionary understands the following attributes:
 
 .. note::
 
-    By default, *tea-party* exposes the execution environment through the name ``default``.
+    By default, *teapot* exposes the execution environment through the name ``default``.
 
     This ``default`` environment has all the environment variables that were set right before the call to :term:`teapot` and uses the default system :term:`shell`.
 
@@ -390,7 +390,7 @@ Filters
 
 Filters are a way to differentiate :term:`teapot` execution accross platforms and environments. A :term:`filter` is basically a test whose result is boolean. It answers a simple question like: am on Windows ? Is MinGW available ?
 
-*tea-party* comes with several built-in filters:
+*teapot* comes with several built-in filters:
 
 ========= ====================================================================================
 Filter    Role
@@ -451,7 +451,7 @@ Valid syntaxes for calling extensions within commands are:
     {{extension(,arg2)}}      # Call with two parameters, the first one being omitted.
     {{extension(arg1,,arg3)}} # Call with three parameters, the second one being omitted.
 
-*tea-party* comes with several built-in extensions:
+*teapot* comes with several built-in extensions:
 
 ========================== ======================== =====================================================================================================================================
 Extension                  Parameters               Role
@@ -505,12 +505,12 @@ Other settings
 ============ ======================================= ======================================================================================================
 Parameter    Default value                           Meaning
 ============ ======================================= ======================================================================================================
-`cache_path` ``~/.tea-party.cache`` (UNIX)           The path where the archives are downloaded to.
+`cache_path` ``~/.teapot.cache`` (UNIX)           The path where the archives are downloaded to.
 
-             ``%APPDATA%/tea-party/cache`` (Windows)
-`build_path` ``~/.tea-party.build`` (UNIX)           The path where the builds take place.
+             ``%APPDATA%/teapot/cache`` (Windows)
+`build_path` ``~/.teapot.build`` (UNIX)           The path where the builds take place.
 
-             ``%APPDATA%/tea-party/build`` (Windows)
+             ``%APPDATA%/teapot/build`` (Windows)
 `prefix`     ``install``                             The default :term:`party file` prefix that gets prepended to all :term:`attendees<attendee>` prefixes.
 ============ ======================================= ======================================================================================================
 
@@ -532,9 +532,9 @@ Depending on your project, you may want to set the `cache_path` to a more local 
 Writing extension modules
 -------------------------
 
-*tea-party* was designed from the start to be extensible.
+*teapot* was designed from the start to be extensible.
 
-Using the `extension_modules` attribute at the root of :term:`party file`, you can extend *tea-party* any way you want.
+Using the `extension_modules` attribute at the root of :term:`party file`, you can extend *teapot* any way you want.
 
 Those extensions modules are regular Python modules into which you can define :term:`filters<filter>`, :term:`extensions<extension>`, :term:`environments<environment>` or anything else you want.
 
@@ -551,7 +551,7 @@ To get more details about how to write filters, extensions and environments, tak
 Using :term:`teapot`
 ====================
 
-:term:`teapot` is the command line tool that ships with *tea-party*.
+:term:`teapot` is the command line tool that ships with *teapot*.
 
 .. code-block:: bash
 
@@ -585,7 +585,7 @@ The `clean` command
 
 Use ``teapot clean`` to clean either the `cache` or the `build` directory (or both).
 
-The use of this command in normally not needed as `tea-party` knows how to compute dependencies and detect changes automatically.
+The use of this command in normally not needed as `teapot` knows how to compute dependencies and detect changes automatically.
 
 .. code-block:: bash
 
@@ -604,7 +604,7 @@ The use of this command in normally not needed as `tea-party` knows how to compu
 The `clean cache` command
 +++++++++++++++++++++++++
 
-Cleans the *tea-party* cache directory, where the source archives are stored.
+Cleans the *teapot* cache directory, where the source archives are stored.
 
 Use this command if, for whatever reason you think the archive cache was corrupted.
 
@@ -624,7 +624,7 @@ If no `attendee` is specified, all the attendees are cleaned.
 The `clean build` command
 +++++++++++++++++++++++++
 
-Cleans the *tea-party* build directory, where the build results are stored.
+Cleans the *teapot* build directory, where the build results are stored.
 
 Use this command if, for whatever reason you think the build results were corrupted.
 
@@ -644,9 +644,9 @@ If no `attendee` is specified, all the attendees are cleaned.
 The `clean cache` command
 +++++++++++++++++++++++++
 
-Cleans the *tea-party* cache and build directories.
+Cleans the *teapot* cache and build directories.
 
-Use this command if, for whatever reason you want to reset the status of your current *tea-party* project.
+Use this command if, for whatever reason you want to reset the status of your current *teapot* project.
 
 If no `attendee` is specified, all the attendees are cleaned.
 
@@ -734,6 +734,6 @@ By default, all variants from all builders are taken. You may specify the ``--ta
 
 Only the builders that didn't succeeded the last time or the one that changed since the last build are run. To change that behavior, specify the ``--force-build`` option.
 
-**tea-party** will not try to re-unpack archives that were already unpacked unless ``--force-unpack`` is specified.
+**teapot** will not try to re-unpack archives that were already unpacked unless ``--force-unpack`` is specified.
 
 Temporary build directories are deleted automatically whenever a build terminates (either with a success or a failure), unless the ``--keep-builds`` option is specified. In that case, the build directory remains until the build gets restarted.
