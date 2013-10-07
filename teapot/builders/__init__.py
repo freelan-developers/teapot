@@ -179,7 +179,6 @@ class Builder(Filtered):
             log_file.write('Build started in %s at %s.\n' % (source_tree_path, datetime.now().strftime('%c')))
 
         with self.chdir(source_tree_path):
-            os.chdir(source_tree_path)
 
             with self.environment.enable() as env:
                 if env.shell:
