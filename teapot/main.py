@@ -118,6 +118,10 @@ def command(func):
         except Exception as ex:
             if args.debug:
                 LOGGER.exception(ex)
+            else:
+                LOGGER.error(str(ex))
+
+        LOGGER.error('teapot execution failed.')
 
         return False
 

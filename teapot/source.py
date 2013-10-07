@@ -205,8 +205,6 @@ class Source(Filtered):
 
             result = algorithm.hexdigest()
 
-        LOGGER.debug('%s source hash is: %s', hl(self), hl(result))
-
         return result
 
     @property
@@ -214,8 +212,6 @@ class Source(Filtered):
         """
         Get the source hash.
         """
-
-        LOGGER.debug('Computing source hash for %s...', hl(self))
 
         data = {
             'location': self.location,
@@ -228,7 +224,5 @@ class Source(Filtered):
         algorithm.update(json.dumps(data))
 
         result = algorithm.hexdigest()
-
-        LOGGER.debug('Hash is: %s', hl(result))
 
         return result
