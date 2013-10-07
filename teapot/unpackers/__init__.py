@@ -6,6 +6,7 @@ teapot.unpackers.base_unpacker.BaseUnpacker.
 """
 
 from teapot.unpackers.base_unpacker import BaseUnpacker
+from teapot.unpackers.null_unpacker import NullUnpacker
 from teapot.unpackers.tarball_unpacker import TarballUnpacker
 from teapot.unpackers.zipfile_unpacker import ZipFileUnpacker
 

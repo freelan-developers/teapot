@@ -1,0 +1,16 @@
+attendees:
+    libfoo:
+        source: foo/libfoo
+        builders:
+            default:
+                prefix: true
+                commands:
+                    - mkdir -p bin
+                    - gcc -o bin/foo src/foo.c -Iinclude
+                    - mkdir -p {{prefix}}/bin
+                    - cp bin/foo {{prefix}}/bin/
+                clean_commands:
+                    - rm -f {{prefix}}/bin/foo
+cache_path: cache
+build_path: build
+prefix: install

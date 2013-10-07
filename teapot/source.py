@@ -2,6 +2,7 @@
 teapot 'Source' class.
 """
 
+import os
 import json
 import hashlib
 
@@ -175,20 +176,34 @@ class Source(Filtered):
 
     def hash_file(self, path):
         """
-        Returns the hash of the specified file.
+        Returns the hash of the specified file or directory.
         """
 
-        algorithm = hashlib.sha1()
-        read_size = algorithm.block_size * 256
+        if os.path.isdir(path):
 
-        with open(path, 'rb') as _file:
-            data = _file.read(read_size)
+            data = {}
 
-            while data:
-                algorithm.update(_file.read())
+            for root, dirs, files in os.walk(path):
+                for _file in files:
+                    data[os.path.join(root, _file)] = self.hash_file(os.path.join(root, _file))
+
+            algorithm = hashlib.sha1()
+            algorithm.update(json.dumps(data))
+
+            result = algorithm.hexdigest()
+
+        else:
+            algorithm = hashlib.sha1()
+            read_size = algorithm.block_size * 256
+
+            with open(path, 'rb') as _file:
                 data = _file.read(read_size)
 
-        result = algorithm.hexdigest()
+                while data:
+                    algorithm.update(_file.read())
+                    data = _file.read(read_size)
+
+            result = algorithm.hexdigest()
 
         LOGGER.debug('%s source hash is: %s', hl(self), hl(result))
 

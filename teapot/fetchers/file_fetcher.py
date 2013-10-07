@@ -7,6 +7,7 @@ import shutil
 import mimetypes
 
 from teapot.fetchers.base_fetcher import BaseFetcher
+from teapot.path import rmdir
 
 
 class FileFetcher(BaseFetcher):
@@ -22,7 +23,7 @@ class FileFetcher(BaseFetcher):
         Checks that the `source` is a local filename.
         """
 
-        if os.path.isfile(source.location):
+        if os.path.exists(source.location):
             self.file_path = os.path.abspath(source.location)
 
             return True
@@ -37,9 +38,16 @@ class FileFetcher(BaseFetcher):
         archive_type = mimetypes.guess_type(self.file_path)
         size = os.path.getsize(self.file_path)
 
+        rmdir(archive_path)
+
         self.progress.on_start(target=os.path.basename(archive_path), size=size)
 
-        shutil.copyfile(self.file_path, archive_path)
+        if os.path.isfile(self.file_path):
+            shutil.copyfile(self.file_path, archive_path)
+        elif os.path.isdir(self.file_path):
+            shutil.copytree(self.file_path, archive_path)
+        else:
+            raise RuntimeError('Unsupported path: %s' % self.file_path)
 
         # No real interactive progress to show here.
         #

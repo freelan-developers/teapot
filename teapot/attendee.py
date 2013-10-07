@@ -551,7 +551,7 @@ class Attendee(Filtered):
         Check if the attendee was fetched already.
         """
 
-        if self.archive_path and os.path.isfile(self.archive_path):
+        if self.archive_path and os.path.exists(self.archive_path):
             return True
 
     @property
