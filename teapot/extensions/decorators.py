@@ -98,7 +98,7 @@ class named_extension(object):
 
     CALLSTACK = []
 
-    def __init__(self, name, override=False):
+    def __init__(self, name, override=False, infinite_recursion_allowed=False):
         """
         Registers the function with the specified name.
 
@@ -110,6 +110,7 @@ class named_extension(object):
             raise DuplicateExtensionError(name)
 
         self.name = name
+        self.infinite_recursion_allowed = infinite_recursion_allowed
 
     def __call__(self, func):
         """
@@ -121,7 +122,7 @@ class named_extension(object):
 
             call_signature = tuple(itertools.chain([self.name], args))
 
-            if call_signature in self.CALLSTACK:
+            if not self.infinite_recursion_allowed and call_signature in self.CALLSTACK:
                 raise ExtensionRecursionDetected(self.CALLSTACK + [call_signature])
 
             self.CALLSTACK.append(call_signature)
