@@ -512,14 +512,16 @@ Other settings
 ============ ======================================= ======================================================================================================
 Parameter    Default value                           Meaning
 ============ ======================================= ======================================================================================================
-`cache_path` ``~/.teapot.cache`` (UNIX)           The path where the archives are downloaded to.
+
+`cache_path` ``~/.teapot.cache`` (UNIX)              The path where the archives are downloaded to.
 
              ``%APPDATA%/teapot/cache`` (Windows)
-`build_path` ``~/.teapot.build`` (UNIX)           The path where the builds take place.
+
+`build_path` ``~/.teapot.build`` (UNIX)              The path where the builds take place.
 
              ``%APPDATA%/teapot/build`` (Windows)
+
 `prefix`     ``install``                             The default :term:`party file` prefix that gets prepended to all :term:`attendees<attendee>` prefixes.
-============ ======================================= ======================================================================================================
 
 These settings are to be set at the root of the :term:`party file`, like so:
 
