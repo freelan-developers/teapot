@@ -399,20 +399,26 @@ Filters are a way to differentiate :term:`teapot` execution accross platforms an
 
 *teapot* comes with several built-in filters:
 
-========= ====================================================================================
-Filter    Role
-========= ====================================================================================
-`windows` Check that :term:`teapot` is currently running on Windows.
-`linux`   Check that :term:`teapot` is currently running on Linux.
-`darwin`  Check that :term:`teapot` is currently running on Darwin (Mac OS X).
-`unix`    Check that :term:`teapot` is currently running on UNIX (Linux or Darwin).
-`msvc`    Check that Microsoft Visual Studio is actually available in the current environment.
+========== ========================================================================================
+Filter     Role
+========== ========================================================================================
+`windows`  Check that :term:`teapot` is currently running on Windows.
+`linux`    Check that :term:`teapot` is currently running on Linux.
+`darwin`   Check that :term:`teapot` is currently running on Darwin (Mac OS X).
+`unix`     Check that :term:`teapot` is currently running on UNIX (Linux or Darwin).
+`msvc`     Check that Microsoft Visual Studio is actually available in the current environment.
 
-          It usually means :term:`teapot` was started from a MSVC command shell.
-`mingw`   Check that MinGW is available in the current environment.
+           It usually means :term:`teapot` was started from a MSVC command shell.
+`msvc-x86` Check that Microsoft Visual Studio x86 is actually available in the current environment.
 
-          The filter will try to find `gcc.exe`.
-========= ====================================================================================
+           It usually means :term:`teapot` was started from a MSVC x86 command shell.
+`msvc-x64` Check that Microsoft Visual Studio x64 is actually available in the current environment.
+
+           It usually means :term:`teapot` was started from a MSVC x64 command shell.
+`mingw`    Check that MinGW is available in the current environment.
+
+           The filter will try to find `gcc.exe`.
+========== ========================================================================================
 
 .. note::
 
