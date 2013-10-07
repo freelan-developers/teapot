@@ -12,12 +12,13 @@ except ImportError:
 
 from teapot.party import Party, NoSuchAttendeeError, CyclicDependencyError, load_party_file
 from teapot.attendee import Attendee
+from teapot.builders import Builder
 from teapot.fetchers.callbacks import NullFetcherCallback
 from teapot.unpackers.callbacks import NullUnpackerCallback
 from teapot.environments import Environment, EnvironmentRegister, create_default_environment
 from teapot.environments.environment_register import NoSuchEnvironmentError, EnvironmentAlreadyRegisteredError
 from teapot.extensions import get_extension_by_name, parse_extension
-from teapot.extensions.decorators import named_extension, ExtensionParsingError, DuplicateExtensionError, NoSuchExtensionError
+from teapot.extensions.decorators import named_extension, ExtensionParsingError, DuplicateExtensionError, NoSuchExtensionError, ExtensionRecursionDetected
 
 
 class TestTeapot(unittest.TestCase):
@@ -427,6 +428,48 @@ class TestTeapot(unittest.TestCase):
         self.assertEqual(result_dict['foo'], None)
         self.assertEqual(result_dict['bar'], None)
         self.assertEqual(result_dict['builder'], 'two')
+
+        # We test extension usage in builders.
+        builder = Builder(
+            attendee=None,
+            name='test_builder',
+            tags=[],
+            commands=['dummy'],
+            environment=create_default_environment(),
+            clean_commands=['calling {{non_existing_extension_name}} somehow'],
+        )
+
+        self.assertRaises(NoSuchExtensionError, builder.clean)
+
+        # We test extension recursivity failsafes.
+        @named_extension(extension_name + '_one')
+        def test_extension_one(builder):
+            return builder.apply_extensions('foo {{%s_two}} bar' % extension_name)
+
+        @named_extension(extension_name + '_two')
+        def test_extension_two(builder):
+            return builder.apply_extensions('foo2 {{%s_one}} bar2' % extension_name)
+
+        builder = Builder(
+            attendee=None,
+            name='test_builder',
+            tags=[],
+            commands=['dummy'],
+            environment=create_default_environment(),
+            clean_commands=['calling {{%s_one}} somehow' % extension_name],
+        )
+
+        self.assertRaises(ExtensionRecursionDetected, builder.clean)
+
+        # We test extension recursive replacement.
+        @named_extension(extension_name + '_two', override=True)
+        def test_extension_two(builder):
+            return 'two_called'
+
+        command = builder.apply_extensions(builder.clean_commands[0])
+
+        self.assertEqual(command, 'calling foo two_called bar somehow')
+
 
 if __name__ == '__main__':
     unittest.main()

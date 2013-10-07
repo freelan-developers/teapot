@@ -3,6 +3,9 @@ The extensions decorators.
 """
 
 import re
+import itertools
+
+from functools import wraps
 
 
 EXTENSIONS = {}
@@ -60,11 +63,40 @@ class ExtensionParsingError(ValueError):
         )
 
 
+class ExtensionRecursionDetected(ValueError):
+
+    """
+    A recursion was detected in the extension callstack.
+    """
+
+    def __init__(self, callstack):
+        """
+        Create an ExtensionRecursionDetected for the specified `callstack`.
+        """
+
+        self.callstack = callstack
+
+        callstack_output = '\n'.join(
+            '%s(%s)' % (
+                stack[0],
+                ', '.join(map(repr, stack[1:])),
+            )
+            for stack
+            in self.callstack
+        )
+
+        super(ExtensionRecursionDetected, self).__init__(
+            'Extension recursion detected. Callstack was:\n' + callstack_output,
+        )
+
+
 class named_extension(object):
 
     """
     Registers a function to be a extension.
     """
+
+    CALLSTACK = []
 
     def __init__(self, name, override=False):
         """
@@ -84,9 +116,25 @@ class named_extension(object):
         Registers the function and returns it unchanged.
         """
 
-        EXTENSIONS[self.name] = func
+        @wraps(func)
+        def decorated(*args):
 
-        return func
+            call_signature = tuple(itertools.chain([self.name], args))
+
+            if call_signature in self.CALLSTACK:
+                raise ExtensionRecursionDetected(self.CALLSTACK + [call_signature])
+
+            self.CALLSTACK.append(call_signature)
+
+            try:
+                return func(*args)
+
+            finally:
+                self.CALLSTACK.pop()
+
+        EXTENSIONS[self.name] = decorated
+
+        return decorated
 
 def get_extension_by_name(name):
     """
