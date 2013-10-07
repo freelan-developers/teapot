@@ -242,6 +242,8 @@ Here is an example of a more complex :term:`attendee`:
               - make
               - make install
             prefix: True
+            clean_commands:
+              - rm -rf {{prefix(unix)}}
 
           default_x64:
             filters:
@@ -254,6 +256,8 @@ Here is an example of a more complex :term:`attendee`:
               - make
               - make install
             prefix: True
+            clean_commands:
+              - rm -rf {{prefix(unix)}}
 
 In this example, we define two builders (`default_x86` and `default_x64`) that have exactly the same build commands.
 
@@ -267,6 +271,9 @@ Inside the :term:`party file`, the `builder` dictionary supports the following a
   Can be either a string with a single command to execute or a list of commands to execute.
 
   Commands can contain :ref:`extensions<extensions>` and environment variables that will be substituted upon execution.
+
+`clean_commands`
+  The list of commands to call when cleaning is requested. `clean_commands` obeys the same rules as command (extensions are replaced as well) however, unlike the regular `commands`, they are executed within the root directory (where the :term:`party file` is located).
 
 `environment`
   The environment in which the build must take place.
@@ -524,6 +531,7 @@ These settings are to be set at the root of the :term:`party file`, like so:
 
     cache_path: cache
     build_path: build
+    prefix: install
 
 Depending on your project, you may want to set the `cache_path` to a more local location (you may choose to add them to version control for instance).
 
