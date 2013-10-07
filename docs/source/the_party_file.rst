@@ -477,6 +477,8 @@ Extension                  Parameters               Role
                                                     On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
                                                     If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+
+                                                    `prefix` can contain extensions, as long as it doesn't call itself directly, or indirectly.
 `prefix_for`               attendee, builder, style Get the complete prefix for the specified attendee/builder.
 
                                                     You must at least specify the `attendee` parameter.
@@ -486,6 +488,8 @@ Extension                  Parameters               Role
                                                     On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
                                                     If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
+
+                                                    `prefix_for` can contain extensions, as long as it doesn't call itself directly, or indirectly.
 `current_attendee`                                  Returns the current attendee name.
 `current_builder`                                   Returns the current builder name.
 `current_archive_path`     style                    Returns the current archive path.

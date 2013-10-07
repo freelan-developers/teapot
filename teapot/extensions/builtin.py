@@ -28,7 +28,11 @@ def prefix(builder, style='default'):
     Get the builder prefix.
     """
 
-    result = os.path.join(builder.attendee.party.prefix, builder.attendee.prefix, builder.prefix)
+    result = os.path.join(
+        builder.apply_extensions(builder.attendee.party.prefix),
+        builder.apply_extensions(builder.attendee.prefix),
+        builder.apply_extensions(builder.prefix),
+    )
 
     if sys.platform.startswith('win32') and style == 'unix':
         result = windows_to_unix_path(result)
@@ -46,7 +50,11 @@ def prefix_for(builder, for_attendee, for_builder='', style='default'):
     for_attendee = party.get_attendee_by_name(for_attendee)
     builder_prefix = attendee.get_builder_by_name(for_builder).prefix if for_builder else ''
 
-    result = os.path.join(party.prefix, attendee.prefix, builder_prefix)
+    result = os.path.join(
+        builder.apply_extensions(party.prefix),
+        builder.apply_extensions(attendee.prefix),
+        builder.apply_extensions(builder_prefix),
+    )
 
     if sys.platform.startswith('win32') and style == 'unix':
         result = windows_to_unix_path(result)
