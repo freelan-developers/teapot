@@ -42,8 +42,13 @@ def main():
     clean_build_command_parser.set_defaults(func=clean_build)
     clean_build_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
 
+    #  The clean install subcommand
+    clean_install_command_parser = clean_subcommand_parser.add_parser('install', help='Clean the party install.')
+    clean_install_command_parser.set_defaults(func=clean_install)
+    clean_install_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
+
     #  The clean all subcommand
-    clean_all_command_parser = clean_subcommand_parser.add_parser('all', help='Clean the party cache and build.')
+    clean_all_command_parser = clean_subcommand_parser.add_parser('all', help='Clean the party cache, build and install.')
     clean_all_command_parser.set_defaults(func=clean_all)
     clean_all_command_parser.add_argument('attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
 
@@ -139,6 +144,16 @@ def clean_build(party, args):
     )
 
 @command
+def clean_install(party, args):
+    """
+    Clean the party install.
+    """
+
+    party.clean_install(
+        attendees=args.attendees,
+    )
+
+@command
 def clean_all(party, args):
     """
     Clean the party cache and build.
@@ -148,6 +163,9 @@ def clean_all(party, args):
         attendees=args.attendees,
     )
     party.clean_build(
+        attendees=args.attendees,
+    )
+    party.clean_install(
         attendees=args.attendees,
     )
 

@@ -51,6 +51,11 @@ def make_builder(attendee, name, attributes):
     if isinstance(commands, basestring):
         commands = [commands]
 
+    clean_commands = attributes.get('clean_commands', [])
+
+    if isinstance(clean_commands, basestring):
+        clean_commands = [clean_commands]
+
     filters = attributes.get('filters')
     prefix = attributes.get('prefix')
 
@@ -76,6 +81,7 @@ def make_builder(attendee, name, attributes):
         filters=filters,
         directory=attributes.get('directory'),
         prefix=prefix,
+        clean_commands=clean_commands,
     )
 
 
@@ -85,7 +91,7 @@ class Builder(Filtered):
     A Builder represents a way to build an attendee.
     """
 
-    def __init__(self, attendee, name, tags, commands, environment, filters=[], directory=None, prefix=None):
+    def __init__(self, attendee, name, tags, commands, environment, filters=[], directory=None, prefix=None, clean_commands=[]):
         """
         Initialize a builder attached to `attendee` with the specified `name`.
 
@@ -104,6 +110,10 @@ class Builder(Filtered):
 
         `prefix` is a prefix that will be added to the right of the global
         prefix inside the $PREFIX variable.
+
+        `clean_commands` is a list of commands to run to clean the install.
+        Those commands are executed in sequence until the last one, even if one
+        of them fails.
         """
 
         if not commands:
@@ -118,6 +128,7 @@ class Builder(Filtered):
         self.environment = environment
         self.directory = directory or None
         self.prefix = prefix or ''
+        self.clean_commands = clean_commands
 
         Filtered.__init__(self, filters=filters)
 
@@ -270,6 +281,73 @@ class Builder(Filtered):
 
         if log_file:
             log_file.write('Build succeeded at %s.\n' % datetime.now().strftime('%c'))
+
+    def clean(self):
+        """
+        Clean the attendee.
+        """
+
+        if not self.clean_commands:
+            LOGGER.info('Cleaning builder %s: no clean commands specified. Doing nothing.', hl(self))
+
+        else:
+            LOGGER.info('Cleaning builder: %s', hl(self))
+
+            with self.environment.enable() as env:
+                if env.shell:
+                    LOGGER.info('Executing clean commands within: %s', hl(' '.join(env.shell)))
+                else:
+                    LOGGER.info('Executing clean commands within %s.', hl('the default system shell'))
+
+                for key, value in os.environ.iteritems():
+                    LOGGER.debug('%s: %s', key, hl(value))
+
+                for index, command in enumerate(self.clean_commands):
+                    command = self.apply_extensions(command)
+                    numbered_prefix = ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index
+
+                    LOGGER.important('%s: %s', numbered_prefix, hl(command))
+
+                    if env.shell:
+                        process = subprocess.Popen(env.shell + [command], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    else:
+                        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+                    def handler(signum, frame):
+                        LOGGER.warning('The cleaning process was interrupted by the user.')
+                        process.terminate()
+
+                    previous_handler = signal.signal(signal.SIGINT, handler)
+
+                    try:
+                        def read_stdout():
+                            for line in iter(process.stdout.readline, ''):
+                                LOGGER.debug(line.rstrip())
+
+                        def read_stderr():
+                            for line in iter(process.stderr.readline, ''):
+                                LOGGER.debug(line.rstrip())
+
+                        stdout_thread = Thread(target=read_stdout)
+                        stdout_thread.daemon = True
+                        stdout_thread.start()
+
+                        stderr_thread = Thread(target=read_stderr)
+                        stderr_thread.daemon = True
+                        stderr_thread.start()
+
+                        stdout_thread.join()
+                        stderr_thread.join()
+
+                        process.wait()
+
+                    finally:
+                        signal.signal(signal.SIGINT, previous_handler)
+
+                    if process.returncode != 0:
+                        LOGGER.warning('Command failed with status: %s', process.returncode)
+
+            LOGGER.info('Clean succeeded at %s.', datetime.now().strftime('%c'))
 
     def apply_extensions(self, command):
         """

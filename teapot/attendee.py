@@ -269,6 +269,18 @@ class Attendee(Filtered):
 
         LOGGER.info('Done cleaning build directory for %s.', hl(self))
 
+    def clean_install(self):
+        """
+        Clean the install files.
+        """
+
+        LOGGER.info('Cleaning install files: %s', hl(self.build_path))
+
+        for builder in self.enabled_builders:
+            builder.clean()
+
+        LOGGER.info('Done cleaning install files for %s.', hl(self))
+
     def fetch(self):
         """
         Fetch the attendee archive by trying all its sources.

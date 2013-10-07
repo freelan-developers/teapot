@@ -291,6 +291,19 @@ class Party(object):
         LOGGER.info('Done cleaning the build directory.')
 
     @has_attendees
+    def clean_install(self, attendees=[]):
+        """
+        Clean the install, optionally for a given list of `attendees` to recover
+        disk space.
+        """
+
+        LOGGER.info('Cleaning the install files for: %s', hl(', '.join(map(str, attendees))))
+
+        map(Attendee.clean_install, attendees)
+
+        LOGGER.info('Done cleaning the install files.')
+
+    @has_attendees
     def fetch(self, attendees=[], force=False):
         """
         Fetch the archives.
