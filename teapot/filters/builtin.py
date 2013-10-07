@@ -5,6 +5,7 @@ The built-in filters.
 import os
 import sys
 import distutils
+import subprocess
 
 from teapot.filters.decorators import named_filter
 
@@ -48,6 +49,28 @@ def msvc():
     """
 
     return 'VCINSTALLDIR' in os.environ
+
+@named_filter('msvc-x86', depends='msvc')
+def msvc_x86():
+    """
+    Check if MSVC x86 is available.
+    """
+
+    output = subprocess.check_output('cl.exe', shell=True)
+    first_line = output.split('\n')[0]
+
+    return first_line.endswith('for x86')
+
+@named_filter('msvc-x64', depends='msvc')
+def msvc_x64():
+    """
+    Check if MSVC x64 is available.
+    """
+
+    output = subprocess.check_output('cl.exe', shell=True)
+    first_line = output.split('\n')[0]
+
+    return first_line.endswith('for x64')
 
 @named_filter('mingw', depends='windows')
 def mingw():
