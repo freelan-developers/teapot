@@ -66,8 +66,8 @@ class TarballUnpacker(BaseUnpacker):
         # We get the common prefix for all archive members.
         prefix = os.path.commonprefix(tar.getnames())
 
-        # An archive member with the prefix as a name should exist in the archive.
-        while True:
+        # An archive member with the prefix as a name can exist in the archive or ends with a /.
+        while not prefix.endswith('/'):
             try:
                 prefix_member = tar.getmember(prefix)
 
@@ -84,7 +84,7 @@ class TarballUnpacker(BaseUnpacker):
             else:
                 prefix = new_prefix
 
-        source_tree_path = os.path.join(self.attendee.build_path, prefix_member.name)
+        source_tree_path = os.path.join(self.attendee.build_path, prefix)
 
         self.progress.on_start(count=len(tar.getmembers()))
 
