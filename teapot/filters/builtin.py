@@ -56,8 +56,8 @@ def msvc_x86():
     Check if MSVC x86 is available.
     """
 
-    output = subprocess.check_output('cl.exe', shell=True)
-    first_line = output.split('\n')[0]
+    output = subprocess.check_output('cl.exe', shell=True, stderr=subprocess.STDOUT)
+    first_line = output.split('\n')[0].rstrip()
 
     return first_line.endswith('for x86')
 
@@ -67,8 +67,8 @@ def msvc_x64():
     Check if MSVC x64 is available.
     """
 
-    output = subprocess.check_output('cl.exe', shell=True)
-    first_line = output.split('\n')[0]
+    output = subprocess.check_output('cl.exe', shell=True, stderr=subprocess.STDOUT)
+    first_line = output.split('\n')[0].rstrip()
 
     return first_line.endswith('for x64')
 
