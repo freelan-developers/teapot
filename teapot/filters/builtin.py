@@ -59,7 +59,7 @@ def msvc_x86():
     output = subprocess.check_output('cl.exe', shell=True, stderr=subprocess.STDOUT)
     first_line = output.split('\n')[0].rstrip()
 
-    return first_line.endswith('for x86')
+    return 'x86' in first_line
 
 @named_filter('msvc-x64', depends='msvc')
 def msvc_x64():
@@ -70,7 +70,7 @@ def msvc_x64():
     output = subprocess.check_output('cl.exe', shell=True, stderr=subprocess.STDOUT)
     first_line = output.split('\n')[0].rstrip()
 
-    return first_line.endswith('for x64')
+    return 'x64' in first_line
 
 @named_filter('mingw', depends='windows')
 def mingw():
