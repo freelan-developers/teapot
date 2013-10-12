@@ -38,6 +38,9 @@ class FileFetcher(BaseFetcher):
         archive_type = mimetypes.guess_type(self.file_path)
         size = os.path.getsize(self.file_path)
 
+        if not size:
+            size = None
+
         rmdir(archive_path)
 
         self.progress.on_start(target=os.path.basename(archive_path), size=size)
