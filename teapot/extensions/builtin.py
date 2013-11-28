@@ -4,6 +4,7 @@ Built-in extensions.
 
 import os
 import sys
+import subprocess
 
 from teapot.path import windows_to_unix_path
 from teapot.extensions.decorators import named_extension
@@ -102,3 +103,45 @@ def current_source_tree_path(builder, style='default'):
         result = windows_to_unix_path(result)
 
     return result
+
+@named_extension('msvc_version')
+def msvc_version(builder):
+    """
+    Get the MSVC version.
+    """
+
+    output = subprocess.check_output('cl.exe', shell=True, stderr=subprocess.STDOUT)
+    first_line = output.split('\n')[0].rstrip()
+    values = first_line.split()
+
+    if len(values) >= 3:
+        version = values[-3]
+
+        return version
+
+@named_extension('msvc_major_version')
+def msvc_major_version(builder):
+    """
+    Get the MSVC major version.
+    """
+
+    version = msvc_version(builder)
+
+    if version is not None:
+        major_version = version.split('.')[0]
+
+        return major_version
+
+@named_extension('msvc_toolset')
+def msvc_toolset(builder):
+    """
+    Get the MSVC toolset.
+    """
+
+    version = msvc_version(builder)
+
+    toolset_map = {
+        '15.00.30729.207': 'v120',
+    }
+
+    return toolset_map.get(major_version)
