@@ -110,25 +110,7 @@ def msvc_version(builder):
     Get the MSVC version.
     """
 
-    version = os.environ.get('VisualStudioVersion')
-
-    if version is None:
-      version = '10.0'
-
-    return version
-
-@named_extension('msvc_major_version')
-def msvc_major_version(builder):
-    """
-    Get the MSVC major version.
-    """
-
-    version = msvc_version(builder)
-
-    if version is not None:
-        major_version = version.split('.')[0]
-
-        return major_version
+    return os.environ.get('VisualStudioVersion')
 
 @named_extension('msvc_toolset')
 def msvc_toolset(builder):
@@ -141,7 +123,6 @@ def msvc_toolset(builder):
     toolset_map = {
         '12.0': 'v120',
         '11.0': 'v110',
-        '10.0': 'v100',
     }
 
     return toolset_map.get(version)
