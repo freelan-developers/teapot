@@ -510,6 +510,8 @@ Extension                  Parameters               Role
                                                     If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
 
                                                     Since source trees are copied to a temporary location before the build, this is **not** the path were the build actually takes place.
+`msvc_version`                                      Get the current Microsoft Visual Studio version, as a dotted version string. Example: "12.0"
+`msvc_toolset`                                      Get the current Microsoft Visual Studio toolset. Example: "v120"
 ========================== ======================== =====================================================================================================================================
 
 You may also define your own extensions, see :ref:`extension_modules`.
