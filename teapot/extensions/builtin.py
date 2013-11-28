@@ -144,4 +144,4 @@ def msvc_toolset(builder):
         '10.0': 'v100',
     }
 
-    return toolset_map.get(major_version)
+    return toolset_map.get(version)
