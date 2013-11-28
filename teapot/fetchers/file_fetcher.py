@@ -35,7 +35,6 @@ class FileFetcher(BaseFetcher):
 
         archive_path = os.path.join(target, os.path.basename(self.file_path))
 
-        archive_type = mimetypes.guess_type(self.file_path)
         size = os.path.getsize(self.file_path)
 
         if not size:
@@ -47,8 +46,10 @@ class FileFetcher(BaseFetcher):
 
         if os.path.isfile(self.file_path):
             shutil.copyfile(self.file_path, archive_path)
+            archive_type = mimetypes.guess_type(self.file_path)
         elif os.path.isdir(self.file_path):
             shutil.copytree(self.file_path, archive_path)
+            archive_type = (None, None)
         else:
             raise RuntimeError('Unsupported path: %s' % self.file_path)
 
