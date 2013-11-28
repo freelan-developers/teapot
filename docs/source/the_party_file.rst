@@ -189,6 +189,11 @@ Zipfile unpacker
 
   It recognizes only the :mimetype:`application/zip` mimetype.
 
+Null unpacker
+  An unpacker that does nothing. Useful for local files/directories.
+
+  It recognizes only the :mimetype:`(null, null)` mimetype.
+
 You may also extend teapot and implement your own unpackers, should you have specific needs.
 
 .. _builders:
