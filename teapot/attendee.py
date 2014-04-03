@@ -19,6 +19,13 @@ class Attendee(MemoizedObject):
         """
         self.name = name
 
+    def __str__(self):
+        """
+        Get a string representation of the attendee.
+        """
+
+        return self.name
+
     def ___repr__(self):
         """
         Get a representation of the attendee.

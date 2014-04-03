@@ -18,8 +18,17 @@ class Memoized(type):
 
             return cls.MEMOIZED_INSTANCES[name]
 
+        @classmethod
+        def get_instances(cls):
+            """
+            Get all the existing instances.
+            """
+
+            return cls.MEMOIZED_INSTANCES.values()
+
         attrs['MEMOIZED_INSTANCES'] = {}
         attrs['__new__'] = __new__
+        attrs['get_instances'] = get_instances
         return type.__new__(cls, name, bases, attrs)
 
 
