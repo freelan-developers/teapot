@@ -11,25 +11,32 @@ class Memoized(type):
     A Memoized type.
     """
 
-    def __new__(cls, name, bases, attrs):
-        def __new__(cls, name, *args, **kwargs):
-            if not name in cls.MEMOIZED_INSTANCES:
-                cls.MEMOIZED_INSTANCES[name] = object.__new__(cls, *args, **kwargs)
+    DEFAULT_MEMOIZATION_KEY = 'name'
 
-            return cls.MEMOIZED_INSTANCES[name]
+    def __new__(cls, name, bases, attrs):
 
         @classmethod
-        def get_instances(cls):
-            """
-            Get all the existing instances.
-            """
+        def get_instances(mycls):
+            return mycls._INSTANCES.values()
 
-            return cls.MEMOIZED_INSTANCES.values()
-
-        attrs['MEMOIZED_INSTANCES'] = {}
-        attrs['__new__'] = __new__
+        attrs.setdefault('memoization_key', cls.DEFAULT_MEMOIZATION_KEY)
+        attrs['_INSTANCES'] = {}
         attrs['get_instances'] = get_instances
-        return type.__new__(cls, name, bases, attrs)
+        attrs['__str__'] = lambda self: getattr(self, self.memoization_key)
+
+        return super(Memoized, cls).__new__(cls, name, bases, attrs)
+
+    def __call__(cls, *args, **kwargs):
+        if cls.memoization_key in kwargs:
+            key = kwargs.pop(cls.memoization_key)
+        else:
+            key = args[0]
+
+        if key not in cls._INSTANCES:
+            cls._INSTANCES[key] = super(Memoized, cls).__call__(*args[1:], **kwargs)
+            setattr(cls._INSTANCES[key], cls.memoization_key, key)
+
+        return cls._INSTANCES[key]
 
 
 class MemoizedObject(object):
