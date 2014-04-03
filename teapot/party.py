@@ -9,6 +9,7 @@ import imp
 from contextlib import contextmanager
 
 from .log import LOGGER
+from .attendee import Attendee
 
 
 def load_party_file(path):
@@ -40,4 +41,5 @@ def fetch(attendees=None, force=False):
     Fetches the specified attendees.
     """
 
-    pass
+    for attendee in Attendee.get_enabled_instances(attendees):
+        attendee.fetch()

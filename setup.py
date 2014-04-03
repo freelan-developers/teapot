@@ -33,6 +33,7 @@ to add your own modules and extend its scope.
 """,
     packages=[
         'teapot',
+        'teapot.filters',
     ],
     install_requires=install_requires,
     entry_points={

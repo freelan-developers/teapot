@@ -9,7 +9,8 @@ import logging
 
 from functools import wraps
 
-from teapot.log import LOGGER, ColorizingStreamHandler
+from .log import LOGGER, ColorizingStreamHandler
+from .error import TeapotError
 
 import teapot.party
 
@@ -146,6 +147,9 @@ def command(func):
 
         except KeyboardInterrupt:
             pass
+
+        except TeapotError as ex:
+            LOGGER.error(ex.msg, *ex.args)
 
         except Exception as ex:
             if args.debug:

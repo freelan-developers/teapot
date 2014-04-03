@@ -11,6 +11,7 @@ try:
 
 except ImportError:
     class NullHandler(logging.Handler):
+
         """
         A null handler class.
         """
@@ -22,6 +23,8 @@ LOGGER = logging.getLogger('teapot')
 LOGGER.addHandler(NullHandler())
 
 # Add new log levels
+
+
 def register_log_level(name, value):
     """
     Register a new log level.
@@ -41,6 +44,7 @@ register_log_level('success', logging.INFO + 2)
 # Extend the LogRecord class getMessage() method to support highlighting
 logging.LogRecord.getLegacyMessage = logging.LogRecord.getMessage
 
+
 def getMessage(self):
     """
     Return the message from this LogRecord.
@@ -55,7 +59,9 @@ def getMessage(self):
 
 logging.LogRecord.getMessage = getMessage
 
+
 class Highlight(object):
+
     """
     Highlight an instance in the logs.
     """
@@ -81,12 +87,14 @@ class Highlight(object):
 
         return '%s%s%s' % (color, self.msg, reset)
 
+
 def print_normal(msg):
     """
     Print a normal line.
     """
 
     LOGGER.info(msg.rstrip())
+
 
 def print_error(msg):
     """
@@ -95,7 +103,9 @@ def print_error(msg):
 
     LOGGER.error(msg.rstrip())
 
+
 class ColorizingStreamHandler(logging.StreamHandler):
+
     """
     A logging handler that colorizes its output.
     """
@@ -134,13 +144,13 @@ class ColorizingStreamHandler(logging.StreamHandler):
 
             def colorize(msg):
 
-                if isinstance(msg, Highlight):
+                try:
                     return msg.render(
                         color=highlight_color,
                         reset=reset + log_color,
                     )
-
-                return msg
+                except AttributeError:
+                    return msg
 
             record.colorizer = colorize
 
