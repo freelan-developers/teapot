@@ -3,7 +3,6 @@ from setuptools import setup
 import sys
 
 install_requires = [
-    'PyYaml',
     'requests>=1.2.3',
     'progressbar',
     'colorama',
@@ -34,15 +33,6 @@ to add your own modules and extend its scope.
 """,
     packages=[
         'teapot',
-        'teapot.environments',
-        'teapot.extensions',
-        'teapot.fetchers',
-        'teapot.unpackers',
-        'teapot.builders',
-        'teapot.filters',
-        'teapot.defaults',
-        'teapot.tests',
-        'teapot.extra',
     ],
     install_requires=install_requires,
     entry_points={
