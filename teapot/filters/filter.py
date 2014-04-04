@@ -17,18 +17,41 @@ class UnamedFilter(object):
     def __init__(self, condition=None):
         self._condition = condition
 
-    def __call__(self, *args, **kwargs):
+    def __nonzero__(self):
         if self._condition:
             try:
-                return self._condition(*args, **kwargs)
-            except:
-                return self._condition
+                return bool(self._condition())
+            except TypeError:
+                if isinstance(self._condition, basestring):
+                    return bool(Filter.get_instance_or_fail(self._condition))
+
+                return bool(self._condition)
 
         return False
 
+    def __and__(self, other):
+        return UnamedFilter(condition=lambda: self and other)
+
+    def __or__(self, other):
+        return UnamedFilter(condition=lambda: self or other)
+
+    def __invert__(self):
+        return UnamedFilter(condition=lambda: not self)
+
+    def __xor__(self, other):
+        return UnamedFilter(condition=lambda: (self or other) and not (self and other))
+
 
 class Filter(MemoizedObject, UnamedFilter):
-    pass
+
+    @classmethod
+    def get_instance_or_fail(cls, name):
+        filter = cls.get_instance(name)
+
+        if filter is None:
+            raise TeapotError("Unable to find the filter named %s.", hl(name))
+
+        return filter
 
 
 class named_filter(object):
@@ -54,24 +77,25 @@ class named_filter(object):
     def __call__(self, func):
         if self.depends_on:
             @wraps(func)
-            def depends_on_func(*args, **kwargs):
+            def depends_on_condition():
                 if isinstance(self.depends_on, basestring):
-                    depends_on_filter = Filter.get_instance(self.depends_on)
+                    depends_on_filter = Filter.get_instance_or_fail(self.depends_on)
 
                     if not depends_on_filter:
-                        raise TeapotError("Unable to find the filter named %s.", hl(self.depends_on))
-
-                    if not depends_on_filter(*args, **kwargs):
                         return False
                 else:
-                    if not self.depends_on(*args, **kwargs):
+                    if not self.depends_on:
                         return False
 
-                return func(*args, **kwargs)
+                return func()
 
-            condition = depends_on_func
+            condition = depends_on_condition
         else:
             condition = func
 
         Filter(name=self.name, condition=condition)
         return func
+
+
+uf_ = UnamedFilter
+f_ = Filter

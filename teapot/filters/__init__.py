@@ -6,7 +6,7 @@ from .builtin import *
 
 from ..error import TeapotError
 from ..log import Highlight as hl
-from .filter import Filter
+from .filter import Filter, f_
 
 
 class FilteredObject(object):
@@ -24,12 +24,7 @@ class FilteredObject(object):
     @property
     def filter(self):
         if isinstance(self._filter, basestring):
-            f = Filter.get_instance(self._filter)
-
-            if not f:
-                raise TeapotError("Unable to find the filter %s.", hl(self._filter))
-
-            return f
+            return Filter.get_instance_or_fail(self._filter)
 
         return self._filter
 
@@ -50,4 +45,4 @@ class FilteredObject(object):
         Check if the instance is filtered out.
         """
 
-        return self.filter() if self.filter else True
+        return self.filter if self.filter is not None else True

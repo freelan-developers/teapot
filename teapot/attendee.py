@@ -76,3 +76,21 @@ class Attendee(MemoizedObject, FilteredObject):
                 ),
                 hl(self),
             )
+
+        for source in self.sources:
+            try:
+                source.fetch()
+
+                return
+            except TeapotError as ex:
+                LOGGER.debug("Unable to fetch %s: " + ex.msg, hl(source), *ex.args)
+            except Exception as ex:
+                LOGGER.debug("Unable to fetch %s: %s", hl(source), hl(str(ex)))
+
+        raise TeapotError(
+            (
+                "All sources failed for the attendee %s. You may want "
+                "to check your network connectivity."
+            ),
+            hl(self),
+        )

@@ -6,6 +6,7 @@ import os
 import sys
 import argparse
 import logging
+import traceback
 
 from functools import wraps
 
@@ -150,6 +151,9 @@ def command(func):
 
         except TeapotError as ex:
             LOGGER.error(ex.msg, *ex.args)
+
+            if args.debug:
+                LOGGER.debug('\nTraceback is:\n' + ''.join(traceback.format_tb(sys.exc_info()[2])))
 
         except Exception as ex:
             if args.debug:
