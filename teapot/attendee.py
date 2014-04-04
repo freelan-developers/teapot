@@ -3,11 +3,10 @@ An attendee class.
 """
 
 from .memoized import MemoizedObject
-
+from .filters import FilteredObject
 from .error import TeapotError
 from .source import Source
 from .log import LOGGER, Highlight as hl
-from .filters import FilteredObject
 
 
 class Attendee(MemoizedObject, FilteredObject):
@@ -18,11 +17,11 @@ class Attendee(MemoizedObject, FilteredObject):
 
     propagate_memoization_key = True
 
-    def __init__(self, name):
+    def __init__(self, name, *args, **kwargs):
         self._depends_on = []
-        self.sources = []
+        self._sources = []
 
-        super(Attendee, self).__init__()
+        super(Attendee, self).__init__(*args, **kwargs)
 
     def __repr__(self):
         """
@@ -41,6 +40,14 @@ class Attendee(MemoizedObject, FilteredObject):
         self._depends_on.extend(attendees)
         return self
 
+    @property
+    def sources(self):
+        """
+        Get all the active sources.
+        """
+
+        return [x for x in self._sources if x.enabled]
+
     def add_source(self, resource, *args, **kwargs):
         """
         Add a source to the attendee.
@@ -51,7 +58,7 @@ class Attendee(MemoizedObject, FilteredObject):
         if not isinstance(resource, Source):
             resource = Source(resource, *args, **kwargs)
 
-        self.sources.append(resource)
+        self._sources.append(resource)
         return self
 
     def fetch(self):
@@ -62,4 +69,10 @@ class Attendee(MemoizedObject, FilteredObject):
         LOGGER.info('Fetching %s...', hl(self))
 
         if not self.sources:
-            raise TeapotError("No source specified for the attendee %s.", hl(self))
+            raise TeapotError(
+                (
+                    "No enabled source was found for the attendee %s. "
+                    "Did you forget to set a filter on the attendee ?"
+                ),
+                hl(self),
+            )

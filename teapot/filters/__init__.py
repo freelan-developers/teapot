@@ -14,8 +14,8 @@ class FilteredObject(object):
     Inherit from this class when your object can be disabled by filters.
     """
 
-    def __init__(self):
-        self._filter = None
+    def __init__(self, filter=None):
+        self._filter = filter
 
     @classmethod
     def get_enabled_instances(cls, keys=None):

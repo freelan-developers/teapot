@@ -2,17 +2,21 @@
 A source class.
 """
 
+from .filters import FilteredObject
 
-class Source(object):
+
+class Source(FilteredObject):
 
     """
     Represents a project to build.
     """
 
-    def __init__(self, resource):
+    def __init__(self, resource, *args, **kwargs):
         """
         Create a source that maps on the specified resource.
         """
+
+        super(Source, self).__init__(*args, **kwargs)
 
         self.resource = resource
 

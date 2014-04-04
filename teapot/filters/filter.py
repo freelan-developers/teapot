@@ -5,6 +5,8 @@ A base filter class.
 from functools import wraps
 
 from ..memoized import MemoizedObject
+from ..error import TeapotError
+from ..log import Highlight as hl
 
 
 class UnamedFilter(object):
@@ -13,14 +15,14 @@ class UnamedFilter(object):
     """
 
     def __init__(self, condition=None):
-        self.condition = condition
+        self._condition = condition
 
     def __call__(self, *args, **kwargs):
-        if self.condition:
+        if self._condition:
             try:
-                return self.condition(*args, **kwargs)
+                return self._condition(*args, **kwargs)
             except:
-                return self.condition
+                return self._condition
 
         return False
 
@@ -36,9 +38,15 @@ class named_filter(object):
     """
 
     def __init__(self, name, depends_on=None):
+        """
+        Define a named filter from a function.
 
-        if isinstance(depends_on, basestring):
-            depends_on = [depends_on]
+        `name` is the name of the filter to create. If a filter with
+        that name already exists, a TeapotError is raised.
+
+        `depends_on` is another filter to depend on. It can be either a
+        filter instance or the name of a named filter.
+        """
 
         self.name = name
         self.depends_on = depends_on
@@ -47,11 +55,16 @@ class named_filter(object):
         if self.depends_on:
             @wraps(func)
             def depends_on_func(*args, **kwargs):
-                for dep in self.depends_on:
-                    if isinstance(dep, basestring):
-                        dep = Filter.get_instance(dep)
+                if isinstance(self.depends_on, basestring):
+                    depends_on_filter = Filter.get_instance(self.depends_on)
 
-                    if not dep(*args, **kwargs):
+                    if not depends_on_filter:
+                        raise TeapotError("Unable to find the filter named %s.", hl(self.depends_on))
+
+                    if not depends_on_filter(*args, **kwargs):
+                        return False
+                else:
+                    if not self.depends_on(*args, **kwargs):
                         return False
 
                 return func(*args, **kwargs)
