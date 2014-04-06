@@ -2,45 +2,45 @@
 A HTTP fetcher class.
 """
 
-import os
 import urlparse
 import requests
 import shutil
 import mimetypes
+
 from teapot.extra.rfc6266 import parse_requests_response
 
+from teapot.fetchers.fetcher import register_fetcher
+from teapot.fetchers.fetcher import FetcherImplementation
+from teapot.path import rmdir
 from teapot.log import LOGGER
-from teapot.fetchers.base_fetcher import BaseFetcher
 
 
-class HttpFetcher(BaseFetcher):
+@register_fetcher('http')
+class HttpFetcher(FetcherImplementation):
 
     """
-    Fetchs a file from the web, using HTTP or HTTPS.
+    Fetchs a file on the local filesystem.
     """
 
-    shortname = 'http'
-
-    def read_source(self, source):
+    def parse_source(self, source):
         """
-        Checks that the `source` is an HTTP(S) URL.
+        Checks that the `source` is a local filename.
         """
 
-        assert(source)
-
-        url = urlparse.urlparse(source.location)
+        url = urlparse.urlparse(source.resource)
 
         if url.scheme in ['http', 'https']:
-            self.url = urlparse.urlunparse(url)
+            return {
+                'url': urlparse.urlunparse(url),
+                'mimetype': source.mimetype,
+            }
 
-            return True
-
-    def do_fetch(self, target):
+    def fetch(self, parsed_source, target_path, progress):
         """
-        Fetch the archive at the specified URL.
+        Fetch a file.
         """
 
-        response = requests.get(self.url, stream=True)
+        response = requests.get(parsed_source['url'], stream=True)
         response.raise_for_status()
 
         mimetype = response.headers.get('content-type')
@@ -50,8 +50,8 @@ class HttpFetcher(BaseFetcher):
         # If the source has an overriden type, we use that instead.
         extension = None
 
-        if self.source._type:
-            extension = mimetypes.guess_extension(self.source._type[0])
+        if parsed_source['mimetype']:
+            extension = mimetypes.guess_extension(parsed_source['mimetype'])
 
         if not extension:
             extension = mimetypes.guess_extension(mimetype)
@@ -73,9 +73,9 @@ class HttpFetcher(BaseFetcher):
         if content_length is not None:
             content_length = int(content_length)
 
-        archive_path = os.path.join(target, filename)
+        archive_path = os.path.join(target_path, filename)
 
-        self.progress.on_start(target=os.path.basename(archive_path), size=content_length)
+        progress.on_start(target=os.path.basename(archive_path), size=content_length)
 
         with open(archive_path, 'wb') as target_file:
             current_size = 0
@@ -86,11 +86,8 @@ class HttpFetcher(BaseFetcher):
                     target_file.write(buf)
                     current_size += len(buf)
 
-                    self.progress.on_update(progress=current_size)
+                    progress.on_update(progress=current_size)
 
-        self.progress.on_finish()
+        progress.on_finish()
 
-        return {
-            'archive_path': archive_path,
-            'archive_type': archive_type,
-        }
+        return archive_path, archive_type

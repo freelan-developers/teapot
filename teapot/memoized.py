@@ -30,7 +30,7 @@ class Memoized(type):
                 keys = map(str, keys)
                 return [v for k, v in mycls._INSTANCES.iteritems() if k in keys]
 
-            return mycls._NSTANCES.values()
+            return mycls._INSTANCES.values()
 
         @classmethod
         @contextmanager

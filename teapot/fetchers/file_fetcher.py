@@ -46,7 +46,7 @@ class FileFetcher(FetcherImplementation):
 
         if os.path.isfile(self.file_path):
             shutil.copyfile(self.file_path, archive_path)
-            archive_type = mimetypes.guess_type(self.file_path)
+            archive_type = mimetypes.guess_type(self.file_path, strict=False)
         elif os.path.isdir(self.file_path):
             shutil.copytree(self.file_path, archive_path)
             archive_type = (None, None)

@@ -12,7 +12,7 @@ class Source(FilteredObject):
     Represents a project to build.
     """
 
-    def __init__(self, resource, fetcher=None, *args, **kwargs):
+    def __init__(self, resource, mimetype=None, fetcher=None, *args, **kwargs):
         """
         Create a source that maps on the specified resource.
         """
@@ -20,6 +20,7 @@ class Source(FilteredObject):
         super(Source, self).__init__(*args, **kwargs)
 
         self.resource = resource
+        self._mimetype = mimetype
         self._fetcher = fetcher
 
     def __str__(self):
