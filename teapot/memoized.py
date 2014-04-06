@@ -3,6 +3,10 @@ A Memoized metaclass.
 """
 
 import functools
+from contextlib import contextmanager
+
+from .error import TeapotError
+from .log import Highlight as hl
 
 
 class Memoized(type):
@@ -26,7 +30,23 @@ class Memoized(type):
                 keys = map(str, keys)
                 return [v for k, v in mycls._INSTANCES.iteritems() if k in keys]
 
-            return mycls._INSTANCES.values()
+            return mycls._NSTANCES.values()
+
+        @classmethod
+        @contextmanager
+        def raise_on_duplicate(mycls):
+            (
+                sentinel,
+                mycls.raise_on_duplicate_enabled,
+            ) = (
+                mycls.raise_on_duplicate_enabled,
+                True,
+            )
+
+            try:
+                yield
+            finally:
+                mycls.raise_on_duplicate_enabled = sentinel
 
         attrs.setdefault('memoization_key', cls.DEFAULT_MEMOIZATION_KEY)
         attrs.setdefault('propagate_memoization_key', cls.DEFAULT_PROPAGATE_MEMOIZATION_KEY)
@@ -34,6 +54,8 @@ class Memoized(type):
         attrs['get_instance'] = get_instance
         attrs['get_instances'] = get_instances
         attrs.setdefault('__str__', lambda self: getattr(self, self.memoization_key))
+        attrs['raise_on_duplicate'] = raise_on_duplicate
+        attrs['raise_on_duplicate_enabled'] = True
 
         return super(Memoized, cls).__new__(cls, name, bases, attrs)
 
@@ -53,6 +75,8 @@ class Memoized(type):
         if key not in cls._INSTANCES:
             cls._INSTANCES[key] = super(Memoized, cls).__call__(*args, **kwargs)
             setattr(cls._INSTANCES[key], cls.memoization_key, key)
+        elif cls.raise_on_duplicate_enabled:
+            raise TeapotError("An instance of %s with the name '%s' already exists.", hl(cls.__name__), hl(key))
 
         return cls._INSTANCES[key]
 
