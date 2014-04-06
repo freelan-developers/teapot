@@ -20,7 +20,7 @@ class Source(FilteredObject):
         super(Source, self).__init__(*args, **kwargs)
 
         self.resource = resource
-        self._mimetype = mimetype
+        self.mimetype = mimetype
         self._fetcher = fetcher
 
     def __str__(self):
@@ -33,9 +33,16 @@ class Source(FilteredObject):
     @property
     def fetcher(self):
         if not self._fetcher:
-            return Fetcher.get_instance_for(source=self)
+            self._fetcher = Fetcher.get_instance_for(source=self)
 
         if isinstance(self._fetcher, basestring):
-            return Fetcher.get_instance_or_fail(name=self._fetcher)
+            self._fetcher = Fetcher.get_instance_or_fail(name=self._fetcher)
 
         return self._fetcher
+
+    def fetch(self):
+        """
+        Fetches the source.
+        """
+
+        self.fetcher.fetch(source=self, target_path='/tmp')

@@ -11,15 +11,6 @@ class BaseFetcherCallback(object):
     Derive from this class to create a fetcher callback class.
     """
 
-    def __init__(self, fetcher):
-        """
-        Create a new fetcher callback instance.
-
-        `fetcher` is the fetcher instance to be associated with.
-        """
-
-        self.fetcher = fetcher
-
     def on_start(self, target, size):
         """
         Call this method when the fetch is about to begin.

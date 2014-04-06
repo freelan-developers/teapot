@@ -2,6 +2,7 @@
 A HTTP fetcher class.
 """
 
+import os
 import urlparse
 import requests
 import shutil

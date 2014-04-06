@@ -5,6 +5,8 @@ A base Fetcher class.
 from ..memoized import MemoizedObject
 from ..log import Highlight as hl
 
+from .callbacks import ProgressBarFetcherCallback
+
 
 class FetcherImplementation(object):
     """
@@ -81,13 +83,14 @@ class Fetcher(MemoizedObject):
 
         return default
 
-    def __init__(self, fetcher_impl):
+    def __init__(self, fetcher_impl_class, progress_class=ProgressBarFetcherCallback):
         """
         Create a new fetcher that uses the specified fetcher
         implementation.
         """
 
-        self._fetcher_impl = fetcher_impl
+        self._fetcher_impl = fetcher_impl_class()
+        self.progress = progress_class()
 
     def can_parse_source(self, source):
         """
@@ -131,6 +134,6 @@ class register_fetcher(object):
 
     def __call__(self, cls):
         with Fetcher.raise_on_duplicate():
-            Fetcher(name=self.name, fetcher_impl=cls)
+            Fetcher(name=self.name, fetcher_impl_class=cls)
 
         return cls
