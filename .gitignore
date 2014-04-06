@@ -36,3 +36,6 @@ nosetests.xml
 
 # Coverage
 /htmlcov/*
+
+# Virtual env.
+/env/
