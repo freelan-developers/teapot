@@ -44,6 +44,8 @@ class UnamedFilter(object):
 
 class Filter(MemoizedObject, UnamedFilter):
 
+    propagate_memoization_key = True
+
     @classmethod
     def get_instance_or_fail(cls, name):
         filter = cls.get_instance(name)
@@ -52,6 +54,18 @@ class Filter(MemoizedObject, UnamedFilter):
             raise TeapotError("Unable to find the filter named %s.", hl(name))
 
         return filter
+
+    def __init__(self, name, condition=None):
+        if condition is None:
+            raise TeapotError(
+                (
+                    "A filter definition for %s must contain a non-None "
+                    "condition. Did you mistype the filter's name ?"
+                ),
+                hl(name),
+            )
+
+        super(Filter, self).__init__(condition=condition)
 
 
 class named_filter(object):
@@ -93,7 +107,9 @@ class named_filter(object):
         else:
             condition = func
 
-        Filter(name=self.name, condition=condition)
+        with Filter.raise_on_duplicate():
+            Filter(name=self.name, condition=condition)
+
         return func
 
 

@@ -18,8 +18,11 @@ class FilteredObject(object):
         self._filter = filter
 
     @classmethod
-    def get_enabled_instances(cls, keys=None):
-        return [x for x in cls.get_instances(keys=keys) if x.enabled]
+    def get_enabled_instances(cls, keys=None, instances=None):
+        if instances is None:
+            instances = cls.get_instances(keys=keys)
+
+        return [x for x in instances if x.enabled]
 
     @property
     def filter(self):

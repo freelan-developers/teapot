@@ -1,10 +1,10 @@
 {
-  "folders":
-  [
+  "folders": [
     {
       "path": ".",
-      "folder_exclude_patterns":
-      [
+      "folder_exclude_patterns": [
+        "build",
+        "dist",
         "*.egg-info"
       ]
     }

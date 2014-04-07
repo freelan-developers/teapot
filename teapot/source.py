@@ -40,9 +40,9 @@ class Source(FilteredObject):
 
         return self._fetcher
 
-    def fetch(self):
+    def fetch(self, target_path):
         """
         Fetches the source.
         """
 
-        self.fetcher.fetch(source=self, target_path='/tmp')
+        return self.fetcher.fetch(source=self, target_path=target_path)

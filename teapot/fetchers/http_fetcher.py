@@ -60,7 +60,7 @@ class HttpFetcher(FetcherImplementation):
         if not extension:
             LOGGER.debug('No extension registered for this mimetype (%s). Guessing one from the URL...', mimetype)
 
-            extension = os.path.splitext(urlparse.urlparse(self.url).path)[1]
+            extension = os.path.splitext(urlparse.urlparse(parsed_source['url']).path)[1]
 
         if extension and extension.startswith('.'):
             extension = extension[1:]

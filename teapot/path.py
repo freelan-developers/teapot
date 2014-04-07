@@ -47,7 +47,8 @@ def mkdir(path):
     """
 
     try:
-        LOGGER.debug('Creating directory at %s.', path)
+        if not os.path.isdir(path):
+            LOGGER.debug('Creating directory at %s.', path)
 
         os.makedirs(path)
 
