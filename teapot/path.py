@@ -48,6 +48,7 @@ def chdir(path):
     Changes the directory temporarily.
     """
 
+    path = os.path.abspath(path)
     saved_dir = os.getcwd()
 
     if os.path.abspath(saved_dir) != os.path.abspath(path):

@@ -119,6 +119,8 @@ def main():
 
     if args.party_file is None:
         args.party_file = os.path.join(os.getcwd(), 'Party')
+    else:
+        args.party_file = os.path.abspath(args.party_file)
 
     with chdir(os.path.dirname(args.party_file)):
         try:
