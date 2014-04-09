@@ -37,9 +37,24 @@ def load_party_file(path):
         imp.load_source('party', path)
 
 
+def clean_cache(attendees=None):
+    """
+    Clean the cache.
+    """
+
+    attendees = Attendee.get_enabled_instances(attendees)
+
+    LOGGER.info("Cleaning cache for %s attendee(s)...", hl(len(attendees)))
+
+    for attendee in attendees:
+        attendee.clean_cache()
+
+    LOGGER.info("Done cleaning cache for %s attendee(s)...", hl(len(attendees)))
+
+
 def fetch(attendees=None, force=False):
     """
-    Fetche the specified attendees.
+    Fetch the specified attendees.
     """
 
     attendees = Attendee.get_enabled_instances(attendees)

@@ -11,7 +11,7 @@ from .error import TeapotError
 from .source import Source
 from .log import LOGGER, Highlight as hl
 from .options import get_option
-from .path import mkdir, from_user_path
+from .path import mkdir, rmdir, from_user_path
 from .unpackers import Unpacker
 
 
@@ -146,6 +146,26 @@ class Attendee(MemoizedObject, FilteredObject):
 
         self._sources.append(resource)
         return self
+
+    def clean_cache(self):
+        """
+        Clean the cache.
+        """
+
+        if os.path.exists(self.cache_path):
+            LOGGER.debug(
+                "Cache directory for %s is at %s",
+                hl(self),
+                hl(self.cache_path),
+            )
+
+            rmdir(self.cache_path)
+        else:
+            LOGGER.debug(
+                "Cache directory for %s does not exist at %s",
+                hl(self),
+                hl(self.cache_path),
+            )
 
     def fetch(self, force=False):
         """
