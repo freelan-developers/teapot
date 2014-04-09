@@ -28,14 +28,14 @@ class FileFetcher(FetcherImplementation):
                 'file_path': os.path.abspath(source.resource),
             }
 
-    def fetch(self, parsed_source, target_path, progress):
+    def fetch(self, fetch_info, target_path, progress):
         """
         Fetch a file.
         """
 
-        archive_path = os.path.join(target_path, os.path.basename(self.file_path))
+        archive_path = os.path.join(target_path, os.path.basename(fetch_info['file_path']))
 
-        size = os.path.getsize(self.file_path)
+        size = os.path.getsize(fetch_info['file_path'])
 
         if not size:
             size = None
@@ -44,11 +44,11 @@ class FileFetcher(FetcherImplementation):
 
         progress.on_start(target=os.path.basename(archive_path), size=size)
 
-        if os.path.isfile(self.file_path):
-            shutil.copyfile(self.file_path, archive_path)
-            archive_type = mimetypes.guess_type(self.file_path, strict=False)
-        elif os.path.isdir(self.file_path):
-            shutil.copytree(self.file_path, archive_path)
+        if os.path.isfile(fetch_info['file_path']):
+            shutil.copyfile(fetch_info['file_path'], archive_path)
+            archive_type = mimetypes.guess_type(fetch_info['file_path'], strict=False)
+        elif os.path.isdir(fetch_info['file_path']):
+            shutil.copytree(fetch_info['file_path'], archive_path)
             archive_type = (None, None)
 
         # No real interactive progress to show here.
@@ -58,4 +58,7 @@ class FileFetcher(FetcherImplementation):
         progress.on_update(progress=size)
         progress.on_finish()
 
-        return archive_path, archive_type
+        return {
+            'archive_path': archive_path,
+            'archive_type': archive_type,
+        }

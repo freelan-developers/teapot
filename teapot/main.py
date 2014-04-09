@@ -231,12 +231,12 @@ def fetch(args):
 
 
 @command
-def unpack(party, args):
+def unpack(args):
     """
     Unpack the archives.
     """
 
-    party.unpack(
+    teapot.party.unpack(
         attendees=args.attendees,
         force=args.force,
     )

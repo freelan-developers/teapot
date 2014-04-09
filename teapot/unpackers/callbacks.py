@@ -13,19 +13,11 @@ class BaseUnpackerCallback(object):
     Derive from this class to create an unpacker callback class.
     """
 
-    def __init__(self, unpacker):
-        """
-        Create a new unpacker callback instance.
-
-        `unpacker` is the unpacker instance to be associated with.
-        """
-
-        self.unpacker = unpacker
-
-    def on_start(self, count):
+    def on_start(self, archive_path, count):
         """
         Call this method when the unpacking is about to start.
 
+        `archive_path` is the path of the extracted archive.
         `count` indicates the total count of files in the archive.
 
         You may use a None `count` to indicate that the overall count is
@@ -108,7 +100,7 @@ class ProgressBarUnpackerCallback(BaseUnpackerCallback):
     Provides a progress bar callback to unpackers.
     """
 
-    def on_start(self, count):
+    def on_start(self, archive_path, count):
         """
         The unpack just started.
         """
@@ -116,7 +108,7 @@ class ProgressBarUnpackerCallback(BaseUnpackerCallback):
         self.count = count
         self.current_file = ''
 
-        widgets = [os.path.basename(self.unpacker.archive_path), ': ', SimpleProgress(), ' (', Percentage(), ')', CurrentFile(self, prefix=' - ')]
+        widgets = [os.path.basename(archive_path), ': ', SimpleProgress(), ' (', Percentage(), ')', CurrentFile(self, prefix=' - ')]
         self.progressbar = ProgressBar(widgets=widgets, maxval=count)
         self.progressbar.start()
 

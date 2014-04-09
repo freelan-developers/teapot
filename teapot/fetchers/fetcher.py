@@ -9,6 +9,7 @@ from .callbacks import ProgressBarFetcherCallback
 
 
 class FetcherImplementation(object):
+
     """
     Base class for all fetcher implementation classes.
     """
@@ -20,12 +21,12 @@ class FetcherImplementation(object):
 
         Upon success, this method should return a truthy value if the specified
         `source` is supported by the fetcher. This truthy value will be passed
-        as the `parsed_source` attribute to fetch().
+        as the `fetch_info` attribute to fetch().
         """
 
         raise NotImplementedError
 
-    def fetch(self, parsed_source, target_path, progress):
+    def fetch(self, fetch_info, target_path, progress):
         """
         Reimplement this method with your specific fetcher logic.
 
@@ -34,10 +35,7 @@ class FetcherImplementation(object):
         `progress` is an instance of a fetcher callback used to report progress
         to the user.
 
-        This method must return a tuple with the following values:
-            - `archive_path`: The archive absolute path.
-            - `archive_type`: A couple containing the mimetype, then the
-              encoding of the archive. Example: ``('application/x-gzip', None)``
+        This method must return the download manifest.
 
         It must raise an exception on error.
 
@@ -56,14 +54,6 @@ class Fetcher(MemoizedObject):
 
     """
     Represent a fetcher.
-
-    If you subclass this class, you will have to re-implement the
-    :func:`read_source` and :func:`do_fetch` methods in your subclass to
-    provide your fetcher specific fetch logic.
-
-    If you intend to expose your fetcher to users, you must also declare a
-    unique class-level `shortname`. This is what the user will specify in the
-    :term:`party file` to use a specific fetcher.
     """
 
     @classmethod
@@ -107,13 +97,13 @@ class Fetcher(MemoizedObject):
         """
 
         try:
-            parsed_source = self._fetcher_impl.parse_source(source=source)
+            fetch_info = self._fetcher_impl.parse_source(source=source)
 
-            if not parsed_source:
+            if not fetch_info:
                 return False
 
             return self._fetcher_impl.fetch(
-                parsed_source=parsed_source,
+                fetch_info=fetch_info,
                 target_path=target_path,
                 progress=self.progress
             )

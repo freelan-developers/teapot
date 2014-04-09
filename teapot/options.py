@@ -46,6 +46,7 @@ class Option(object):
         self.value_type = value_type
         self._default_values = default_values
         self._values = []
+        self._cached_value = None
 
     @property
     def value(self):
@@ -53,40 +54,51 @@ class Option(object):
         Get the option value.
         """
 
-        values = Option.Value.get_enabled_instances(instances=self._values)
-
-        if not values:
-            values = Option.Value.get_enabled_instances(instances=self._default_values)
+        if self._cached_value is None:
+            values = Option.Value.get_enabled_instances(instances=self._values)
 
             if not values:
-                LOGGER.debug(
+                values = Option.Value.get_enabled_instances(instances=self._default_values)
+
+                if not values:
+                    LOGGER.debug(
+                        (
+                            "Value request for option %s but none was found "
+                            "that matches the current filters. Returning %s "
+                            "instead."
+                        ),
+                        hl(self.name),
+                        hl(repr(None)),
+                    )
+                else:
+                    LOGGER.debug(
+                        (
+                            "Value requested for option %s but none was found "
+                            "that matches the current filters. Using defaults "
+                            "instead."
+                        ),
+                        hl(self.name),
+                    )
+
+            if len(values) > 1:
+                raise TeapotError(
                     (
-                        "No value found for option %s that matches the current "
-                        "filters. Returning %s instead."
+                        "More than one value matches the current filters "
+                        "for option %s. Did you forget to set a filter on "
+                        "some options ?"
                     ),
                     hl(self.name),
-                    hl(repr(None)),
                 )
-            else:
+            elif values:
+                self._cached_value = values[0].value
+
                 LOGGER.debug(
-                    (
-                        "No value found for option %s that matches the current "
-                        "filters. Using defaults instead."
-                    ),
+                    "Caching value %s for option %s.",
+                    hl(self._cached_value),
                     hl(self.name),
                 )
 
-        if len(values) > 1:
-            raise TeapotError(
-                (
-                    "More than one value matches the current filters "
-                    "for option %s. Did you forget to set a filter on "
-                    "some options ?"
-                ),
-                hl(self.name),
-            )
-        elif values:
-            return values[0].value
+        return self._cached_value
 
     def add_value(self, value, *args, **kwargs):
         """
@@ -99,6 +111,15 @@ class Option(object):
         """
 
         self._values.append(Option.Value(self.value_type(value), *args, **kwargs))
+
+        if self._cached_value is not None:
+            LOGGER.debug(
+                "Clearing cached value %s for option %s as its values just changed.",
+                hl(self._cached_value),
+                hl(self.name),
+            )
+
+            self._cached_value = None
 
 
 def register_option(name, *args, **kwargs):
@@ -144,5 +165,15 @@ register_option('cache_root', default_values=[
     Option.Value('~/.teapot/cache', filter=~f_('windows')),
     Option.Value('%APPDATA%/teapot/cache', filter=f_('windows')),
 ])
-register_option('build_root')
-register_option('prefix')
+register_option('sources_root', default_values=[
+    Option.Value('~/.teapot/sources', filter=~f_('windows')),
+    Option.Value('%APPDATA%/teapot/sources', filter=f_('windows')),
+])
+register_option('build_root', default_values=[
+    Option.Value('~/.teapot/build', filter=~f_('windows')),
+    Option.Value('%APPDATA%/teapot/build', filter=f_('windows')),
+])
+register_option('prefix', default_values=[
+    Option.Value('~/.teapot/install', filter=~f_('windows')),
+    Option.Value('%APPDATA%/teapot/install', filter=f_('windows')),
+])

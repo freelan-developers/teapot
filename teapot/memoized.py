@@ -27,10 +27,21 @@ class Memoized(type):
         @classmethod
         def get_instances(mycls, keys=None):
             if keys:
-                keys = map(str, keys)
+                keys = [getattr(key, mycls.memoization_key) if isinstance(key, mycls) else key for key in keys]
                 return [v for k, v in mycls._INSTANCES.iteritems() if k in keys]
 
             return mycls._INSTANCES.values()
+
+        @classmethod
+        def clear_instances(mycls, keys=None):
+            if keys:
+                keys = [getattr(key, mycls.memoization_key) if isinstance(key, mycls) else key for key in keys]
+
+                for key in keys:
+                    if key in mycls._INSTANCES:
+                        del mycls._INSTANCES[key]
+            else:
+                mycls._INSTANCES = {}
 
         @classmethod
         @contextmanager

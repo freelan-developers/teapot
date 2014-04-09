@@ -1,8 +1,5 @@
 """
 Contains all teapot fetchers logic.
-
-If you want to create your own fetcher, derive from
-teapot.fetchers.base_fetcher.BaseFetcher.
 """
 
 from teapot.fetchers.fetcher import Fetcher

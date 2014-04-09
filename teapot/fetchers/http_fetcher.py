@@ -36,12 +36,12 @@ class HttpFetcher(FetcherImplementation):
                 'mimetype': source.mimetype,
             }
 
-    def fetch(self, parsed_source, target_path, progress):
+    def fetch(self, fetch_info, target_path, progress):
         """
         Fetch a file.
         """
 
-        response = requests.get(parsed_source['url'], stream=True)
+        response = requests.get(fetch_info['url'], stream=True)
         response.raise_for_status()
 
         mimetype = response.headers.get('content-type')
@@ -51,8 +51,8 @@ class HttpFetcher(FetcherImplementation):
         # If the source has an overriden type, we use that instead.
         extension = None
 
-        if parsed_source['mimetype']:
-            extension = mimetypes.guess_extension(parsed_source['mimetype'])
+        if fetch_info['mimetype']:
+            extension = mimetypes.guess_extension(fetch_info['mimetype'])
 
         if not extension:
             extension = mimetypes.guess_extension(mimetype)
@@ -60,7 +60,7 @@ class HttpFetcher(FetcherImplementation):
         if not extension:
             LOGGER.debug('No extension registered for this mimetype (%s). Guessing one from the URL...', mimetype)
 
-            extension = os.path.splitext(urlparse.urlparse(parsed_source['url']).path)[1]
+            extension = os.path.splitext(urlparse.urlparse(fetch_info['url']).path)[1]
 
         if extension and extension.startswith('.'):
             extension = extension[1:]
@@ -91,4 +91,7 @@ class HttpFetcher(FetcherImplementation):
 
         progress.on_finish()
 
-        return archive_path, archive_type
+        return {
+            'archive_path': archive_path,
+            'archive_type': archive_type,
+        }

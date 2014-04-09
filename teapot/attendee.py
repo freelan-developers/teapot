@@ -12,6 +12,7 @@ from .source import Source
 from .log import LOGGER, Highlight as hl
 from .options import get_option
 from .path import mkdir, from_user_path
+from .unpackers import Unpacker
 
 
 class Attendee(MemoizedObject, FilteredObject):
@@ -25,6 +26,8 @@ class Attendee(MemoizedObject, FilteredObject):
     def __init__(self, name, *args, **kwargs):
         self._depends_on = []
         self._sources = []
+        self._cache_manifest = {}
+        self._sources_manifest = {}
 
         super(Attendee, self).__init__(*args, **kwargs)
 
@@ -50,25 +53,78 @@ class Attendee(MemoizedObject, FilteredObject):
         return from_user_path(os.path.join(get_option('cache_root'), self.name))
 
     @property
+    def sources_path(self):
+        return from_user_path(os.path.join(get_option('sources_root'), self.name))
+
+    @property
     def cache_manifest_path(self):
         return os.path.join(self.cache_path, 'manifest.json')
 
     @property
+    def sources_manifest_path(self):
+        return os.path.join(self.sources_path, 'manifest.json')
+
+    @property
     def cache_manifest(self):
-        try:
-            data = json.load(open(self.cache_manifest_path))
+        if not self._cache_manifest:
+            try:
+                self._cache_manifest = json.load(open(self.cache_manifest_path))
 
-            if data:
-                return tuple(data)
+            except IOError:
+                pass
 
-        except IOError:
-            pass
+        if not isinstance(self._cache_manifest, dict):
+            self._cache_manifest = {}
+
+        return self._cache_manifest
 
     @cache_manifest.setter
     def cache_manifest(self, value):
-        mkdir(self.cache_path)
+        self._cache_manifest = value
 
-        json.dump(value, open(self.cache_manifest_path, 'w'))
+        mkdir(self.cache_path)
+        json.dump(self._cache_manifest, open(self.cache_manifest_path, 'w'))
+
+    @property
+    def sources_manifest(self):
+        if not self._sources_manifest:
+            try:
+                self._sources_manifest = json.load(open(self.sources_manifest_path))
+
+            except IOError:
+                pass
+
+        if not isinstance(self._sources_manifest, dict):
+            self._sources_manifest = {}
+
+        return self._sources_manifest
+
+    @sources_manifest.setter
+    def sources_manifest(self, value):
+        self._sources_manifest = value
+
+        mkdir(self.sources_path)
+        json.dump(self._sources_manifest, open(self.sources_manifest_path, 'w'))
+
+    @property
+    def archive_path(self):
+        return self.cache_manifest.get('archive_path')
+
+    @property
+    def archive_type(self):
+        return tuple(self.cache_manifest.get('archive_type', []))
+
+    @property
+    def extracted_sources_path(self):
+        return self.sources_manifest.get('extracted_sources_path')
+
+    @property
+    def must_fetch(self):
+        return not self.archive_path or not os.path.isfile(self.archive_path)
+
+    @property
+    def must_unpack(self):
+        return not self.extracted_sources_path or not os.path.isdir(self.extracted_sources_path)
 
     @property
     def sources(self):
@@ -91,15 +147,27 @@ class Attendee(MemoizedObject, FilteredObject):
         self._sources.append(resource)
         return self
 
-    def fetch(self):
+    def fetch(self, force=False):
         """
         Fetch the most appropriate source.
+
+        If `force` is truthy, the archive will be force-fetched again.
         """
 
-        if self.cache_manifest:
-            LOGGER.info("%s was already fetched. Nothing to do.", hl(self))
+        if self.archive_path:
+            if os.path.isfile(self.archive_path):
+                if force:
+                    LOGGER.info("%s was already fetched but force fetching was requested. Will fetch it again.", hl(self))
+                    self.cache_manifest = {}
+                else:
+                    LOGGER.info("%s was already fetched. Nothing to do.", hl(self))
+            else:
+                LOGGER.warning("%s was already fetched according to its download manifest but the archive file (%s) was not found. Will fetch it again.", hl(self), self.archive_path)
+                self.cache_manifest = {}
         else:
-            LOGGER.debug("Unable to find the download manifest for %s. Will fetch it.", hl(self))
+            LOGGER.info("No download manifest found for %s. Will fetch it.", hl(self))
+
+        if not self.cache_manifest:
             LOGGER.info('Fetching %s...', hl(self))
 
             mkdir(self.cache_path)
@@ -117,6 +185,9 @@ class Attendee(MemoizedObject, FilteredObject):
                 try:
                     self.cache_manifest = source.fetch(target_path=self.cache_path)
 
+                    LOGGER.debug("Wrote new cache manifest for %s at: %s", hl(self), hl(self.cache_manifest_path))
+                    LOGGER.info("%s fetched successfully.", hl(self))
+
                     break
                 except TeapotError as ex:
                     LOGGER.debug("Unable to fetch %s: " + ex.msg, hl(source), *ex.args)
@@ -132,11 +203,50 @@ class Attendee(MemoizedObject, FilteredObject):
                 hl(self),
             )
 
-        archive_path, archive_type = self.cache_manifest
+        LOGGER.debug(
+            "Archive for %s (%s) is at %s",
+            hl(self),
+            hl(Unpacker.mimetype_to_str(self.archive_type)),
+            hl(self.archive_path),
+        )
+
+    def unpack(self, force=False):
+        """
+        Unpack the archive.
+
+        If `force` is truthy, the archive will be force-unpacked again.
+        """
+
+        if self.extracted_sources_path:
+            if os.path.isdir(self.extracted_sources_path):
+                if force:
+                    LOGGER.info("%s was already unpacked but force unpacking was requested. Will unpackg it again.", hl(self))
+                    self.sources_manifest = {}
+                else:
+                    LOGGER.info("%s was already unpacked. Nothing to do.", hl(self))
+            else:
+                LOGGER.warning("%s was already unpacked according to its sources manifest but the extracted sources folder (%s) was not found. Will unpack it again.", hl(self), self.extracted_sources_path)
+                self.sources_manifest = {}
+        else:
+            LOGGER.info("No sources manifest found for %s. Will fetch it.", hl(self))
+
+        if not self.sources_manifest:
+            LOGGER.info('Unpacking %s...', hl(self))
+
+            mkdir(self.sources_path)
+
+            LOGGER.debug(
+                "Searching appropriate unpacker for archive %s of type %s",
+                hl(self.archive_path),
+                hl(Unpacker.mimetype_to_str(self.archive_type)),
+            )
+
+            unpacker = Unpacker.get_instance_or_fail(self.archive_type)
+            self.sources_manifest = unpacker.unpack(archive_path=self.archive_path, target_path=self.sources_path)
 
         LOGGER.debug(
-            "Archive for %s (%s) is at: %s",
+            "Archive for %s (%s) is unpacked at %s",
             hl(self),
-            hl(','.join(x for x in archive_type if x)),
-            hl(archive_path),
+            hl(self.archive_path),
+            hl(self.extracted_sources_path),
         )

@@ -9,6 +9,7 @@ import imp
 from contextlib import contextmanager
 
 from .log import LOGGER
+from .log import Highlight as hl
 from .attendee import Attendee
 
 
@@ -38,8 +39,49 @@ def load_party_file(path):
 
 def fetch(attendees=None, force=False):
     """
-    Fetches the specified attendees.
+    Fetche the specified attendees.
     """
 
-    for attendee in Attendee.get_enabled_instances(attendees):
-        attendee.fetch()
+    attendees = Attendee.get_enabled_instances(attendees)
+
+    if force:
+        LOGGER.info("Force-fetching all %s attendee(s)...", hl(len(attendees)))
+    else:
+        count = len([x for x in attendees if x.must_fetch])
+
+        if not count:
+            LOGGER.info("All attendees were fetched already. Nothing to do.")
+            return
+
+        LOGGER.info("Fetching %s out of %s attendee(s)...", hl(count), hl(len(attendees)))
+
+    for attendee in attendees:
+        attendee.fetch(force=force)
+
+    LOGGER.info("Done fetching %s attendee(s)...", hl(len(attendees)))
+
+
+def unpack(attendees=None, force=False):
+    """
+    Unpack the specified attendees.
+    """
+
+    fetch(attendees, force=force)
+
+    attendees = Attendee.get_enabled_instances(attendees)
+
+    if force:
+        LOGGER.info("Force-unpacking all %s attendee(s)...", hl(len(attendees)))
+    else:
+        count = len([x for x in attendees if x.must_unpack])
+
+        if not count:
+            LOGGER.info("All attendees were unpacked already. Nothing to do.")
+            return
+
+        LOGGER.info("Unpacking %s out of %s attendee(s)...", hl(count), hl(len(attendees)))
+
+    for attendee in attendees:
+        attendee.unpack(force=force)
+
+    LOGGER.info("Done unpacking %s attendee(s)...", hl(len(attendees)))
