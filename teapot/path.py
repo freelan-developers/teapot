@@ -7,7 +7,10 @@ import stat
 import shutil
 import errno
 
+from contextlib import contextmanager
+
 from teapot.log import LOGGER
+from teapot.log import Highlight as hl
 
 
 def from_user_path(path):
@@ -39,6 +42,36 @@ def read_path(value, base_path, default_path):
     return cache_path
 
 
+@contextmanager
+def chdir(path):
+    """
+    Changes the directory temporarily.
+    """
+
+    saved_dir = os.getcwd()
+
+    if os.path.abspath(saved_dir) != os.path.abspath(path):
+        LOGGER.debug(
+            "Temporarily changing current directory from %s to %s",
+            hl(saved_dir),
+            hl(path),
+        )
+
+        os.chdir(path)
+
+    try:
+        yield
+    finally:
+        if os.path.abspath(saved_dir) != os.path.abspath(path):
+            LOGGER.debug(
+                "Changing back current directory from %s to %s",
+                hl(path),
+                hl(saved_dir),
+            )
+
+            os.chdir(saved_dir)
+
+
 def mkdir(path):
     """
     Create the specified path.
@@ -48,7 +81,7 @@ def mkdir(path):
 
     try:
         if not os.path.isdir(path):
-            LOGGER.debug('Creating directory at %s.', path)
+            LOGGER.debug('Creating directory at %s.', hl(path))
 
         os.makedirs(path)
 
@@ -65,18 +98,18 @@ def rmdir(path):
     """
 
     try:
-        LOGGER.debug('Removing directory at %s.', path)
+        LOGGER.debug('Removing directory at %s.', hl(path))
 
         def onerror(func, path, excinfo):
             if os.path.exists(path):
-                LOGGER.debug('Was unable to delete "%s": %s', path, excinfo[1])
+                LOGGER.debug('Was unable to delete "%s": %s', hl(path), excinfo[1])
                 LOGGER.debug('Trying again after changing permissions...')
                 os.chmod(path, stat.S_IWUSR)
 
                 try:
                     func(path)
                 except Exception as ex:
-                    LOGGER.error('Unable to delete "%s": %s', path, excinfo[1])
+                    LOGGER.error('Unable to delete "%s": %s', hl(path), excinfo[1])
 
                     raise
 

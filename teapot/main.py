@@ -12,6 +12,7 @@ from functools import wraps
 
 from .log import LOGGER, ColorizingStreamHandler
 from .error import TeapotError
+from .path import chdir
 
 import teapot.party
 
@@ -119,19 +120,20 @@ def main():
     if args.party_file is None:
         args.party_file = os.path.join(os.getcwd(), 'Party')
 
-    try:
-        teapot.party.load_party_file(args.party_file)
+    with chdir(os.path.dirname(args.party_file)):
+        try:
+            teapot.party.load_party_file(args.party_file)
 
-    except IOError:
-        LOGGER.error(
-            'No party-file was found. (Searched path: "%s")',
-            args.party_file,
-        )
+        except IOError:
+            LOGGER.error(
+                'No party-file was found. (Searched path: "%s")',
+                args.party_file,
+            )
 
-        return 1
+            return 1
 
-    if not args.func(args):
-        return 2
+        if not args.func(args):
+            return 2
 
 
 def command(func):
