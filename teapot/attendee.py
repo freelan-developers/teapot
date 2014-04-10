@@ -4,6 +4,7 @@ An attendee class.
 
 import os
 import json
+import hashlib
 
 from .memoized import MemoizedObject
 from .filters import FilteredObject
@@ -30,6 +31,7 @@ class Attendee(MemoizedObject, FilteredObject):
         self._cache_manifest = {}
         self._last_parsed_source = None
         self._sources_manifest = {}
+        self._last_unpacked_archive_info = {}
 
         super(Attendee, self).__init__(*args, **kwargs)
 
@@ -69,6 +71,10 @@ class Attendee(MemoizedObject, FilteredObject):
     @property
     def sources_manifest_path(self):
         return os.path.join(self.sources_path, 'manifest.json')
+
+    @property
+    def sources_last_unpacked_archive_info_path(self):
+        return os.path.join(self.sources_path, 'last_unpacked_archive_info.json')
 
     @property
     def cache_manifest(self):
@@ -131,6 +137,24 @@ class Attendee(MemoizedObject, FilteredObject):
         json.dump(self._sources_manifest, open(self.sources_manifest_path, 'w'))
 
     @property
+    def last_unpacked_archive_info(self):
+        if not self._last_unpacked_archive_info:
+            try:
+                self._last_unpacked_archive_info = json.load(open(self.sources_last_unpacked_archive_info_path))
+
+            except IOError:
+                pass
+
+        return self._last_unpacked_archive_info
+
+    @last_unpacked_archive_info.setter
+    def last_unpacked_archive_info(self, value):
+        self._last_unpacked_archive_info = value
+
+        mkdir(self.sources_path)
+        json.dump(self._last_unpacked_archive_info, open(self.sources_last_unpacked_archive_info_path, 'w'))
+
+    @property
     def archive_path(self):
         return self.cache_manifest.get('archive_path')
 
@@ -153,6 +177,9 @@ class Attendee(MemoizedObject, FilteredObject):
 
     @property
     def must_unpack(self):
+        if not self.check_archive_signature():
+            return True
+
         return not self.extracted_sources_path or not os.path.isdir(self.extracted_sources_path)
 
     @property
@@ -288,6 +315,72 @@ class Attendee(MemoizedObject, FilteredObject):
                     LOGGER.warning("Error parsing source %s: %s", hl(source), hl(str(ex)))
 
         return self._source
+
+    def check_archive_signature(self):
+        """
+        Check the archive signature.
+        """
+
+        m = hashlib.sha1()
+        with open(self.archive_path) as f:
+            for s in iter(lambda: f.read(1024 ** 2), ''):
+                m.update(s)
+
+        archive_signature = m.hexdigest()
+
+        def update_signature():
+            # This has to be done in this order or it won't work.
+            self.clean_sources()
+
+            LOGGER.debug(
+                "Writing new archive signature for %s: %s",
+                hl(self.archive_path),
+                hl(archive_signature),
+            )
+
+            self.last_unpacked_archive_info = {
+                'archive_signature': archive_signature,
+            }
+
+        archive_info = self.last_unpacked_archive_info
+
+        if not archive_info:
+            LOGGER.info(
+                (
+                    "No previous archive signature found for %s. Making sure "
+                    "the sources directory gets cleaned."
+                ),
+                hl(self),
+            )
+            update_signature()
+            return False
+
+        last_archive_signature = archive_info.get('archive_signature')
+
+        if archive_signature != last_archive_signature:
+            LOGGER.info(
+                (
+                    "Archive signature for %s changed from %s to %s. Cleaning "
+                    "the sources to make sure they get unpacked again."
+                ),
+                hl(self),
+                hl(last_archive_signature),
+                hl(archive_signature),
+            )
+
+            update_signature()
+            return False
+
+        LOGGER.debug(
+            (
+                "Archive signature for %s matches the last known one (%s). No "
+                "cleaning of the sources needed."
+            ),
+            hl(self.archive_path),
+            hl(archive_signature),
+        )
+
+        return True
 
     def fetch(self, force=False):
         """
