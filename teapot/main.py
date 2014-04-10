@@ -48,6 +48,13 @@ def main():
     clean_cache_command_parser.add_argument(
         'attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
 
+    #  The clean sources subcommand
+    clean_sources_command_parser = clean_subcommand_parser.add_parser(
+        'sources', help='Clean the party sources.')
+    clean_sources_command_parser.set_defaults(func=clean_sources)
+    clean_sources_command_parser.add_argument(
+        'attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
+
     #  The clean build subcommand
     clean_build_command_parser = clean_subcommand_parser.add_parser(
         'build', help='Clean the party build.')
@@ -179,6 +186,17 @@ def clean_cache(args):
     """
 
     teapot.party.clean_cache(
+        attendees=args.attendees,
+    )
+
+
+@command
+def clean_sources(args):
+    """
+    Clean the party sources.
+    """
+
+    teapot.party.clean_sources(
         attendees=args.attendees,
     )
 

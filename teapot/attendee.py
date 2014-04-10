@@ -154,7 +154,7 @@ class Attendee(MemoizedObject, FilteredObject):
 
         if os.path.exists(self.cache_path):
             LOGGER.debug(
-                "Cache directory for %s is at %s",
+                "Cache directory for %s is at %s.",
                 hl(self),
                 hl(self.cache_path),
             )
@@ -162,9 +162,29 @@ class Attendee(MemoizedObject, FilteredObject):
             rmdir(self.cache_path)
         else:
             LOGGER.debug(
-                "Cache directory for %s does not exist at %s",
+                "Cache directory for %s does not exist at %s. Nothing to do.",
                 hl(self),
                 hl(self.cache_path),
+            )
+
+    def clean_sources(self):
+        """
+        Clean the sources.
+        """
+
+        if os.path.exists(self.sources_path):
+            LOGGER.debug(
+                "Sources directory for %s is at %s.",
+                hl(self),
+                hl(self.sources_path),
+            )
+
+            rmdir(self.sources_path)
+        else:
+            LOGGER.debug(
+                "Sources directory for %s does not exist at %s. Nothing to do.",
+                hl(self),
+                hl(self.sources_path),
             )
 
     def fetch(self, force=False):
@@ -256,7 +276,7 @@ class Attendee(MemoizedObject, FilteredObject):
             mkdir(self.sources_path)
 
             LOGGER.debug(
-                "Searching appropriate unpacker for archive %s of type %s",
+                "Searching appropriate unpacker for archive %s of type %s...",
                 hl(self.archive_path),
                 hl(Unpacker.mimetype_to_str(self.archive_type)),
             )
@@ -265,7 +285,7 @@ class Attendee(MemoizedObject, FilteredObject):
             self.sources_manifest = unpacker.unpack(archive_path=self.archive_path, target_path=self.sources_path)
 
         LOGGER.debug(
-            "Archive for %s (%s) is unpacked at %s",
+            "Archive for %s (%s) is unpacked at %s.",
             hl(self),
             hl(self.archive_path),
             hl(self.extracted_sources_path),

@@ -22,7 +22,7 @@ def load_party_file(path):
 
     path = os.path.abspath(path)
 
-    LOGGER.debug('Importing party file from %r', path)
+    LOGGER.debug('Importing party file from %r.', path)
 
     @contextmanager
     def disable_bytecode_generation():
@@ -50,6 +50,21 @@ def clean_cache(attendees=None):
         attendee.clean_cache()
 
     LOGGER.info("Done cleaning cache for %s attendee(s)...", hl(len(attendees)))
+
+
+def clean_sources(attendees=None):
+    """
+    Clean the sources.
+    """
+
+    attendees = Attendee.get_enabled_instances(attendees)
+
+    LOGGER.info("Cleaning sources for %s attendee(s)...", hl(len(attendees)))
+
+    for attendee in attendees:
+        attendee.clean_sources()
+
+    LOGGER.info("Done cleaning sources for %s attendee(s)...", hl(len(attendees)))
 
 
 def fetch(attendees=None, force=False):
