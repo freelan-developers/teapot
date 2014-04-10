@@ -252,13 +252,23 @@ class Attendee(MemoizedObject, FilteredObject):
 
                     if parsed_source:
                         if self.last_parsed_source != parsed_source:
-                            LOGGER.info(
-                                (
-                                    "Best source has changed for %s: cleaning "
-                                    "cache to trigger a refetch."
-                                ),
-                                hl(self),
-                            )
+                            if self.last_parsed_source:
+                                LOGGER.info(
+                                    (
+                                        "Best source has changed for %s: cleaning "
+                                        "cache to trigger a refetch."
+                                    ),
+                                    hl(self),
+                                )
+                            else:
+                                LOGGER.info(
+                                    (
+                                        "No previous best source found for %s: "
+                                        "making sure the cache is cleaned so a "
+                                        "fetch will occur."
+                                    ),
+                                    hl(self),
+                                )
 
                             self.clean_cache()
                             self.last_parsed_source = parsed_source
