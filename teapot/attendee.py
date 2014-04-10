@@ -26,7 +26,9 @@ class Attendee(MemoizedObject, FilteredObject):
     def __init__(self, name, *args, **kwargs):
         self._depends_on = []
         self._sources = []
+        self._source = None
         self._cache_manifest = {}
+        self._last_parsed_source = None
         self._sources_manifest = {}
 
         super(Attendee, self).__init__(*args, **kwargs)
@@ -61,6 +63,10 @@ class Attendee(MemoizedObject, FilteredObject):
         return os.path.join(self.cache_path, 'manifest.json')
 
     @property
+    def cache_last_parsed_source_path(self):
+        return os.path.join(self.cache_path, 'last_parsed_source.json')
+
+    @property
     def sources_manifest_path(self):
         return os.path.join(self.sources_path, 'manifest.json')
 
@@ -84,6 +90,24 @@ class Attendee(MemoizedObject, FilteredObject):
 
         mkdir(self.cache_path)
         json.dump(self._cache_manifest, open(self.cache_manifest_path, 'w'))
+
+    @property
+    def last_parsed_source(self):
+        if not self._last_parsed_source:
+            try:
+                self._last_parsed_source = json.load(open(self.cache_last_parsed_source_path))
+
+            except IOError:
+                pass
+
+        return self._last_parsed_source
+
+    @last_parsed_source.setter
+    def last_parsed_source(self, value):
+        self._last_parsed_source = value
+
+        mkdir(self.cache_path)
+        json.dump(self._last_parsed_source, open(self.cache_last_parsed_source_path, 'w'))
 
     @property
     def sources_manifest(self):
@@ -120,6 +144,11 @@ class Attendee(MemoizedObject, FilteredObject):
 
     @property
     def must_fetch(self):
+        # If the best source changed since last build, `self.source`
+        # will clean the cache and the next test will evaluate to true.
+        if not self.source:
+            return True
+
         return not self.archive_path or not os.path.isfile(self.archive_path)
 
     @property
@@ -140,6 +169,15 @@ class Attendee(MemoizedObject, FilteredObject):
 
         `resource` is the resource to add to the attendee.
         """
+
+        if self._source is not None:
+            LOGGER.debug(
+                "Clearing best source %s because a new source was added (%s).",
+                hl(self._source),
+                hl(resource),
+            )
+
+            self._source = None
 
         if not isinstance(resource, Source):
             resource = Source(resource, *args, **kwargs)
@@ -187,12 +225,68 @@ class Attendee(MemoizedObject, FilteredObject):
                 hl(self.sources_path),
             )
 
+    @property
+    def source(self):
+        """
+        Get the best source for the attendee.
+        """
+
+        if self._source is None:
+            LOGGER.debug(
+                "Finding best source for %s...",
+                hl(self),
+            )
+
+            if not self.sources:
+                raise TeapotError(
+                    (
+                        "No enabled source was found for the attendee %s. "
+                        "Did you forget to set a filter on the attendee ?"
+                    ),
+                    hl(self),
+                )
+
+            for source in self.sources:
+                try:
+                    parsed_source = source.parsed_source
+
+                    if parsed_source:
+                        if self.last_parsed_source != parsed_source:
+                            LOGGER.info(
+                                (
+                                    "Best source has changed for %s: cleaning "
+                                    "cache to trigger a refetch."
+                                ),
+                                hl(self),
+                            )
+
+                            self.clean_cache()
+                            self.last_parsed_source = parsed_source
+
+                        LOGGER.debug(
+                            "Best source for %s is now %s.",
+                            hl(self),
+                            hl(source),
+                        )
+
+                        self._source = source
+                        break
+
+                except TeapotError as ex:
+                    LOGGER.warning("Error parsing source %s: " + ex.msg, hl(source), *ex.args)
+                except Exception as ex:
+                    LOGGER.warning("Error parsing source %s: %s", hl(source), hl(str(ex)))
+
+        return self._source
+
     def fetch(self, force=False):
         """
         Fetch the most appropriate source.
 
         If `force` is truthy, the archive will be force-fetched again.
         """
+
+        source = self.source
 
         if self.archive_path:
             if os.path.isfile(self.archive_path):
@@ -208,31 +302,14 @@ class Attendee(MemoizedObject, FilteredObject):
             LOGGER.info("No download manifest found for %s. Will fetch it.", hl(self))
 
         if not self.cache_manifest:
-            LOGGER.info('Fetching %s...', hl(self))
+            LOGGER.info('Fetching %s from %s...', hl(self), hl(source))
 
             mkdir(self.cache_path)
 
-            if not self.sources:
-                raise TeapotError(
-                    (
-                        "No enabled source was found for the attendee %s. "
-                        "Did you forget to set a filter on the attendee ?"
-                    ),
-                    hl(self),
-                )
+            self.cache_manifest = source.fetch(target_path=self.cache_path)
 
-            for source in self.sources:
-                try:
-                    self.cache_manifest = source.fetch(target_path=self.cache_path)
-
-                    LOGGER.debug("Wrote new cache manifest for %s at: %s", hl(self), hl(self.cache_manifest_path))
-                    LOGGER.info("%s fetched successfully.", hl(self))
-
-                    break
-                except TeapotError as ex:
-                    LOGGER.debug("Unable to fetch %s: " + ex.msg, hl(source), *ex.args)
-                except Exception as ex:
-                    LOGGER.debug("Unable to fetch %s: %s", hl(source), hl(str(ex)))
+            LOGGER.debug("Wrote new cache manifest for %s at: %s", hl(self), hl(self.cache_manifest_path))
+            LOGGER.info("%s fetched successfully.", hl(self))
 
         if not self.cache_manifest:
             raise TeapotError(

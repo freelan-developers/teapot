@@ -22,6 +22,7 @@ class Source(FilteredObject):
         self.resource = resource
         self.mimetype = mimetype
         self._fetcher = fetcher
+        self._parsed_source = None
 
     def __str__(self):
         """
@@ -40,9 +41,19 @@ class Source(FilteredObject):
 
         return self._fetcher
 
+    @property
+    def parsed_source(self):
+        if self._parsed_source is None:
+            self._parsed_source = self.fetcher.parse_source(source=self)
+
+        return self._parsed_source
+
     def fetch(self, target_path):
         """
         Fetches the source.
         """
 
-        return self.fetcher.fetch(source=self, target_path=target_path)
+        return self.fetcher.fetch(
+            parsed_source=self.parsed_source,
+            target_path=target_path,
+        )

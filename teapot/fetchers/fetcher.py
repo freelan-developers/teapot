@@ -68,7 +68,7 @@ class Fetcher(MemoizedObject):
     @classmethod
     def get_instance_for(cls, source, default=None):
         for instance in cls.get_instances():
-            if instance.can_parse_source(source):
+            if instance.parse_source(source):
                 return instance
 
         return default
@@ -82,28 +82,23 @@ class Fetcher(MemoizedObject):
         self._fetcher_impl = fetcher_impl_class()
         self.progress = progress_class()
 
-    def can_parse_source(self, source):
+    def parse_source(self, source):
         """
-        Check if a fetcher can parse the specified source.
+        Parse the specified source and return the parsed source.
         """
 
         return self._fetcher_impl.parse_source(source=source)
 
-    def fetch(self, source, target_path):
+    def fetch(self, parsed_source, target_path):
         """
-        Fetch the specified `source` using `target_path` as the target path.
+        Fetch the specified `parsed_source` using `target_path` as the target path.
 
         If fetching is not supported, a falsy value is returned.
         """
 
         try:
-            fetch_info = self._fetcher_impl.parse_source(source=source)
-
-            if not fetch_info:
-                return False
-
             return self._fetcher_impl.fetch(
-                fetch_info=fetch_info,
+                fetch_info=parsed_source,
                 target_path=target_path,
                 progress=self.progress
             )
