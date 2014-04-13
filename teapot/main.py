@@ -207,7 +207,7 @@ def clean_build(party, args):
     Clean the party build.
     """
 
-    party.clean_build(
+    teapot.party.clean_build(
         attendees=args.attendees,
     )
 
@@ -218,24 +218,18 @@ def clean_install(party, args):
     Clean the party install.
     """
 
-    party.clean_install(
+    teapot.party.clean_install(
         attendees=args.attendees,
     )
 
 
 @command
-def clean_all(party, args):
+def clean_all(args):
     """
     Clean the party cache and build.
     """
 
-    party.clean_cache(
-        attendees=args.attendees,
-    )
-    party.clean_build(
-        attendees=args.attendees,
-    )
-    party.clean_install(
+    teapot.party.clean_all(
         attendees=args.attendees,
     )
 

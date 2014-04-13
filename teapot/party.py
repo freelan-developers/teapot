@@ -37,6 +37,21 @@ def load_party_file(path):
         imp.load_source('party', path)
 
 
+def clean_all(attendees=None):
+    """
+    Clean everything.
+    """
+
+    attendees = Attendee.get_enabled_instances(attendees)
+
+    LOGGER.info("Cleaning everything for %s attendee(s)...", hl(len(attendees)))
+
+    clean_cache(attendees)
+    clean_sources(attendees)
+
+    LOGGER.info("Done cleaning everything for %s attendee(s)...", hl(len(attendees)))
+
+
 def clean_cache(attendees=None):
     """
     Clean the cache.

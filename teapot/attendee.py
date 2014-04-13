@@ -212,12 +212,21 @@ class Attendee(MemoizedObject, FilteredObject):
         self._sources.append(resource)
         return self
 
+    def clean(self):
+        """
+        Clean everything.
+        """
+
+        self.clean_cache()
+        self.clean_sources()
+
     def clean_cache(self):
         """
         Clean the cache.
         """
 
         if os.path.exists(self.cache_path):
+            LOGGER.info("Cleaning cache directory for %s.", hl(self))
             LOGGER.debug(
                 "Cache directory for %s is at %s.",
                 hl(self),
@@ -231,6 +240,7 @@ class Attendee(MemoizedObject, FilteredObject):
                 hl(self),
                 hl(self.cache_path),
             )
+            LOGGER.info("Cache directory for %s is already cleaned.", hl(self))
 
     def clean_sources(self):
         """
@@ -238,6 +248,7 @@ class Attendee(MemoizedObject, FilteredObject):
         """
 
         if os.path.exists(self.sources_path):
+            LOGGER.info("Cleaning sources directory for %s.", hl(self))
             LOGGER.debug(
                 "Sources directory for %s is at %s.",
                 hl(self),
@@ -251,6 +262,7 @@ class Attendee(MemoizedObject, FilteredObject):
                 hl(self),
                 hl(self.sources_path),
             )
+            LOGGER.info("Sources directory for %s is already cleaned.", hl(self))
 
     @property
     def source(self):
