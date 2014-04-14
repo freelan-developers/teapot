@@ -24,6 +24,51 @@ class Attendee(MemoizedObject, FilteredObject):
 
     propagate_memoization_key = True
 
+    @classmethod
+    def get_dependant_instances(cls, keys=None):
+        """
+        Get the dependant instances, less dependant instances first.
+        """
+
+        dependency_tree = {
+            attendee: attendee.parents
+            for attendee in cls.get_enabled_instances()
+        }
+
+        result = []
+
+        while dependency_tree:
+            try:
+                attendee = next(x[0] for x in dependency_tree.iteritems() if not x[1])
+            except StopIteration:
+                # We can't find an attendee that does not depend on any
+                # other. We have a dependency cycle.
+                cycle = []
+                attendee = dependency_tree.keys()[0]
+
+                while not attendee in cycle:
+                    cycle.append(attendee)
+                    attendee = next(iter(dependency_tree[attendee]))
+
+                # We make sure the dependency cycle starts with the
+                # first repeating element (which is currently in
+                # `attendee`)
+                cycle = cycle[cycle.index(attendee):] + [attendee]
+                cycle_str = ' -> '.join(map(str, cycle))
+
+                raise TeapotError('Dependency cycle found: %s', hl(cycle_str))
+
+            else:
+                result.append(attendee)
+                del dependency_tree[attendee]
+
+                dependency_tree = {
+                    key: value - {attendee}
+                    for key, value in dependency_tree.iteritems()
+                }
+
+        return result
+
     def __init__(self, name, *args, **kwargs):
         self._depends_on = []
         self._sources = []
@@ -51,6 +96,35 @@ class Attendee(MemoizedObject, FilteredObject):
 
         self._depends_on.extend(attendees)
         return self
+
+    @property
+    def parents(self):
+        """
+        Get attendees this attendee directly depends on.
+        """
+
+        try:
+            return set(self.get_enabled_instances(keys=self._depends_on))
+        except KeyError as ex:
+            raise TeapotError(
+                (
+                    "Reference to a non-existing parent attendee %s could not "
+                    "be solved in attendee %s."
+                ),
+                hl(ex.message),
+                hl(self),
+            )
+
+    @property
+    def children(self):
+        """
+        Get attendees that directly depends on this attendee.
+        """
+
+        return {
+            attendee for attendee in self.get_enabled_instances()
+            if self in attendee.parents
+        }
 
     @property
     def cache_path(self):

@@ -28,7 +28,7 @@ class Memoized(type):
         def get_instances(mycls, keys=None):
             if keys is not None:
                 keys = [getattr(key, mycls.memoization_key) if isinstance(key, mycls) else key for key in keys]
-                return [v for k, v in mycls._INSTANCES.iteritems() if k in keys]
+                return [mycls._INSTANCES[k] for k in keys]
 
             return mycls._INSTANCES.values()
 
