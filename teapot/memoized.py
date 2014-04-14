@@ -68,7 +68,7 @@ class Memoized(type):
         attrs['raise_on_duplicate'] = raise_on_duplicate
         attrs['raise_on_duplicate_enabled'] = False
         attrs.setdefault('__hash__', lambda self: hash(getattr(self, self.memoization_key)))
-        attrs.setdefault('__eq__', lambda self, other: isinstance(other, self.__class__) and hash(other) == hash(self))
+        attrs.setdefault('__eq__', lambda self, other: isinstance(other, self.__class__) and getattr(other, other.memoization_key) == getattr(self, self.memoization_key))
 
         return super(Memoized, cls).__new__(cls, name, bases, attrs)
 
