@@ -120,6 +120,75 @@ def rmdir(path):
         LOGGER.debug(ex)
 
 
+def copytree(src, dst, symlinks=False, ignore=None, copy_function=shutil.copy2):
+    names = os.listdir(src)
+    if ignore is not None:
+        ignored_names = ignore(src, names)
+    else:
+        ignored_names = set()
+
+    os.makedirs(dst)
+    errors = []
+    for name in names:
+        if name in ignored_names:
+            continue
+        srcname = os.path.join(src, name)
+        dstname = os.path.join(dst, name)
+        try:
+            if symlinks and os.path.islink(srcname):
+                linkto = os.readlink(srcname)
+                os.symlink(linkto, dstname)
+            elif os.path.isdir(srcname):
+                copytree(srcname, dstname, symlinks, ignore, copy_function)
+            else:
+                try:
+                    copy_function(srcname, dstname)
+                except (IOError, WindowsError):
+                    shutil.copy2(srcname, dstname)
+
+            # XXX What about devices, sockets etc.?
+        except (IOError, os.error) as why:
+            errors.append((srcname, dstname, str(why)))
+        # catch the Error from the recursive copytree so that we can
+        # continue with other files
+        except Error as err:
+            errors.extend(err.args[0])
+    try:
+        shutil.copystat(src, dst)
+    except WindowsError:
+        # can't copy file access times on Windows
+        pass
+    except OSError as why:
+        errors.extend((src, dst, str(why)))
+    if errors:
+        raise Error(errors)
+
+
+@contextmanager
+def temporary_copy(source_path, target_path, persistent=False):
+    """
+    Copy a source path to a target path.
+
+    The target will be deleted upon function exist, unless `persistent`
+    is truthy.
+    """
+
+    try:
+        if os.path.exists(target_path):
+            rmdir(target_path)
+
+        LOGGER.info('Copying %s to %s...', hl(source_path), hl(target_path))
+        copytree(source_path, target_path, copy_function=os.link)
+
+        yield target_path
+
+    finally:
+        if not persistent:
+            rmdir(target_path)
+        else:
+            LOGGER.info('Not erasing temporary directory at %s.', hl(target_path))
+
+
 def windows_to_unix_path(path):
     """
     Convert a Windows path to a UNIX path, in such a way that it can be used in

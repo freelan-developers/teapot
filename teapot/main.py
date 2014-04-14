@@ -101,13 +101,7 @@ def main():
     build_command_parser.add_argument(
         'attendees', metavar='attendee', nargs='*', default=[], help='The attendees to build.')
     build_command_parser.add_argument(
-        '-t', '--tags', metavar='tag', action='append', default=[], help='The tags to build.')
-    build_command_parser.add_argument(
-        '-u', '--force-unpack', action='store_true',
-        help='Delete and reunpack all source tree directories before attempting a build.')
-    build_command_parser.add_argument(
-        '-f', '--force-build', action='store_true',
-        help='Run all builders even if their last run was successful.')
+        '-f', '--force', action='store_true', help='Fetch archives even if they already exist in the cache.')
     build_command_parser.add_argument(
         '-k', '--keep-builds', action='store_true', help='Keep the build directories for inspection.')
 
@@ -259,16 +253,14 @@ def unpack(args):
 
 
 @command
-def build(party, args):
+def build(args):
     """
     Build the archives.
     """
 
-    party.build(
+    teapot.party.build(
         attendees=args.attendees,
-        tags=args.tags,
+        force=args.force,
         verbose=args.verbose,
-        force_unpack=args.force_unpack,
         keep_builds=args.keep_builds,
-        force_build=args.force_build,
     )

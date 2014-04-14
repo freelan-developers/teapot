@@ -130,3 +130,29 @@ def unpack(attendees=None, force=False):
         attendee.unpack(force=force)
 
     LOGGER.info("Done unpacking %s attendee(s)...", hl(len(attendees)))
+
+
+def build(attendees=None, force=False, verbose=False, keep_builds=False):
+    """
+    Build the specified attendees.
+    """
+
+    unpack(attendees, force=force)
+
+    attendees = Attendee.get_enabled_instances(attendees)
+
+    if force:
+        LOGGER.info("Force-building all %s attendee(s)...", hl(len(attendees)))
+    else:
+        count = len([x for x in attendees if x.must_build])
+
+        if not count:
+            LOGGER.info("All attendees were built already. Nothing to do.")
+            return
+
+        LOGGER.info("Building %s out of %s attendee(s)...", hl(count), hl(len(attendees)))
+
+    for attendee in attendees:
+        attendee.build(force=force, verbose=verbose, keep_builds=keep_builds)
+
+    LOGGER.info("Done building %s attendee(s)...", hl(len(attendees)))

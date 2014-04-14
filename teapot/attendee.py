@@ -12,7 +12,7 @@ from .error import TeapotError
 from .source import Source
 from .log import LOGGER, Highlight as hl
 from .options import get_option
-from .path import mkdir, rmdir, from_user_path
+from .path import mkdir, rmdir, from_user_path, temporary_copy
 from .unpackers import Unpacker
 
 
@@ -181,6 +181,11 @@ class Attendee(MemoizedObject, FilteredObject):
             return True
 
         return not self.extracted_sources_path or not os.path.isdir(self.extracted_sources_path)
+
+    @property
+    def must_build(self):
+        # TODO: Implement
+        return True
 
     @property
     def sources(self):
@@ -482,3 +487,13 @@ class Attendee(MemoizedObject, FilteredObject):
             hl(self.archive_path),
             hl(self.extracted_sources_path),
         )
+
+    def build(self, force=False, verbose=False, keep_builds=False):
+        """
+        Build the attendee.
+        """
+
+        build_path = os.path.join(get_option('build_root'), 'foo')
+
+        with temporary_copy(self.extracted_sources_path, build_path, persistent=keep_builds):
+            pass
