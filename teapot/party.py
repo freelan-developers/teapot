@@ -87,7 +87,7 @@ def fetch(attendees=None, force=False):
     Fetch the specified attendees.
     """
 
-    attendees = Attendee.get_dependent_instances(attendees)
+    attendees = Attendee.get_dependent_instances(attendees or None)
 
     if force:
         LOGGER.info("Force-fetching all %s attendee(s)...", hl(len(attendees)))
@@ -113,7 +113,7 @@ def unpack(attendees=None, force=False):
 
     fetch(attendees, force=force)
 
-    attendees = Attendee.get_dependent_instances(attendees)
+    attendees = Attendee.get_dependent_instances(attendees or None)
 
     if force:
         LOGGER.info("Force-unpacking all %s attendee(s)...", hl(len(attendees)))
@@ -139,7 +139,7 @@ def build(attendees=None, force=False, verbose=False, keep_builds=False):
 
     unpack(attendees, force=force)
 
-    attendees = Attendee.get_dependent_instances(attendees)
+    attendees = Attendee.get_dependent_instances(attendees or None)
 
     if force:
         LOGGER.info("Force-building all %s attendee(s)...", hl(len(attendees)))
