@@ -30,12 +30,22 @@ class Attendee(MemoizedObject, FilteredObject):
         Get the dependant instances, less dependant instances first.
         """
 
+        try:
+            instances = cls.get_enabled_instances(keys=keys)
+        except KeyError as ex:
+            raise TeapotError(
+                (
+                    "Reference to a non-existing attendee %s could not be "
+                    "resolved."
+                ),
+                hl(ex.message),
+            )
+
+        result = []
         dependency_tree = {
             attendee: attendee.parents
             for attendee in cls.get_enabled_instances()
         }
-
-        result = []
 
         while dependency_tree:
             try:
@@ -67,7 +77,16 @@ class Attendee(MemoizedObject, FilteredObject):
                     for key, value in dependency_tree.iteritems()
                 }
 
-        return result
+        unneeded_results = set(result)
+
+        def filter_out(instance):
+            if instance in unneeded_results:
+                unneeded_results.remove(instance)
+                map(filter_out, instance.parents)
+
+        map(filter_out, instances)
+
+        return [x for x in result if x not in unneeded_results]
 
     def __init__(self, name, *args, **kwargs):
         self._depends_on = []
@@ -109,7 +128,7 @@ class Attendee(MemoizedObject, FilteredObject):
             raise TeapotError(
                 (
                     "Reference to a non-existing parent attendee %s could not "
-                    "be solved in attendee %s."
+                    "be resolved in attendee %s."
                 ),
                 hl(ex.message),
                 hl(self),
