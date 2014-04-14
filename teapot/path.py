@@ -177,7 +177,7 @@ def temporary_copy(source_path, target_path, persistent=False):
         if os.path.exists(target_path):
             rmdir(target_path)
 
-        LOGGER.info('Copying %s to %s...', hl(source_path), hl(target_path))
+        LOGGER.debug('Copying %s to %s...', hl(source_path), hl(target_path))
         copytree(source_path, target_path, copy_function=os.link)
 
         yield target_path
