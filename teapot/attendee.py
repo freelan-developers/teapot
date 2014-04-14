@@ -25,9 +25,9 @@ class Attendee(MemoizedObject, FilteredObject):
     propagate_memoization_key = True
 
     @classmethod
-    def get_dependant_instances(cls, keys=None):
+    def get_dependent_instances(cls, keys=None):
         """
-        Get the dependant instances, less dependant instances first.
+        Get the dependent instances, less dependent instances first.
         """
 
         try:
