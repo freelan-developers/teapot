@@ -90,15 +90,15 @@ def fetch(attendees=None, force=False):
     attendees = Attendee.get_dependent_instances(attendees or None)
 
     if force:
-        LOGGER.info("Force-fetching all %s attendee(s)...", hl(len(attendees)))
+        LOGGER.info("Force fetch requested...")
     else:
-        count = len([x for x in attendees if x.must_fetch])
+        attendees = [x for x in attendees if x.must_fetch]
 
-        if not count:
+        if not attendees:
             LOGGER.info("All attendees were fetched already. Nothing to do.")
             return
 
-        LOGGER.info("Fetching %s out of %s attendee(s)...", hl(count), hl(len(attendees)))
+    LOGGER.info("Will now fetch %s." % ", ".join(["%s"] * len(attendees)), *map(hl, attendees))
 
     for attendee in attendees:
         attendee.fetch(force=force)
@@ -116,15 +116,15 @@ def unpack(attendees=None, force=False):
     attendees = Attendee.get_dependent_instances(attendees or None)
 
     if force:
-        LOGGER.info("Force-unpacking all %s attendee(s)...", hl(len(attendees)))
+        LOGGER.info("Force unpack requested...")
     else:
-        count = len([x for x in attendees if x.must_unpack])
+        attendees = [x for x in attendees if x.must_unpack]
 
-        if not count:
+        if not attendees:
             LOGGER.info("All attendees were unpacked already. Nothing to do.")
             return
 
-        LOGGER.info("Unpacking %s out of %s attendee(s)...", hl(count), hl(len(attendees)))
+    LOGGER.info("Will now unpack %s." % ", ".join(["%s"] * len(attendees)), *map(hl, attendees))
 
     for attendee in attendees:
         attendee.unpack(force=force)
@@ -142,15 +142,15 @@ def build(attendees=None, force=False, verbose=False, keep_builds=False):
     attendees = Attendee.get_dependent_instances(attendees or None)
 
     if force:
-        LOGGER.info("Force-building all %s attendee(s)...", hl(len(attendees)))
+        LOGGER.info("Force build requested...")
     else:
-        count = len([x for x in attendees if x.must_build])
+        attendees = [x for x in attendees if x.must_build]
 
-        if not count:
+        if not attendees:
             LOGGER.info("All attendees were built already. Nothing to do.")
             return
 
-        LOGGER.info("Building %s out of %s attendee(s)...", hl(count), hl(len(attendees)))
+    LOGGER.info("Will now build %s." % ", ".join(["%s"] * len(attendees)), *map(hl, attendees))
 
     for attendee in attendees:
         attendee.build(force=force, verbose=verbose, keep_builds=keep_builds)
