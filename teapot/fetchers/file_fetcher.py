@@ -4,6 +4,7 @@ A local-file fetcher class.
 
 import os
 import shutil
+import urlparse
 import mimetypes
 
 from teapot.fetchers.fetcher import register_fetcher
@@ -23,9 +24,11 @@ class FileFetcher(FetcherImplementation):
         Checks that the `source` is a local filename.
         """
 
-        if os.path.exists(source.resource):
+        parse = urlparse.urlparse(source.resource)
+
+        if parse.scheme == 'file':
             return {
-                'file_path': os.path.abspath(source.resource),
+                'file_path': os.path.abspath(parse.netloc),
             }
 
     def fetch(self, fetch_info, target_path, progress):
