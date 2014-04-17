@@ -11,7 +11,7 @@ class TeapotError(RuntimeError):
 
     def __init__(self, msg, *args):
         self.msg = msg
-        self.args = args
+        self.msg_args = args
 
     def __str__(self):
-        return self.msg % self.args
+        return self.msg % self.msg_args

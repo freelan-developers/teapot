@@ -15,60 +15,10 @@ class Memoized(type):
     A Memoized type.
     """
 
-    DEFAULT_MEMOIZATION_KEY = 'name'
-    DEFAULT_PROPAGATE_MEMOIZATION_KEY = False
-
     def __new__(cls, name, bases, attrs):
 
-        @classmethod
-        def get_instance(mycls, key, default=None):
-            return mycls._INSTANCES.get(key, default)
-
-        @classmethod
-        def get_instances(mycls, keys=None):
-            if keys is not None:
-                keys = [getattr(key, mycls.memoization_key) if isinstance(key, mycls) else key for key in keys]
-                return [mycls._INSTANCES[k] for k in keys]
-
-            return mycls._INSTANCES.values()
-
-        @classmethod
-        def clear_instances(mycls, keys=None):
-            if keys:
-                keys = [getattr(key, mycls.memoization_key) if isinstance(key, mycls) else key for key in keys]
-
-                for key in keys:
-                    if key in mycls._INSTANCES:
-                        del mycls._INSTANCES[key]
-            else:
-                mycls._INSTANCES = {}
-
-        @classmethod
-        @contextmanager
-        def raise_on_duplicate(mycls):
-            (
-                sentinel,
-                mycls.raise_on_duplicate_enabled,
-            ) = (
-                mycls.raise_on_duplicate_enabled,
-                True,
-            )
-
-            try:
-                yield
-            finally:
-                mycls.raise_on_duplicate_enabled = sentinel
-
-        attrs.setdefault('memoization_key', cls.DEFAULT_MEMOIZATION_KEY)
-        attrs.setdefault('propagate_memoization_key', cls.DEFAULT_PROPAGATE_MEMOIZATION_KEY)
+        attrs.setdefault('public_name', name)
         attrs['_INSTANCES'] = {}
-        attrs['get_instance'] = get_instance
-        attrs['get_instances'] = get_instances
-        attrs.setdefault('__str__', lambda self: getattr(self, self.memoization_key))
-        attrs['raise_on_duplicate'] = raise_on_duplicate
-        attrs['raise_on_duplicate_enabled'] = False
-        attrs.setdefault('__hash__', lambda self: hash(getattr(self, self.memoization_key)))
-        attrs.setdefault('__eq__', lambda self, other: isinstance(other, self.__class__) and getattr(other, other.memoization_key) == getattr(self, self.memoization_key))
 
         return super(Memoized, cls).__new__(cls, name, bases, attrs)
 
@@ -100,3 +50,103 @@ class MemoizedObject(object):
     """
 
     __metaclass__ = Memoized
+
+    memoization_key = 'name'
+    propagate_memoization_key = False
+    raise_on_duplicate_enabled = False
+    no_such_instance_message = "No %s could be found that has the %s %s."
+    no_such_instance_args = ('classname', 'keyname', 'key')
+
+    class NoSuchInstance(TeapotError):
+
+        """
+        A non-existing instance was requested.
+        """
+
+        def __init__(self, cls, key):
+            super(cls.NoSuchInstance, self).__init__(
+                cls.get_no_such_instance_message(key),
+                *cls.get_no_such_instance_args(key)
+            )
+            self.cls = cls
+            self.key = key
+
+    @classmethod
+    def get_no_such_instance_message(cls, key):
+        return cls.no_such_instance_message
+
+    @classmethod
+    def get_no_such_instance_args(cls, key):
+        values = {
+            'classname': hl(cls.public_name),
+            'keyname': cls.memoization_key,
+            'key': hl(key),
+            'self': hl(self),
+        }
+
+        return map(values.get, cls.no_such_instance_args)
+
+    @classmethod
+    def get_instance(cls, key, default=None):
+        return cls._INSTANCES.get(key, default)
+
+    @classmethod
+    def get_instance_or_fail(cls, key):
+        instance = cls.get_instance(key)
+
+        if instance is None:
+            raise cls.NoSuchInstance(cls, key)
+
+        return instance
+
+    @classmethod
+    def get_instances(cls, keys=None):
+        if keys is not None:
+            keys = [getattr(key, cls.memoization_key) if isinstance(key, cls) else key for key in keys]
+
+            result = []
+
+            for key in keys:
+                if key not in cls._INSTANCES:
+                    raise cls.NoSuchInstance(cls, key)
+                result.append(cls._INSTANCES[key])
+
+            return result
+
+        return cls._INSTANCES.values()
+
+    @classmethod
+    @contextmanager
+    def raise_on_duplicate(cls):
+        (
+            sentinel,
+            cls.raise_on_duplicate_enabled,
+        ) = (
+            cls.raise_on_duplicate_enabled,
+            True,
+        )
+
+        try:
+            yield
+        finally:
+            cls.raise_on_duplicate_enabled = sentinel
+
+    @classmethod
+    def clear_instances(cls, keys=None):
+        if keys:
+            keys = [getattr(key, cls.memoization_key) if isinstance(key, cls) else key for key in keys]
+
+            for key in keys:
+                if key in cls._INSTANCES:
+                    del cls._INSTANCES[key]
+        else:
+            cls._INSTANCES = {}
+
+    def __str__(self):
+        return getattr(self, self.memoization_key)
+
+    def __hash__(self):
+        return hash(getattr(self, self.memoization_key))
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and getattr(other, other.memoization_key) == getattr(self, self.memoization_key)

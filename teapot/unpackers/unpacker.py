@@ -34,19 +34,12 @@ class Unpacker(MemoizedObject):
     """
 
     memoization_key = 'mimetype'
+    no_such_instance_message = "Unable to find an unpacker that handles archives of type %s."
+    no_such_instance_args = ('self',)
 
     @staticmethod
     def mimetype_to_str(mimetype):
         return '(%s)' % ','.join(x for x in mimetype if x)
-
-    @classmethod
-    def get_instance_or_fail(cls, mimetype):
-        fetcher = cls.get_instance(mimetype)
-
-        if fetcher is None:
-            raise TeapotError("Unable to find an unpacker that handles archives of type: %s", hl(mimetype_to_str(mimetype)))
-
-        return fetcher
 
     def __init__(self, unpacker_impl_class, progress_class=ProgressBarUnpackerCallback):
         """

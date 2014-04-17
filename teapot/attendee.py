@@ -32,13 +32,13 @@ class Attendee(MemoizedObject, FilteredObject):
 
         try:
             instances = cls.get_enabled_instances(keys=keys)
-        except KeyError as ex:
+        except Attendee.NoSuchInstance as ex:
             raise TeapotError(
                 (
                     "Reference to a non-existing attendee %s could not be "
                     "resolved."
                 ),
-                hl(ex.message),
+                hl(ex.key),
             )
 
         result = []
@@ -124,13 +124,13 @@ class Attendee(MemoizedObject, FilteredObject):
 
         try:
             return set(self.get_enabled_instances(keys=self._depends_on))
-        except KeyError as ex:
+        except Attendee.NoSuchInstance as ex:
             raise TeapotError(
                 (
                     "Reference to a non-existing parent attendee %s could not "
                     "be resolved in attendee %s."
                 ),
-                hl(ex.message),
+                hl(ex.key),
                 hl(self),
             )
 

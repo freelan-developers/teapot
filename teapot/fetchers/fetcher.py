@@ -57,15 +57,6 @@ class Fetcher(MemoizedObject):
     """
 
     @classmethod
-    def get_instance_or_fail(cls, name):
-        fetcher = cls.get_instance(name)
-
-        if fetcher is None:
-            raise TeapotError("Unable to find the fetcher named %s.", hl(name))
-
-        return fetcher
-
-    @classmethod
     def get_instance_for(cls, source, default=None):
         for instance in cls.get_instances():
             if instance.parse_source(source):

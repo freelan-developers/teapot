@@ -45,15 +45,8 @@ class UnamedFilter(object):
 class Filter(MemoizedObject, UnamedFilter):
 
     propagate_memoization_key = True
-
-    @classmethod
-    def get_instance_or_fail(cls, name):
-        filter = cls.get_instance(name)
-
-        if filter is None:
-            raise TeapotError("Unable to find the filter named %s.", hl(name))
-
-        return filter
+    no_such_instance_message = "No filter named %s could be found. Did you mistype the filter's name ?"
+    no_such_instance_args = ('key',)
 
     def __init__(self, name, condition=None):
         if condition is None:

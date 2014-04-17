@@ -155,7 +155,7 @@ def command(func):
             pass
 
         except TeapotError as ex:
-            LOGGER.error(ex.msg, *ex.args)
+            LOGGER.error(ex.msg, *ex.msg_args)
 
             if args.debug:
                 LOGGER.debug('\nTraceback is:\n' + ''.join(traceback.format_tb(sys.exc_info()[2])))
