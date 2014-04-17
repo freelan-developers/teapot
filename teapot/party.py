@@ -13,6 +13,19 @@ from .log import Highlight as hl
 from .attendee import Attendee
 
 
+@contextmanager
+def disable_bytecode_generation():
+    """
+    Temporarily disable bytecode generation.
+    """
+    sentinel, sys.dont_write_bytecode = sys.dont_write_bytecode, True
+
+    try:
+        yield
+    finally:
+        sys.dont_write_bytecode = sentinel
+
+
 def load_party_file(path):
     """
     Load a Party from a file.
@@ -23,15 +36,6 @@ def load_party_file(path):
     path = os.path.abspath(path)
 
     LOGGER.debug('Importing party file from %r.', path)
-
-    @contextmanager
-    def disable_bytecode_generation():
-        sentinel, sys.dont_write_bytecode = sys.dont_write_bytecode, True
-
-        try:
-            yield
-        finally:
-            sys.dont_write_bytecode = sentinel
 
     with disable_bytecode_generation():
         imp.load_source('party', path)
