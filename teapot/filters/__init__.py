@@ -6,7 +6,7 @@ from .builtin import *
 
 from ..error import TeapotError
 from ..log import Highlight as hl
-from .filter import Filter, f_
+from .filter import Filter, f_, uf_
 
 
 class FilteredObject(object):
