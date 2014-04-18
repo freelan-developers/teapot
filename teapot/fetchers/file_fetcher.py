@@ -24,11 +24,11 @@ class FileFetcher(FetcherImplementation):
         Checks that the `source` is a local filename.
         """
 
-        parse = urlparse.urlparse(source.resource)
+        parse = urlparse.urlsplit(source.resource)
 
         if parse.scheme == 'file':
             return {
-                'file_path': os.path.abspath(parse.netloc),
+                'file_path': os.path.abspath(os.path.join(parse.netloc, parse.path)),
             }
 
     def fetch(self, fetch_info, target_path, progress):
