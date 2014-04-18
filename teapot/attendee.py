@@ -154,6 +154,10 @@ class Attendee(MemoizedObject, FilteredObject):
         return from_user_path(os.path.join(get_option('sources_root'), self.name))
 
     @property
+    def builds_path(self):
+        return from_user_path(os.path.join(get_option('builds_root'), self.name))
+
+    @property
     def cache_manifest_path(self):
         return os.path.join(self.cache_path, 'manifest.json')
 
@@ -317,6 +321,7 @@ class Attendee(MemoizedObject, FilteredObject):
 
         self.clean_cache()
         self.clean_sources()
+        self.clean_builds()
 
     def clean_cache(self):
         """
@@ -361,6 +366,28 @@ class Attendee(MemoizedObject, FilteredObject):
                 hl(self.sources_path),
             )
             LOGGER.info("Sources directory for %s is already cleaned.", hl(self))
+
+    def clean_builds(self):
+        """
+        Clean the builds.
+        """
+
+        if os.path.exists(self.builds_path):
+            LOGGER.info("Cleaning builds directory for %s.", hl(self))
+            LOGGER.debug(
+                "Builds directory for %s is at %s.",
+                hl(self),
+                hl(self.builds_path),
+            )
+
+            rmdir(self.builds_path)
+        else:
+            LOGGER.debug(
+                "Builds directory for %s does not exist at %s. Nothing to do.",
+                hl(self),
+                hl(self.builds_path),
+            )
+            LOGGER.info("Builds directory for %s is already cleaned.", hl(self))
 
     @property
     def source(self):
@@ -586,7 +613,7 @@ class Attendee(MemoizedObject, FilteredObject):
         Build the attendee.
         """
 
-        build_path = os.path.join(get_option('build_root'), 'foo')
+        build_path = os.path.join(self.builds_path, 'foo')
 
         with temporary_copy(self.extracted_sources_path, build_path, persistent=keep_builds):
             pass

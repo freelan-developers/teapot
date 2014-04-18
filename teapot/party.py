@@ -46,12 +46,13 @@ def clean_all(attendees=None):
     Clean everything.
     """
 
-    attendees = Attendee.get_enabled_instances(attendees)
+    attendees = Attendee.get_enabled_instances(attendees or None)
 
     LOGGER.info("Cleaning everything for %s attendee(s)...", hl(len(attendees)))
 
     clean_cache(attendees)
     clean_sources(attendees)
+    clean_builds(attendees)
 
     LOGGER.info("Done cleaning everything for %s attendee(s)...", hl(len(attendees)))
 
@@ -61,7 +62,7 @@ def clean_cache(attendees=None):
     Clean the cache.
     """
 
-    attendees = Attendee.get_enabled_instances(attendees)
+    attendees = Attendee.get_enabled_instances(attendees or None)
 
     LOGGER.info("Cleaning cache for %s attendee(s)...", hl(len(attendees)))
 
@@ -76,7 +77,7 @@ def clean_sources(attendees=None):
     Clean the sources.
     """
 
-    attendees = Attendee.get_enabled_instances(attendees)
+    attendees = Attendee.get_enabled_instances(attendees or None)
 
     LOGGER.info("Cleaning sources for %s attendee(s)...", hl(len(attendees)))
 
@@ -84,6 +85,21 @@ def clean_sources(attendees=None):
         attendee.clean_sources()
 
     LOGGER.info("Done cleaning sources for %s attendee(s)...", hl(len(attendees)))
+
+
+def clean_builds(attendees=None):
+    """
+    Clean the builds.
+    """
+
+    attendees = Attendee.get_enabled_instances(attendees or None)
+
+    LOGGER.info("Cleaning builds for %s attendee(s)...", hl(len(attendees)))
+
+    for attendee in attendees:
+        attendee.clean_builds()
+
+    LOGGER.info("Done cleaning builds for %s attendee(s)...", hl(len(attendees)))
 
 
 def fetch(attendees=None, force=False):

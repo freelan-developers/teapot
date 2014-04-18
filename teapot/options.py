@@ -163,17 +163,17 @@ def get_option(name):
 
 register_option('cache_root', default_values=[
     Option.Value('~/.teapot/cache', filter=~f_('windows')),
-    Option.Value('%APPDATA%/teapot/cache', filter=f_('windows')),
+    Option.Value('%APPDATA%\\teapot\\cache', filter=f_('windows')),
 ])
 register_option('sources_root', default_values=[
     Option.Value('~/.teapot/sources', filter=~f_('windows')),
-    Option.Value('%APPDATA%/teapot/sources', filter=f_('windows')),
+    Option.Value('%APPDATA%\\teapot\\sources', filter=f_('windows')),
 ])
-register_option('build_root', default_values=[
+register_option('builds_root', default_values=[
     Option.Value('~/.teapot/build', filter=~f_('windows')),
-    Option.Value('%APPDATA%/teapot/build', filter=f_('windows')),
+    Option.Value('%APPDATA%\\teapot\\build', filter=f_('windows')),
 ])
 register_option('prefix', default_values=[
     Option.Value('~/.teapot/install', filter=~f_('windows')),
-    Option.Value('%APPDATA%/teapot/install', filter=f_('windows')),
+    Option.Value('%APPDATA%\\teapot\\install', filter=f_('windows')),
 ])

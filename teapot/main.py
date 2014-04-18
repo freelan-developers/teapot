@@ -43,23 +43,23 @@ def main():
 
     #  The clean cache subcommand
     clean_cache_command_parser = clean_subcommand_parser.add_parser(
-        'cache', help='Clean the party cache.')
+        'cache', help='Clean the cache.')
     clean_cache_command_parser.set_defaults(func=clean_cache)
     clean_cache_command_parser.add_argument(
         'attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
 
     #  The clean sources subcommand
     clean_sources_command_parser = clean_subcommand_parser.add_parser(
-        'sources', help='Clean the party sources.')
+        'sources', help='Clean the sources.')
     clean_sources_command_parser.set_defaults(func=clean_sources)
     clean_sources_command_parser.add_argument(
         'attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
 
-    #  The clean build subcommand
-    clean_build_command_parser = clean_subcommand_parser.add_parser(
-        'build', help='Clean the party build.')
-    clean_build_command_parser.set_defaults(func=clean_build)
-    clean_build_command_parser.add_argument(
+    #  The clean builds subcommand
+    clean_builds_command_parser = clean_subcommand_parser.add_parser(
+        'builds', help='Clean the builds.')
+    clean_builds_command_parser.set_defaults(func=clean_builds)
+    clean_builds_command_parser.add_argument(
         'attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
 
     #  The clean install subcommand
@@ -176,7 +176,7 @@ def command(func):
 @command
 def clean_cache(args):
     """
-    Clean the party cache.
+    Clean the cache.
     """
 
     teapot.party.clean_cache(
@@ -187,7 +187,7 @@ def clean_cache(args):
 @command
 def clean_sources(args):
     """
-    Clean the party sources.
+    Clean the sources.
     """
 
     teapot.party.clean_sources(
@@ -196,12 +196,12 @@ def clean_sources(args):
 
 
 @command
-def clean_build(party, args):
+def clean_builds(args):
     """
-    Clean the party build.
+    Clean the builds.
     """
 
-    teapot.party.clean_build(
+    teapot.party.clean_builds(
         attendees=args.attendees,
     )
 
