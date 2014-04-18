@@ -18,9 +18,9 @@ class FilteredObject(object):
         self._filter = filter
 
     @classmethod
-    def get_enabled_instances(cls, keys=None, instances=None):
+    def get_enabled_instances(cls, keys_list=None, instances=None):
         if instances is None:
-            instances = cls.get_instances(keys=keys)
+            instances = cls.get_instances(keys_list=keys_list)
 
         return [x for x in instances if x.enabled]
 
@@ -31,7 +31,8 @@ class FilteredObject(object):
 
         return self._filter
 
-    def set_filter(self, filter):
+    @filter.setter
+    def filter(self, filter):
         """
         Set the `filter` to check.
 

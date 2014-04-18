@@ -44,9 +44,9 @@ class UnamedFilter(object):
 
 class Filter(MemoizedObject, UnamedFilter):
 
-    propagate_memoization_key = True
+    propagate_memoization_keys = True
     no_such_instance_message = "No filter named %s could be found. Did you mistype the filter's name ?"
-    no_such_instance_args = ('key',)
+    no_such_instance_args = ('key_name',)
 
     def __init__(self, name, condition=None):
         if condition is None:

@@ -99,7 +99,7 @@ def rmdir(path):
     """
 
     try:
-        LOGGER.debug('Removing directory at %s.', hl(path))
+        LOGGER.info('Removing directory at %s.', hl(path))
 
         def onerror(func, path, excinfo):
             if os.path.exists(path):
@@ -117,7 +117,7 @@ def rmdir(path):
         shutil.rmtree(path, ignore_errors=False, onerror=onerror)
 
     except Exception as ex:
-        LOGGER.debug(ex)
+        LOGGER.warning(ex)
 
 
 def copytree(src, dst, symlinks=False, ignore=None, copy_function=shutil.copy2):
@@ -177,7 +177,7 @@ def temporary_copy(source_path, target_path, persistent=False):
         if os.path.exists(target_path):
             rmdir(target_path)
 
-        LOGGER.debug('Copying %s to %s...', hl(source_path), hl(target_path))
+        LOGGER.info('Copying %s to %s...', hl(source_path), hl(target_path))
         copytree(source_path, target_path, copy_function=getattr(os, 'link', shutil.copy2))
 
         yield target_path

@@ -33,7 +33,7 @@ class Unpacker(MemoizedObject):
     Represent an unpacker.
     """
 
-    memoization_key = 'mimetype'
+    memoization_keys = ('mimetype',)
     no_such_instance_message = "Unable to find an unpacker that handles archives of type %s."
     no_such_instance_args = ('self',)
 

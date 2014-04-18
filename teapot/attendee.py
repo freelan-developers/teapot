@@ -14,6 +14,7 @@ from .log import LOGGER, Highlight as hl
 from .options import get_option
 from .path import mkdir, rmdir, from_user_path, temporary_copy
 from .unpackers import Unpacker
+from .build import Build
 
 
 class Attendee(MemoizedObject, FilteredObject):
@@ -22,16 +23,16 @@ class Attendee(MemoizedObject, FilteredObject):
     Represents a project to build.
     """
 
-    propagate_memoization_key = True
+    propagate_memoization_keys = True
 
     @classmethod
-    def get_dependent_instances(cls, keys=None):
+    def get_dependent_instances(cls, keys_list=None):
         """
         Get the dependent instances, less dependent instances first.
         """
 
         try:
-            instances = cls.get_enabled_instances(keys=keys)
+            instances = cls.get_enabled_instances(keys_list=keys_list)
         except Attendee.NoSuchInstance as ex:
             raise TeapotError(
                 (
@@ -96,6 +97,7 @@ class Attendee(MemoizedObject, FilteredObject):
         self._last_parsed_source = None
         self._sources_manifest = {}
         self._last_unpacked_archive_info = {}
+        self._builds = set()
 
         super(Attendee, self).__init__(*args, **kwargs)
 
@@ -123,7 +125,7 @@ class Attendee(MemoizedObject, FilteredObject):
         """
 
         try:
-            return set(self.get_enabled_instances(keys=self._depends_on))
+            return set(self.get_enabled_instances(keys_list=self._depends_on))
         except Attendee.NoSuchInstance as ex:
             raise TeapotError(
                 (
@@ -312,6 +314,26 @@ class Attendee(MemoizedObject, FilteredObject):
             resource = Source(resource, *args, **kwargs)
 
         self._sources.append(resource)
+        return self
+
+    @property
+    def builds(self):
+        """
+        Get all the active builds.
+        """
+
+        return [x for x in self._builds if x.enabled]
+
+    def add_build(self, build, *args, **kwargs):
+        """
+        Add a build to the attendee.
+        """
+
+        if not isinstance(build, Build):
+            build = Build(self, build, *args, **kwargs)
+        else:
+            self._builds.add(build)
+
         return self
 
     def clean(self):
@@ -613,7 +635,8 @@ class Attendee(MemoizedObject, FilteredObject):
         Build the attendee.
         """
 
-        build_path = os.path.join(self.builds_path, 'foo')
+        for build in self.builds:
+            build_path = os.path.join(self.builds_path, build.name)
 
-        with temporary_copy(self.extracted_sources_path, build_path, persistent=keep_builds):
-            pass
+            with temporary_copy(self.extracted_sources_path, build_path, persistent=keep_builds):
+                pass

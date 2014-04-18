@@ -40,6 +40,8 @@ def load_party_file(path):
     with disable_bytecode_generation():
         imp.load_source('party', path)
 
+    LOGGER.debug('Done importing party file.')
+
 
 def clean_all(attendees=None):
     """
