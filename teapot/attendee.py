@@ -336,6 +336,13 @@ class Attendee(MemoizedObject, FilteredObject):
 
         return self
 
+    def get_build(self, build):
+        """
+        Get a build.
+        """
+
+        return Build.get_instance_or_fail(self, build)
+
     def clean(self):
         """
         Clean everything.
@@ -637,6 +644,7 @@ class Attendee(MemoizedObject, FilteredObject):
 
         for build in self.builds:
             build_path = os.path.join(self.builds_path, build.name)
+            log_path = os.path.join(self.builds_path, build.name + '.log')
 
             with temporary_copy(self.extracted_sources_path, build_path, persistent=keep_builds):
-                pass
+                build.build(path=build_path, log_path=log_path)

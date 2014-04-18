@@ -24,6 +24,7 @@ class Memoized(type):
 
     def __call__(cls, *args, **kwargs):
         keys, args, kwargs = cls.extract_keys_from_args(args, kwargs, remove_from_args=not cls.propagate_memoization_keys)
+        keys = cls.transform_memoization_keys(*keys)
 
         if keys not in cls._INSTANCES:
             instance = super(Memoized, cls).__call__(*args, **kwargs)
