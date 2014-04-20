@@ -11,6 +11,7 @@ from contextlib import contextmanager
 from .log import LOGGER
 from .log import Highlight as hl
 from .attendee import Attendee
+from .globals import set_party_path
 
 
 @contextmanager
@@ -38,7 +39,8 @@ def load_party_file(path):
     LOGGER.debug('Importing party file from %r.', path)
 
     with disable_bytecode_generation():
-        imp.load_source('party', path)
+        with set_party_path(path):
+            imp.load_source('party', path)
 
     LOGGER.debug('Done importing party file.')
 

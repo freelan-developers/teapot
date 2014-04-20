@@ -35,6 +35,8 @@ to add your own modules and extend its scope.
         'teapot',
         'teapot.filters',
         'teapot.fetchers',
+        'teapot.unpackers',
+        'teapot.extra',
     ],
     install_requires=install_requires,
     entry_points={

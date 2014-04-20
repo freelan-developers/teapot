@@ -83,6 +83,7 @@ class MemoizedObject(object):
     def get_duplicate_instance_args(cls, keys):
         values = {
             'classname': hl(cls.public_name),
+            'keys': keys,
         }
 
         for memoization_key, key in zip(cls.memoization_keys, keys):
@@ -112,6 +113,7 @@ class MemoizedObject(object):
     def get_no_such_instance_args(cls, keys):
         values = {
             'classname': hl(cls.public_name),
+            'keys': keys,
         }
 
         for memoization_key, key in zip(cls.memoization_keys, keys):

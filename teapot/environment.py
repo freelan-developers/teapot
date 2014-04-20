@@ -182,5 +182,6 @@ class Environment(MemoizedObject):
             os.environ.update(saved_environ)
 
 
-# Create the system environment.
+# Create the empty and system environments.
+Environment('empty')
 Environment('system', variables=os.environ.copy())

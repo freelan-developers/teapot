@@ -106,5 +106,5 @@ class named_filter(object):
         return func
 
 
-uf_ = UnamedFilter
-f_ = Filter
+uf = UnamedFilter
+f = Filter

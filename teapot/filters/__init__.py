@@ -2,11 +2,9 @@
 The filters.
 """
 
-from .builtin import *
-
 from ..error import TeapotError
 from ..log import Highlight as hl
-from .filter import Filter, f_, uf_
+from .filter import Filter, f, uf
 
 
 class FilteredObject(object):
@@ -14,7 +12,8 @@ class FilteredObject(object):
     Inherit from this class when your object can be disabled by filters.
     """
 
-    def __init__(self, filter=None):
+    def __init__(self, filter=None, *args, **kwargs):
+        super(FilteredObject, self).__init__(*args, **kwargs)
         self._filter = filter
 
     @classmethod

@@ -8,6 +8,7 @@ import shutil
 import errno
 
 from contextlib import contextmanager
+from functools import wraps
 
 from teapot.log import LOGGER
 from teapot.log import Highlight as hl
@@ -19,6 +20,18 @@ def from_user_path(path):
     """
 
     return os.path.normpath(os.path.expanduser(os.path.expandvars(path)))
+
+
+def resolve_user_path(func):
+    """
+    A decorator that resolves user paths in the return value.
+    """
+
+    @wraps(func)
+    def wrapped_func(*args, **kwargs):
+        return from_user_path(func(*args, **kwargs))
+
+    return wrapped_func
 
 
 def read_path(value, base_path, default_path):

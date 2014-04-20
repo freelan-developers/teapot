@@ -62,13 +62,6 @@ def main():
     clean_builds_command_parser.add_argument(
         'attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
 
-    #  The clean install subcommand
-    clean_install_command_parser = clean_subcommand_parser.add_parser(
-        'install', help='Clean the party install.')
-    clean_install_command_parser.set_defaults(func=clean_install)
-    clean_install_command_parser.add_argument(
-        'attendees', metavar='attendee', nargs='*', default=[], help='The attendees to clean.')
-
     #  The clean all subcommand
     clean_all_command_parser = clean_subcommand_parser.add_parser(
         'all', help='Clean the party cache, build and install.')
@@ -114,6 +107,7 @@ def main():
     if args.debug:
         logging.getLogger().addHandler(handler)
         logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger('lepl').setLevel(logging.WARNING)
     else:
         LOGGER.addHandler(handler)
         LOGGER.setLevel(logging.INFO)
@@ -202,17 +196,6 @@ def clean_builds(args):
     """
 
     teapot.party.clean_builds(
-        attendees=args.attendees,
-    )
-
-
-@command
-def clean_install(party, args):
-    """
-    Clean the party install.
-    """
-
-    teapot.party.clean_install(
         attendees=args.attendees,
     )
 

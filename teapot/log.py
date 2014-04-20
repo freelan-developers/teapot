@@ -80,6 +80,13 @@ class Highlight(object):
 
         return str(self.msg)
 
+    def __repr__(self):
+        """
+        Return a representation.
+        """
+
+        return repr(self.msg)
+
     def render(self, color, reset):
         """
         Return a colorized representation.

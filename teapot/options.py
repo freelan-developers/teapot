@@ -3,7 +3,7 @@ Defines mechanism to handle options.
 """
 
 from .filters import FilteredObject
-from .filters import f_
+from .filters import f
 from .error import TeapotError
 from .log import LOGGER
 from .log import Highlight as hl
@@ -162,18 +162,18 @@ def get_option(name):
 # Some built-in options.
 
 register_option('cache_root', default_values=[
-    Option.Value('~/.teapot/cache', filter=~f_('windows')),
-    Option.Value('%APPDATA%\\teapot\\cache', filter=f_('windows')),
+    Option.Value('~/.teapot/cache', filter=~f('windows')),
+    Option.Value('%APPDATA%\\teapot\\cache', filter=f('windows')),
 ])
 register_option('sources_root', default_values=[
-    Option.Value('~/.teapot/sources', filter=~f_('windows')),
-    Option.Value('%APPDATA%\\teapot\\sources', filter=f_('windows')),
+    Option.Value('~/.teapot/sources', filter=~f('windows')),
+    Option.Value('%APPDATA%\\teapot\\sources', filter=f('windows')),
 ])
 register_option('builds_root', default_values=[
-    Option.Value('~/.teapot/builds', filter=~f_('windows')),
-    Option.Value('%APPDATA%\\teapot\\builds', filter=f_('windows')),
+    Option.Value('~/.teapot/builds', filter=~f('windows')),
+    Option.Value('%APPDATA%\\teapot\\builds', filter=f('windows')),
 ])
 register_option('prefix', default_values=[
-    Option.Value('~/.teapot/install', filter=~f_('windows')),
-    Option.Value('%APPDATA%\\teapot\\install', filter=f_('windows')),
+    Option.Value('~/.teapot/install', filter=~f('windows')),
+    Option.Value('%APPDATA%\\teapot\\install', filter=f('windows')),
 ])

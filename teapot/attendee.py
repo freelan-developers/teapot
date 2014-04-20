@@ -8,22 +8,22 @@ import hashlib
 
 from .memoized import MemoizedObject
 from .filters import FilteredObject
-from .error import TeapotError
 from .source import Source
+from .error import TeapotError
 from .log import LOGGER, Highlight as hl
 from .options import get_option
 from .path import mkdir, rmdir, from_user_path, temporary_copy
 from .unpackers import Unpacker
 from .build import Build
+from .globals import get_party_path
+from .prefix import PrefixedObject
 
 
-class Attendee(MemoizedObject, FilteredObject):
+class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
 
     """
     Represents a project to build.
     """
-
-    propagate_memoization_keys = True
 
     @classmethod
     def get_dependent_instances(cls, keys_list=None):
@@ -89,7 +89,8 @@ class Attendee(MemoizedObject, FilteredObject):
 
         return [x for x in result if x not in unneeded_results]
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        self.party_path = get_party_path()
         self._depends_on = []
         self._sources = []
         self._source = None
@@ -647,4 +648,4 @@ class Attendee(MemoizedObject, FilteredObject):
             log_path = os.path.join(self.builds_path, build.name + '.log')
 
             with temporary_copy(self.extracted_sources_path, build_path, persistent=keep_builds):
-                build.build(path=build_path, log_path=log_path)
+                build.build(path=build_path, log_path=log_path, verbose=verbose)
