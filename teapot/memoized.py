@@ -15,12 +15,24 @@ class Memoized(type):
     A Memoized type.
     """
 
+    _ALL_INSTANCES = {}
+
+    @classmethod
+    def clear_all_instances(cls):
+        for mcls in cls._ALL_INSTANCES.values():
+            mcls.clear_instances()
+            del mcls
+
+        cls._ALL_INSTANCES = {}
+
     def __new__(cls, name, bases, attrs):
 
         attrs.setdefault('public_name', name)
         attrs['_INSTANCES'] = {}
+        attrs['_INSTANCES_PARAMS'] = {}
 
-        return super(Memoized, cls).__new__(cls, name, bases, attrs)
+        cls._ALL_INSTANCES[name] = super(Memoized, cls).__new__(cls, name, bases, attrs)
+        return cls._ALL_INSTANCES[name]
 
     def __call__(cls, *args, **kwargs):
         keys, args, kwargs = cls.extract_keys_from_args(args, kwargs, remove_from_args=not cls.propagate_memoization_keys)
@@ -35,9 +47,17 @@ class Memoized(type):
             setattr(instance, 'keys', keys)
 
             cls._INSTANCES[keys] = instance
+            cls._INSTANCES_PARAMS[keys] = (args, kwargs)
 
         elif cls.raise_on_duplicate_enabled:
             raise cls.DuplicateInstance(cls, keys)
+        else:
+            keys, args, kwargs = cls.extract_keys_from_args(args, kwargs, remove_from_args=True)
+
+            if (args or kwargs) and cls._INSTANCES_PARAMS[keys] != (args, kwargs):
+                print (args, kwargs)
+                print cls._INSTANCES_PARAMS[keys]
+                raise cls.DuplicateInstance(cls, keys)
 
         return cls._INSTANCES[keys]
 
@@ -56,6 +76,11 @@ class MemoizedObject(object):
     duplicate_instance_args = ('classname', 'keys')
     no_such_instance_message = "No %s could be found that matches the keys %s."
     no_such_instance_args = ('classname', 'keys')
+
+    @classmethod
+    def clear_instances(cls):
+        cls._INSTANCES = {}
+        cls._INSTANCES_PARAMS = {}
 
     @classmethod
     def transform_memoization_keys(cls, *args):

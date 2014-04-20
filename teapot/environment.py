@@ -132,6 +132,10 @@ class Environment(MemoizedObject, SignableObject):
             else:
                 return map(lambda arg: self.perform_substitutions(arg, {}), shell)
 
+    @shell.setter
+    def shell(self, value):
+        self._shell = value
+
     @contextmanager
     def enable(self, silent=False):
         """

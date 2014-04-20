@@ -17,7 +17,7 @@ class SignableObject(object):
         """
         Get the signable object instance.
         """
-        super(SignableObject, self).__init__(*args, **kwargs)
+        super(SignableObject, self).__init__()
 
         self.hash = hashlib.sha1
 
