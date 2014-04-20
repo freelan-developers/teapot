@@ -52,7 +52,8 @@ class Memoized(type):
         elif cls.raise_on_duplicate_enabled:
             raise cls.DuplicateInstance(cls, keys)
         else:
-            keys, args, kwargs = cls.extract_keys_from_args(args, kwargs, remove_from_args=True)
+            if cls.propagate_memoization_keys:
+                keys, args, kwargs = cls.extract_keys_from_args(args, kwargs, remove_from_args=True)
 
             if (args or kwargs) and cls._INSTANCES_PARAMS[keys] != (args, kwargs):
                 print (args, kwargs)
@@ -201,7 +202,16 @@ class MemoizedObject(object):
     @classmethod
     def get_instances(cls, keys_list=None):
         if keys_list is not None:
-            keys_list = [keys.keys if isinstance(keys, cls) else keys for keys in keys_list]
+            def to_keys(value):
+                if isinstance(value, cls):
+                    return value.keys
+
+                if not isinstance(value, tuple):
+                    return (value,)
+
+                return value
+
+            keys_list = map(to_keys, keys_list)
 
             result = []
 
@@ -229,17 +239,6 @@ class MemoizedObject(object):
             yield
         finally:
             cls.raise_on_duplicate_enabled = sentinel
-
-    @classmethod
-    def clear_instances(cls, keys_list=None):
-        if keys_list:
-            keys_list = [keys.keys if isinstance(keys, cls) else keys for keys in keys_list]
-
-            for keys in keys_list:
-                if keys in cls._INSTANCES:
-                    del cls._INSTANCES[keys]
-        else:
-            cls._INSTANCES = {}
 
     @property
     def memoization_str(self):

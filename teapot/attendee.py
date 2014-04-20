@@ -25,6 +25,17 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
     Represents a project to build.
     """
 
+    class DependencyCycleError(TeapotError):
+        def __init__(self, cycle):
+            cycle_str = ' -> '.join(map(str, cycle))
+
+            super(Attendee.DependencyCycleError, self).__init__(
+                'Dependency cycle found: %s',
+                hl(cycle_str)
+            )
+
+            self.cycle = cycle
+
     @classmethod
     def get_dependent_instances(cls, keys_list=None):
         """
@@ -39,7 +50,7 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
                     "Reference to a non-existing attendee %s could not be "
                     "resolved."
                 ),
-                hl(ex.key),
+                hl(ex.keys[0]),
             )
 
         result = []
@@ -65,9 +76,8 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
                 # first repeating element (which is currently in
                 # `attendee`)
                 cycle = cycle[cycle.index(attendee):] + [attendee]
-                cycle_str = ' -> '.join(map(str, cycle))
 
-                raise TeapotError('Dependency cycle found: %s', hl(cycle_str))
+                raise Attendee.DependencyCycleError(cycle)
 
             else:
                 result.append(attendee)
@@ -134,7 +144,7 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
                     "Reference to a non-existing parent attendee %s could not "
                     "be resolved in attendee %s."
                 ),
-                hl(ex.key),
+                hl(ex.keys[0]),
                 hl(self),
             )
 

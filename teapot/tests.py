@@ -192,6 +192,86 @@ class TestTeapot(unittest.TestCase):
         self.assertEqual(signature, environment.signature)
         self.assertNotEqual(sub_environment, sub_environment.signature)
 
+    def test_filters(self):
+        """
+        Test the filters.
+        """
+
+        f('true', condition=True)
+        f('false', condition=False)
+
+        self.assertTrue(f('true'))
+        self.assertFalse(f('false'))
+
+        FUNCTION_RESULT = True
+
+        def function():
+            return FUNCTION_RESULT
+
+        f('function', condition=function)
+
+        self.assertTrue(f('function'))
+
+        FUNCTION_RESULT = False
+
+        self.assertFalse(f('function'))
+        self.assertTrue(f('true') | f('false'))
+        self.assertFalse(f('true') & f('false'))
+        self.assertFalse(~f('true'))
+        self.assertTrue(f('true') ^ f('false'))
+        self.assertFalse(f('true') ^ f('true'))
+        self.assertFalse(f('false') ^ f('false'))
+
+    def test_attendees(self):
+        """
+        Test the attendees.
+        """
+
+        a = Attendee('a')
+        b = Attendee('b')
+        c = Attendee('c')
+        d = Attendee('d')
+
+        self.assertEqual(a, Attendee('a'))
+
+        a.depends_on('b', c)
+        c.depends_on('d')
+
+        self.assertEqual(a.parents, {b, c})
+        self.assertEqual(b.parents, set())
+        self.assertEqual(c.parents, {d})
+        self.assertEqual(d.parents, set())
+        self.assertEqual(a.children, set())
+        self.assertEqual(b.children, {a})
+        self.assertEqual(c.children, {a})
+        self.assertEqual(d.children, {c})
+
+        self.assertEqual(
+            Attendee.get_dependent_instances(),
+            [b, d, c, a],
+        )
+
+        self.assertEqual(
+            Attendee.get_dependent_instances(['c']),
+            [d, c],
+        )
+
+        # Create a circular dependency.
+        d.depends_on(a)
+
+        self.assertRaises(Attendee.DependencyCycleError, Attendee.get_dependent_instances)
+
+        # Add a source.
+        a.add_source('http://some.fake.address')
+        self.assertIsNotNone(a.get_source('http://some.fake.address'))
+
+        # Add a build.
+        attendee_test_environment = Environment('attendee_test_environment')
+
+        a.add_build('foo', environment='attendee_test_environment')
+        self.assertIsNotNone(a.get_build('foo'))
+        self.assertEqual(a.get_build('foo').environment, attendee_test_environment)
+
 
 if __name__ == '__main__':
     unittest.main()
