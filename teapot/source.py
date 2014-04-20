@@ -4,25 +4,45 @@ A source class.
 
 from .filters import FilteredObject
 from .fetchers import Fetcher
+from .memoized import MemoizedObject
 
 
-class Source(FilteredObject):
+class Source(MemoizedObject, FilteredObject):
 
     """
     Represents a project to build.
     """
 
-    def __init__(self, resource, mimetype=None, fetcher=None, *args, **kwargs):
+    memoization_keys = ('attendee', 'resource')
+    propagate_memoization_keys = True
+
+    @classmethod
+    def transform_memoization_keys(cls, attendee, resource):
+        """
+        Make sure the attendee parameter is a real Attendee instance.
+        """
+
+        if isinstance(attendee, basestring):
+            from .attendee import Attendee
+
+            attendee = Attendee(attendee)
+
+        return attendee, resource
+
+    def __init__(self, attendee, resource, mimetype=None, fetcher=None, *args, **kwargs):
         """
         Create a source that maps on the specified resource.
         """
-
         super(Source, self).__init__(*args, **kwargs)
 
-        self.resource = resource
         self.mimetype = mimetype
         self._fetcher = fetcher
         self._parsed_source = None
+
+        # Register the source in the Attendee.
+        self.attendee = attendee
+        self.resource = resource
+        attendee.add_source(self)
 
     def __str__(self):
         """

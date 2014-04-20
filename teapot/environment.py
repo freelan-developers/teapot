@@ -11,15 +11,17 @@ from contextlib import contextmanager
 from .memoized import MemoizedObject
 from .error import TeapotError
 from .log import LOGGER, Highlight as hl
+from .signature import SignableObject
 
 
-class Environment(MemoizedObject):
+class Environment(MemoizedObject, SignableObject):
 
     """
     Represents a build environment.
     """
 
     propagate_memoization_keys = True
+    signature_fields = ('variables', 'shell', 'parent')
 
     @staticmethod
     def perform_substitutions(value, parent_context):

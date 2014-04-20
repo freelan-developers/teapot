@@ -21,9 +21,10 @@ from .filters import FilteredObject
 from .environment import Environment
 from .extensions import parse_extension
 from .prefix import PrefixedObject
+from .signature import SignableObject
 
 
-class Build(MemoizedObject, FilteredObject, PrefixedObject):
+class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
 
     """
     Represents a build.
@@ -31,6 +32,7 @@ class Build(MemoizedObject, FilteredObject, PrefixedObject):
 
     memoization_keys = ('attendee', 'name')
     propagate_memoization_keys = True
+    signature_fields = ('environment', 'subdir', 'commands', 'filter')
 
     @classmethod
     def transform_memoization_keys(cls, attendee, name):

@@ -99,6 +99,7 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
         self._sources_manifest = {}
         self._last_unpacked_archive_info = {}
         self._builds = set()
+        self._builds_manifest = {}
 
         super(Attendee, self).__init__(*args, **kwargs)
 
@@ -175,6 +176,10 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
     @property
     def sources_last_unpacked_archive_info_path(self):
         return os.path.join(self.sources_path, 'last_unpacked_archive_info.json')
+
+    @property
+    def builds_manifest_path(self):
+        return os.path.join(self.builds_path, 'manifest.json')
 
     @property
     def cache_manifest(self):
@@ -255,6 +260,27 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
         json.dump(self._last_unpacked_archive_info, open(self.sources_last_unpacked_archive_info_path, 'w'))
 
     @property
+    def builds_manifest(self):
+        if not self._builds_manifest:
+            try:
+                self._builds_manifest = json.load(open(self.builds_manifest_path))
+
+            except IOError:
+                pass
+
+        if not isinstance(self._builds_manifest, dict):
+            self._builds_manifest = {}
+
+        return self._builds_manifest
+
+    @builds_manifest.setter
+    def builds_manifest(self, value):
+        self._builds_manifest = value
+
+        mkdir(self.builds_path)
+        json.dump(self._builds_manifest, open(self.builds_manifest_path, 'w'))
+
+    @property
     def archive_path(self):
         return self.cache_manifest.get('archive_path')
 
@@ -284,8 +310,11 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
 
     @property
     def must_build(self):
-        # TODO: Implement
-        return True
+        for build in self.builds:
+            if self.builds_manifest.get(build.name) != build.signature:
+                return True
+
+        return False
 
     @property
     def sources(self):
@@ -306,16 +335,24 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
             LOGGER.debug(
                 "Clearing best source %s because a new source was added (%s).",
                 hl(self._source),
-                hl(resource),
+                hl(source),
             )
 
             self._source = None
 
         if not isinstance(resource, Source):
-            resource = Source(resource, *args, **kwargs)
+            resource = Source(self, resource, *args, **kwargs)
+        else:
+            self._sources.append(resource)
 
-        self._sources.append(resource)
         return self
+
+    def get_source(self, resource):
+        """
+        Get a source.
+        """
+
+        return Source.get_instance_or_fail(self, resource)
 
     @property
     def builds(self):
@@ -607,7 +644,7 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
         if self.extracted_sources_path:
             if os.path.isdir(self.extracted_sources_path):
                 if force:
-                    LOGGER.info("%s was already unpacked but force unpacking was requested. Will unpackg it again.", hl(self))
+                    LOGGER.info("%s was already unpacked but force unpacking was requested. Will unpack it again.", hl(self))
                     self.sources_manifest = {}
                 else:
                     LOGGER.info("%s was already unpacked. Nothing to do.", hl(self))
@@ -631,6 +668,9 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
             unpacker = Unpacker.get_instance_or_fail(self.archive_type)
             self.sources_manifest = unpacker.unpack(archive_path=self.archive_path, target_path=self.sources_path)
 
+            LOGGER.debug('Clearing builds manifest as unpacking just took place.')
+            self.builds_manifest = {}
+
         LOGGER.debug(
             "Archive for %s (%s) is unpacked at %s.",
             hl(self),
@@ -641,11 +681,43 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
     def build(self, force=False, verbose=False, keep_builds=False):
         """
         Build the attendee.
+
+        If `force` is truthy, the archive will be force-built again.
         """
 
         for build in self.builds:
+            last_signature = self.builds_manifest.get(build.name)
+            signature = build.signature
+
+            if last_signature is None:
+                LOGGER.info(
+                    "No known build signature for %s. Will build it.",
+                    hl(build),
+                )
+            elif last_signature != signature:
+                LOGGER.info(
+                    "Last signature for %s (%s) does not match the current one (%s). Will build it again.",
+                    hl(build),
+                    hl(last_signature),
+                    hl(signature),
+                )
+            elif force:
+                LOGGER.info(
+                    "Last signature for %s matches the current one (%s) but force-build requested. Will build it again.",
+                    hl(build),
+                    hl(signature),
+                )
+                self.builds_manifest[build.name] = None
+            else:
+                LOGGER.info(
+                    "%s was built already. Nothing to do.",
+                    hl(build),
+                )
+                return
+
             build_path = os.path.join(self.builds_path, build.name)
             log_path = os.path.join(self.builds_path, build.name + '.log')
 
             with temporary_copy(self.extracted_sources_path, build_path, persistent=keep_builds):
                 build.build(path=build_path, log_path=log_path, verbose=verbose)
+                self.builds_manifest[build.name] = signature
