@@ -12,7 +12,7 @@ test:
 	python setup.py test
 
 coverage:
-	coverage run --include "teapot/*" teapot/tests/teapot_test.py
+	coverage run --include "teapot/*" teapot/tests.py
 	coverage report
 
 register:
