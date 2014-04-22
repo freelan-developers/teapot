@@ -127,6 +127,13 @@ A :term:`source` can be anything you want. By default **teapot** supports three 
    - ``file://~/archives/archive.tar.gz``
    - ``file://C:\archives\archive.zip``
 
+`folder`
+  Fetches an archive from a filesystem path. The path can be either local or a network mount point. The target must point to an already uncompressed source tree.
+
+  Example formats:
+   - ``folder://~/archives/source``
+   - ``folder://C:\archives\source``
+
 `github`
   Generates and fetches an archive from a Github-hosted project.
 

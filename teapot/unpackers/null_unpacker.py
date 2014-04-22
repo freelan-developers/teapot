@@ -2,41 +2,42 @@
 An unpacker that does nothing.
 """
 
-from teapot.unpackers.base_unpacker import BaseUnpacker
+from teapot.unpackers.unpacker import UnpackerImplementation
+from teapot.unpackers.unpacker import register_unpacker
+
+from ..error import TeapotError
+from ..log import Highlight as hl
 
 import os
 import shutil
 
 
-class NullUnpacker(BaseUnpacker):
+@register_unpacker((None, None))
+class NullUnpacker(UnpackerImplementation):
 
     """
     An unpacker class that just copy source trees.
     """
 
-    types = [
-        (None, None),
-    ]
-
-    def do_unpack(self):
+    def unpack(self, archive_path, target_path, progress):
         """
         Uncompress the archive.
 
         Return the path of the extracted folder.
         """
 
-        if not os.path.isdir(self.archive_path):
-            raise RuntimeError('A directory was expected.')
+        if not os.path.isdir(archive_path):
+            raise ValueError('A directory was expected.')
 
-        source_tree_path = os.path.join(self.attendee.build_path, os.path.basename(self.archive_path))
+        extracted_sources_path = os.path.join(target_path, os.path.basename(archive_path))
 
-        self.progress.on_start(count=1)
+        progress.on_start(archive_path=archive_path, count=1)
 
-        self.progress.on_update(current_file=self.archive_path, progress=1)
-        shutil.copytree(self.archive_path, source_tree_path)
+        progress.on_update(current_file=archive_path, progress=1)
+        shutil.copytree(archive_path, extracted_sources_path)
 
-        self.progress.on_finish()
+        progress.on_finish()
 
         return {
-            'source_tree_path': source_tree_path,
+            'extracted_sources_path': extracted_sources_path,
         }

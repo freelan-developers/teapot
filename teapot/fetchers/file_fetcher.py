@@ -28,7 +28,7 @@ class FileFetcher(FetcherImplementation):
 
         if parse.scheme == 'file':
             return {
-                'file_path': os.path.abspath(os.path.join(parse.netloc, parse.path)),
+                'file_path': os.path.abspath(parse.netloc + parse.path),
             }
 
     def fetch(self, fetch_info, target_path, progress):
@@ -50,9 +50,6 @@ class FileFetcher(FetcherImplementation):
         if os.path.isfile(fetch_info['file_path']):
             shutil.copyfile(fetch_info['file_path'], archive_path)
             archive_type = mimetypes.guess_type(fetch_info['file_path'], strict=False)
-        elif os.path.isdir(fetch_info['file_path']):
-            shutil.copytree(fetch_info['file_path'], archive_path)
-            archive_type = (None, None)
 
         # No real interactive progress to show here.
         #

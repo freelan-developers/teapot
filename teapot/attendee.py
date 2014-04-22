@@ -120,6 +120,10 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
 
         return 'Attendee(%r)' % self.name
 
+    @property
+    def party_root(self):
+        return os.path.dirname(self.party_path)
+
     def depends_on(self, *attendees):
         """
         Make the attendee depend on one or several other attendees.
@@ -536,10 +540,18 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
         """
 
         m = hashlib.sha1()
-        with open(self.archive_path) as f:
-            for s in iter(lambda: f.read(1024 ** 2), ''):
-                m.update(s)
 
+        def compute_hash(path):
+            if os.path.isfile(path):
+                with open(path) as f:
+                    for s in iter(lambda: f.read(1024 ** 2), ''):
+                        m.update(s)
+            else:
+                for root, dirs, files in os.walk(self.archive_path):
+                    for f in files:
+                        compute_hash(os.path.join(root, f))
+
+        compute_hash(self.archive_path)
         archive_signature = m.hexdigest()
 
         def update_signature():

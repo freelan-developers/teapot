@@ -38,7 +38,7 @@ def root(build):
     Get the build prefix.
     """
 
-    return os.path.dirname(build.attendee.party_path)
+    return build.attendee.party_root
 
 
 @register_extension('prefix')
@@ -50,6 +50,7 @@ def prefix(build):
     """
 
     return os.path.join(
+        root(build),
         build.apply_extensions(get_option('prefix')),
         build.apply_extensions(build.attendee.prefix),
         build.apply_extensions(build.prefix),
@@ -68,6 +69,7 @@ def prefix_for(build, attendee, attendee_build=None):
     attendee_build_prefix = attendee.get_build(attendee_build).prefix if attendee_build is not None else ''
 
     return os.path.join(
+        root(build),
         build.apply_extensions(get_option('prefix')),
         build.apply_extensions(attendee.prefix),
         build.apply_extensions(attendee_build_prefix),
