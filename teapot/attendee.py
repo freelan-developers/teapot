@@ -524,7 +524,7 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
                         break
 
                 except TeapotError as ex:
-                    LOGGER.warning("Error parsing source %s: " + ex.msg, hl(source), *ex.args)
+                    LOGGER.warning("Error parsing source %s: " + ex.msg, hl(source), *ex.msg_args)
                 except Exception as ex:
                     LOGGER.warning("Error parsing source %s: %s", hl(source), hl(str(ex)))
 

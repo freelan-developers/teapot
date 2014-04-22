@@ -5,6 +5,8 @@ A source class.
 from .filters import FilteredObject
 from .fetchers import Fetcher
 from .memoized import MemoizedObject
+from .error import TeapotError
+from .log import Highlight as hl
 
 
 class Source(MemoizedObject, FilteredObject):
@@ -58,6 +60,12 @@ class Source(MemoizedObject, FilteredObject):
 
         if isinstance(self._fetcher, basestring):
             self._fetcher = Fetcher.get_instance_or_fail(name=self._fetcher)
+
+        if self._fetcher is None:
+            raise TeapotError(
+                "unable to get the appropriate fetcher for '%s'.",
+                hl(self),
+            )
 
         return self._fetcher
 
