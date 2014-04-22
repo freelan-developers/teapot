@@ -33,7 +33,7 @@ Here is a more complete :term:`party file` with an :term:`attendee` that actuall
     from teapot import *
 
     Attendee('iconv').add_source('http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz')
-    Attendee('iconv').add_build('default')
+    Attendee('iconv').add_build('default', environment='system')
     Attendee('iconv').get_build('default').add_command('./configure --prefix={{prefix}}')
     Attendee('iconv').get_build('default').add_command('make')
     Attendee('iconv').get_build('default').add_command('make install')
@@ -52,7 +52,7 @@ If you are used to Python development, you will notice something strange: we def
 
     iconv = Attendee('iconv')
     iconv.add_source('http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz')
-    iconv.add_build('default')
+    iconv.add_build('default', environment='system')
 
     iconv_default = Attendee('iconv').get_build('default')
     iconv_default.add_command('./configure --prefix={{prefix}}')
@@ -179,7 +179,7 @@ Builders are declared like so:
     from teapot import *
 
     Attendee('iconv').add_source('http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz')
-    Attendee('iconv').add_build('default')
+    Attendee('iconv').add_build('default', environment='system')
     Attendee('iconv').get_build('default').add_command('./configure --prefix={{prefix}}')
     Attendee('iconv').get_build('default').add_command('make')
     Attendee('iconv').get_build('default').add_command('make install')
