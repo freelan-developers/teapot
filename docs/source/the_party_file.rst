@@ -6,98 +6,112 @@ The :term:`party file` is at the heart of **teapot**. It describes the different
 Structure
 =========
 
-The :term:`party file` is a YAML file whose root element is a dictionary. While YAML files can make use of a lot of complex data structures, **teapot** only makes use of the common ones, namely:
+The :term:`party file` is a regular Python file.
 
- - dictionaries
- - lists
- - strings
- - booleans
- - null
-
-.. note:: The fact that **teapot** doesn't make use of other data structures doesn't mean you can't use those; you can actually do and use whatever you want when writing custom extensions.
-
-The definition order of all elements in dictionaries is unspecified. This means **teapot** will not care at all in which order you write the keys of a dictionary.
-
-Strings can be any unicode string, however it is **strongly** recommended that you stick with ANSI characters, especially when it comes to indexes.
+Whatever you write in the `party file` is declarative, meaning that you don't tell **teapot** to actually build things, you just tell it what to build, and how. The actual build process will take place later when you call the command-line tool. See the `party file` as a declaration file.
 
 Attendees
 ---------
 
-The :term:`attendees<attendee>` are a first-level element of the root dictionary. They are declared within a dictionary named :term:`attendees<attendee>` whose each key is the index of an :term:`attendee`, and whose values are the :term:`attendees<attendee>` themselves.
+:term:`attendees<attendee>` are the main element of the `party file`. An :term:`attendee` represents a library/project to build. An :term:`attendee` can have one or several :term:`sources<source>`, and one or several :term:`builds<build>`.
 
 Here is an example that declares two :term:`attendees<attendee>`:
 
-.. code-block:: yaml
+..  code-block:: python
 
-    attendees:
-      libiconv:
-        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-      libcurl:
-        source: http://curl.haxx.se/download/curl-7.32.0.tar.gz
+    from teapot import *
+
+    Attendee('iconv').add_source('http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz')
+    Attendee('curl').add_source('http://curl.haxx.se/download/curl-7.32.0.tar.gz')
 
 This example, while perfectly valid, is not quite complete: as they are written, those :term:`attendees<attendee>` would be able to download and unpack the specified archives, but they don't know how to build the software they constitute.
 
 Here is a more complete :term:`party file` with an :term:`attendee` that actually does something:
 
-.. code-block:: yaml
+..  code-block:: python
 
-    attendees:
-      libiconv:
-        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-        builders:
-          default:
-            commands:
-              - ./configure --prefix={{prefix}}
-              - make
-              - make install
+    from teapot import *
+
+    Attendee('iconv').add_source('http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz')
+    Attendee('iconv').add_build('default')
+    Attendee('iconv').get_build('default').add_command('./configure --prefix={{prefix}}')
+    Attendee('iconv').get_build('default').add_command('make')
+    Attendee('iconv').get_build('default').add_command('make install')
 
 This :term:`party file` defines completely the way to build *libicon, version 1.14*. The archive will be downloaded from the specified URL, it will be extracted and built with the usuall autotools scenario (`./configure && make && make install`).
 
 In the ``./configure`` command, you may notice the specific ``--prefix={{prefix}}`` syntax. This makes uses of an *extension* that will be replaced on runtime by the *prefix* path for this build.
 
-You may find more information on :term:`builders<builder>` in the :ref:`builders` section.
+You may find more information on :term:`builds<build>` in the :ref:`builds` section.
 
-An attendee can have the following attributes:
+If you are used to Python development, you will notice something strange: we defined several times ``Attendee('iconv')`` yet it seems to refer to the same object. In **teapot**, instances of :term:`Attendee<attendee>` are memoized, meaning that any instanciation that uses the same name will actually refer to the same instance. The same goes for :term:`Build<build>` and some other classes. Obviously, this doesn't prevent you from assigning the instances to variables, like you would do in a regular Python script. So you may actually write the same script that way:
 
-`source`
-  The source of the attendee. More on that in :ref:`sources`.
+..  code-block:: python
 
-`filters`
-  A list of :term:`filters<filter>` that the current execution environment must match in order for the attendee to be active. For instance, one can use filters to specify different attendees for Windows and Linux, within the same :term:`party file`.
+    from teapot import *
 
-`builders`
-  A dictionary of :term:`builders<builder>` that specify what to do with the source code. More on that in :ref:`builders`.
+    iconv = Attendee('iconv')
+    iconv.add_source('http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz')
+    iconv.add_build('default')
 
-`depends`
-  A list of names of other :term:`attendees<attendee>` that this :term:`attendee` depends on for building.
+    iconv_default = Attendee('iconv').get_build('default')
+    iconv_default.add_command('./configure --prefix={{prefix}}')
+    iconv_default.add_command('make')
+    iconv_default.add_command('make install')
 
-  `depends` can also be a single string in case the :term:`attendee` only depends on one other :term:`attendee`.
+Instances of :term:`Attendee<attendee>` can be filtered. The :term:`filter` can be specified either in the first instanciation of the :term:`Attendee<attendee>`, or later, using the ``attendee.filter`` property.
 
-`prefix`
-  The :term:`attendee` specific prefix.
+For instance, to make an :term:`attendee` only exist on Windows, one could write:
 
-  The content of this value is used by the `prefix` extension at runtime.
+..  code-block:: python
 
-  If `prefix` is a relative path, it will be appended to the :term:`party file`'s prefix.
+    from teapot import *
 
-  If `prefix` is an absolute path, it will be taken as it is. 
+    # During instanciation.
+    Attendee('iconv', filter='windows')
 
-  If `prefix` is `True`, it will take the name of the :term:`attendee` as a value. Use this to differentiate builds outputs directories for different :term:`attendees<attendee>`.
+    # Later.
+    Attendee('iconv').filter = 'windows'
+
+You will learn more about filters in the :ref:`filters` section.
+
+:term:`Attendees<attendee>` can also depend on each other, using the ``attendee.depends_on()`` method.
+
+..  code-block:: python
+
+    from teapot import *
+
+    Attendee('a')
+    Attendee('b').depends_on('a')
+    Attendee('c').depends_on('a', 'b')
+    Attendee('d').depends_on('a', 'b', Attendee('c'))
+
+The ``depends_on()`` method can take zero, one or several :term:`attendee` names or instances.
 
 .. warning::
 
     If the dependency graph is cyclic, :term:`teapot` will notice it before even starting the build and will warn you about the problem.
+
+:term:`Attendees<attendee>` can also have their custom prefix for installation. For instance, if one :term:`attendee` needs to install inside a specific subfolder, you may write:
+
+..  code-block:: python
+
+    from teapot import *
+
+    set_option('prefix', '/tmp/output')
+
+    Attendee('iconv', prefix='subfolder')
+    # or
+    Attendee('iconv').prefix = 'subfolder'
+
+If ``prefix`` is an absolute path, then the parent ``prefix`` is ignored.
 
 .. _sources:
 
 Sources
 +++++++
 
-The `source` directive in an :term:`attendee` can take several forms.
-
-The simpler form is a *location string*. The possible formats for this depends on the registered *fetchers*.
-
-Here are the default fetchers and their supported formats:
+A :term:`source` can be anything you want. By default **teapot** supports three sources types:
 
 `http`
   Fetches an archive from a web URL in a fashion similar to the :command:`wget` command. This is the most commonly used fetcher.
@@ -110,8 +124,8 @@ Here are the default fetchers and their supported formats:
   Fetches an archive from a filesystem path. The path can be either local or a network mount point.
 
   Example formats:
-   - ``~/archives/archive.tar.gz``
-   - ``C:\archives\archive.zip``
+   - ``file://~/archives/archive.tar.gz``
+   - ``file://C:\archives\archive.zip``
 
 `github`
   Generates and fetches an archive from a Github-hosted project.
@@ -119,61 +133,16 @@ Here are the default fetchers and their supported formats:
   Example formats:
    - ``github:user/repository/ref``
 
-`source` can also be a dict of attributes, like so:
+:term:`Sources<source>` are also filterable, following the same rules than for :term:`attendees<attendee>`.
 
-.. code-block:: yaml
-
-    attendees:
-      libiconv:
-        source:
-          location: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-          type: application/x-gzip
-          fetcher: http
-          fetcher_options:
-          filters: unix
-
-All these attributes, except `location` are optional.
-
-`location`
-  A *location string* as they were just described.
-
-`type`
-  The mimetype of the archive. Can also be a list of two elements `[mimetype, encoding]` for more complex mimetypes.
-
-`fetcher`
-  The fetcher to use. Specifying a fetcher disables the automatic fetcher type selection. Specifying a fetcher only makes sense if the location string is ambiguous, which cannot happen with the built-in fetchers.
-
-`fetcher_options`
-  A dictionary of options for the fetcher. Built-in fetchers do not take any option.
-
-`filters`
-  A list of filters that the current execution environment must match in order for the source to be active. For instance, one can use filters to specify different sources for Windows and Linux, within the same :term:`attendee`.
-
-For more complex situations, `source` can also be a list of either *location strings* or attributes dictionary (optionaly mixed), like so:
-
-.. code-block:: yaml
-
-    attendees:
-      libiconv:
-        source:
-          -
-            location: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14_some-variant.tar.gz
-            type: application/x-gzip
-            fetcher: http
-            fetcher_options:
-            filters: windows
-          - http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-
-Sources are tried in the declaration order for a given :term:`attendee`. In this example, when :term:`teapot` tries to download the archive for the :term:`attendee`, it will first try the first one, only on Windows. If the first one fails (say because of a network error), or if :term:`teapot` is run on a Unix variant, it will skip to the second source.
-
-You may also extend teapot and implement your own fetchers, should you have specific needs.
+**teapot** reads the mime type of the archives to extract them. If, for whatever reason, the mime type of the archive cannot be detected for a given source you may specify it in the ``attendee.add_source()`` method call, by specifying the ``mimetype`` named argument. This can happen for instance when a HTTP webserver is misconfigured and does not specify a ``Content-Type`` for a given archive.
 
 Unpackers
 +++++++++
 
 At some point before the build, :term:`teapot` must convert a downloaded (often compressed) archive into a source tree. This is what *unpackers* are for.
 
-The unpacker selection is done automatically, depending on the mimetype of the downloaded archive. That is, the only way to choose which unpacker to use, is to change the mimetype of the :term:`attendee`.
+The unpacker selection is done automatically, depending on the mime type of the downloaded archive. That is, the only way to choose which unpacker to use, is to change the mimetype of the :term:`source`.
 
 By default, *teapot* provides the following unpackers:
 
@@ -196,26 +165,24 @@ Null unpacker
 
 You may also extend teapot and implement your own unpackers, should you have specific needs.
 
-.. _builders:
+.. _builds:
 
 Builders
 ++++++++
 
-One of the most important thing to declare into an :term:`attendee`, is its :term:`builders<builder>`. A :term:`builder` is responsible for taking an unarchived source tree and creating something by issuing a series of commands.
+One of the most important thing to declare into an :term:`attendee`, is its :term:`builds<build>`. A :term:`build` is responsible for taking an unarchived source tree and creating something by issuing a series of commands.
 
 Builders are declared like so:
 
-.. code-block:: yaml
+..  code-block:: python
 
-    attendees:
-      libiconv:
-        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-        builders:
-          mybuild:
-            commands:
-              - ./configure --prefix={{prefix}}
-              - make
-              - make install
+    from teapot import *
+
+    Attendee('iconv').add_source('http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz')
+    Attendee('iconv').add_build('default')
+    Attendee('iconv').get_build('default').add_command('./configure --prefix={{prefix}}')
+    Attendee('iconv').get_build('default').add_command('make')
+    Attendee('iconv').get_build('default').add_command('make install')
 
 In this simple example, :term:`teapot` will go into the source tree unpacked from `libiconv-1.14.tar.gz` and will issue the following commands, in order:
  - ``./configure --prefix={{prefix}}``
@@ -224,141 +191,52 @@ In this simple example, :term:`teapot` will go into the source tree unpacked fro
 
 If all of these commands succeed, the build is considered successful as well.
 
-.. note:: Here ``{{prefix}}`` is an extension that resolves at runtime as the current prefix for the :term:`builder`. You can learn more about extensions in the :ref:`extensions` section.
+.. note:: Here ``{{prefix}}`` is an extension that resolves at runtime as the current prefix for the :term:`build`. You can learn more about extensions in the :ref:`extensions` section.
 
-One :term:`attendee` can have as many different :term:`builders<builder>` as you want it to have. All the :term:`builders<builder>` are entries of the `builders` dictionary where the key is the :term:`builder` name, and the value if a dictionary of attributes for the :term:`builder`.
+One :term:`attendee` can have as many different :term:`builds<build>` as you want.
 
 Here is an example of a more complex :term:`attendee`:
 
-.. code-block:: yaml
+..  code-block:: python
 
-    attendees:
-      libiconv:
-        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-        builders:
-          default_x86:
-            filters:
-              - windows
-              - mingw
-            environment: mingw_x86
-            tags: x86
-            commands:
-              - ./configure --prefix={{prefix(unix)}}
-              - make
-              - make install
-            prefix: True
-            clean_commands:
-              - rm -rf {{prefix(unix)}}
+    from teapot import *
 
-          default_x64:
-            filters:
-              - windows
-              - mingw
-            environment: mingw_x64
-            tags: x64
-            commands:
-              - ./configure --prefix={{prefix(unix)}}
-              - make
-              - make install
-            prefix: True
-            clean_commands:
-              - rm -rf {{prefix(unix)}}
+    Attendee('iconv').add_source('http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz')
+    Attendee('iconv').add_build('default_x86', environment='mingw_x86')
+    Attendee('iconv').get_build('default_x86').add_command('./configure --prefix={{prefix}}')
+    Attendee('iconv').get_build('default_x86').add_command('make')
+    Attendee('iconv').get_build('default_x86').add_command('make install')
 
-In this example, we define two builders (`default_x86` and `default_x64`) that have exactly the same build commands.
+    Attendee('iconv').add_build('default_x64', environment='mingw_x64')
+    Attendee('iconv').get_build('default_x64').add_command('./configure --prefix={{prefix}}')
+    Attendee('iconv').get_build('default_x64').add_command('make')
+    Attendee('iconv').get_build('default_x64').add_command('make install')
 
-Both are to be executed if, and only if, MinGW is available in the execution environment. They each make use of a customized :term:`environment` (more on that in :ref:`environments`).
+In this example, we define two builds (`default_x86` and `default_x64`) that have exactly the same build commands.
 
-Also note that a tag has been added for every one of them, so that the user can easily choose between x86 and x64 builds when using :term:`teapot`.
+Each :term:`build` has another :term:`environment`. The current example lacks the environments definitions for simplicity's sake. You will learn how to define your own environments in a further section.
 
-Inside the :term:`party file`, the `builder` dictionary supports the following attributes:
-
-`commands`
-  Can be either a string with a single command to execute or a list of commands to execute.
-
-  Commands can contain :ref:`extensions<extensions>` and environment variables that will be substituted upon execution.
-
-`clean_commands`
-  The list of commands to call when cleaning is requested. `clean_commands` obeys the same rules as command (extensions are replaced as well) however, unlike the regular `commands`, they are executed within the root directory (where the :term:`party file` is located).
-
-`environment`
-  The environment in which the build must take place.
-
-  If no environment is specified, the *default* environment is taken, which is the one the :term:`teapot` command is running in.
-
-  You can learn more about environments in the :ref:`environments` section.
-
-`tags`
-  A list of tags for the :term:`builder`.
-
-  Tags can be used later on by the :term:`teapot` command to restrict the :term:`builders<builder>` to run dynamically.
-
-  One common use for tags is to differentiate :term:`builders<builder>` for different build architectures (`x86` and `x64` for instance).
-
-`filters`
-  A list of filters that the current execution environment must match in order for the :term:`builder` to be active. For instance, one can use filters to specify different builders for Windows and Linux, within the same :term:`attendee`.
-
-`prefix`
-  The :term:`builder` specific prefix.
-
-  The content of this value is used by the `prefix` extension at runtime.
-
-  If `prefix` is a relative path, it will be appended to the :term:`attendee`'s prefix.
-
-  If `prefix` is an absolute path, it will be taken as it is. 
-
-  If `prefix` is `True`, it will take the name of the :term:`builder` as a value. Use this to differentiate builds outputs easily for a given :term:`attendee`.
+:term:`Builds<build>` can be filtered like :term:`attendees<attendee>` and can also have a custom `prefix`.
 
 .. _environments:
 
 Environments
 ------------
 
-Environments define the execution environment of a :term:`builder`.
+Environments define the execution environment of a :term:`build`.
 
-They can be defined either at the attendee level (within a :term:`builder` declaration), or inside the global `environments` dictionary, at the root of :term:`party file`.
-
-An :term:`environment` can inherit from another **named** :term:`environment`.
+An :term:`environment` can inherit from another :term:`environment`.
 
 Here is an example of :term:`party file` that defines environments:
 
-.. code-block:: yaml
+..  code-block:: python
 
-    attendees:
-      libiconv:
-        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-        builders:
-          default_x86:
-            environment: mingw_x86
-            tags: x86
-            commands:
-              - ./configure --prefix={{prefix(unix)}}
-              - make
-              - make install
-            prefix: True
+    from teapot import *
 
-          default_x64:
-            environment: mingw_x64
-            tags: x64
-            commands:
-              - ./configure --prefix={{prefix(unix)}}
-              - make
-              - make install
-            prefix: True
+    Environment('mingw_x86', shell=["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"], variables={'PATH': "C:\\MinGW32\\bin:%PATH%"}, parent='system')
+    Environment('mingw_x64', shell=["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"], variables={'PATH': "C:\\MinGW64\\bin:%PATH%"}, parent='system')
 
-    environments:
-      mingw_x86:
-        shell: ["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"]
-        inherit: default
-        variables:
-          PATH: "C:\\MinGW32\\bin:%PATH%"
-
-      mingw_x64:
-        shell: ["C:\\MinGW\\msys\\1.0\\bin\\bash.exe", "-c"]
-        inherit: default
-        variables:
-          PATH: "C:\\MinGW64\\bin:%PATH%"
-
-In this example, we define two environments that use the same :term:`shell` (here, `bash` for Windows). They both inherit from the `default` environment and each (re)define the :envvar:`PATH` environment variable.
+In this example, we define two environments that use the same :term:`shell` (here, `bash` for Windows). They both inherit from the `system` environment and each (re)define the :envvar:`PATH` environment variable.
 
 An `environment` dictionary understands the following attributes:
 
@@ -369,31 +247,31 @@ An `environment` dictionary understands the following attributes:
 
   If `shell` is a string, it will be parsed and split into a list using :func:`shlex.split`. This method of defining the shell and its arguments can be ambiguous and is therefore **not recommended**.
 
-  `shell` can also be :const:`True` (the default), in which case its value will be taken from the inherited :term:`environment`, if it has one.
+  `shell` can also be :const:`True` (the default), in which case its value will be taken from the parent :term:`environment`, if it has one.
 
   If no `shell` is specified, the default one from the system will be taken as specified in :func:`subprocess.call`.
 
 `variables`
   A dictionary of environment variables to set, remove or override.
 
-  Each variable can be set to either a string, or to ``null`` (the YAML equivalent of :const:`None`).
+  Each variable can be set to either a string, or to :const:`None`.
 
-  The behavior a null value depends on the value of `inherit`.
+  The behavior a null value depends on the value of `parent`.
 
   If the :term:`environment` inherits its attributes from another :term:`environment`, a null value indicates that the environment variable should be **removed** from the environment. This is **not** equivalent to setting its value to an empty string (in this case the variable would still be part of the environment, but would just be empty).
 
   If the :term:`environment` does not inherit its attributes from another :term:`environment`, a null value indicates that the value for this environment variable should be the one of the execution environment (the environment into which :term:`teapot` was called). If the environment variable was not set within the execution environment, it won't be set in the new environment if its value was ``null``.
 
-`inherit`
-  `inherit` can be null (the default), or it can be the name of a named :term:`environment` to inherit from.
+`parent`
+  `parent` can be :const:`None` (the default), or it can be the name of a named :term:`environment` to inherit from.
 
-  If `inherit` is null, none of the existing environment variables are inherited and only the ones defined in the `variables` attribute will be set.
+  If `parent` is null, none of the existing environment variables are inherited and only the ones defined in the `variables` attribute will be set.
 
 .. note::
 
-    By default, *teapot* exposes the execution environment through the name ``default``.
+    By default, *teapot* exposes the execution environment through the name ``system``.
 
-    This ``default`` environment has all the environment variables that were set right before the call to :term:`teapot` and uses the default system :term:`shell`.
+    This ``system`` environment has all the environment variables that were set right before the call to :term:`teapot` and uses the default system :term:`shell`.
 
 .. _filters:
 
@@ -425,49 +303,38 @@ Filter     Role
            The filter will try to find `gcc.exe`.
 ========== ========================================================================================
 
-.. note::
+All classes can refer to filters using their name (as a Python string) or directly (referring to a :class:`teapot.filters.filter.Filter` instance).
 
-    When defining several :term:`filters<filter>` in an :term:`attendee`, a :term:`source` or a :term:`builder`, note that **all** filters must be verified for the validation to pass.
+**teapot** exposes two helper functions, `f_` and `uf_` which respectively stand for "filter" and "unnamed filter". Filters can be aggregated using standard bit-wise operators like so:
 
-You may also define your own filters, see :ref:`extension_modules`.
+..  code-block:: python
+
+    from teapot import *
+
+    # Define a new filter, named 'x64' that is verified if either of the filters `mingw64` or `gcc64` are defined.
+    f_('x64', f_('mingw64') | f_('gcc64'))
+
+    # Define a new filter, named 'foo' that is verified is we run on Windows and with MinGW or on UNIX but not on Darwin.
+    f_('foo', (f_('windows') & f_('mingw')) | f_('unix') & ~f_('darwin'))
+
+    # Filters can also be created from variables or callables.
+    f_('bar', uf_(True) & uf_(lambda: True))
+
+    # Finally, one can also use the `named_filter` decorator to declare a custom filter.
+    @named_filter('has_foo')
+    def has_foo():
+        return 'FOO' in os.environ()
 
 .. _extensions:
 
 Extensions
 ----------
 
-Extensions are simple functions, that optionally have parameters, which can occur in a :term:`builder` command.
+Extensions are simple functions, that optionally have parameters, which can occur in a :term:`build` command.
 
-For instance the `prefix` extension is resolved at runtime and replaced with the complete prefix (as defined at the root of the :term:`party file`, the :term:`attendee` and the :term:`builder`).
+For instance the `prefix` extension is resolved at runtime and replaced with the complete prefix (as defined at the root of the :term:`party file`, the :term:`attendee` and the :term:`build`).
 
-Here is an example:
-
-.. code-block:: yaml
-
-    attendees:
-      libiconv:
-        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
-        builders:
-          default_x86:
-            filters: mingw
-            commands:
-              - ./configure --prefix={{prefix(unix)}}
-              - make
-              - make install
-            prefix: True
-
-In this example, designed to run from within a MSys environment on Windows, we make use of the `prefix` extension and we supply the `style` parameter. Upon runtime, the expression gets replaced with the UNIX-style path to the prefix, as defined in the :term:`party file`.
-
-Valid syntaxes for calling extensions within commands are:
-
-.. code-block:: yaml
-
-    {{extension}}             # No parameters.
-    {{extension()}}           # No parameters. No difference with the first call.
-    {{extension(arg1)}}       # Call with one parameter.
-    {{extension(arg1,arg2)}}  # Call with two parameters.
-    {{extension(,arg2)}}      # Call with two parameters, the first one being omitted.
-    {{extension(arg1,,arg3)}} # Call with three parameters, the second one being omitted.
+Valid syntaxes for calling extensions within commands are ``{{extension}}`` (no parameters) or ``{{extension(1, 2, a=4, b="foo")}}`` (parameters). Syntax for parametrized calls respect the Python function call syntax. That is, you can use positional arguments as well as named arguments.
 
 *teapot* comes with several built-in extensions:
 
@@ -481,7 +348,7 @@ Extension                  Parameters               Role
                                                     On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
                                                     If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
-`prefix`                   style                    Get the complete prefix for the current attendee/builder.
+`prefix`                   style                    Get the complete prefix for the current attendee/build.
 
                                                     Returns the complete path, in an operating system specific manner.
 
@@ -490,7 +357,7 @@ Extension                  Parameters               Role
                                                     If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
 
                                                     `prefix` can contain extensions, as long as it doesn't call itself directly, or indirectly.
-`prefix_for`               attendee, builder, style Get the complete prefix for the specified attendee/builder.
+`prefix_for`               attendee, build, style   Get the complete prefix for the specified attendee/build.
 
                                                     You must at least specify the `attendee` parameter.
 
@@ -501,14 +368,15 @@ Extension                  Parameters               Role
                                                     If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
 
                                                     `prefix_for` can contain extensions, as long as it doesn't call itself directly, or indirectly.
-`current_attendee`                                  Returns the current attendee name.
-`current_builder`                                   Returns the current builder name.
-`current_archive_path`     style                    Returns the current archive path.
+`attendee`                                          Returns the current attendee name.
+`build`                                             Returns the build name.
+`full_build`                                        Returns the full build name, that begins with the :term:`attendee`'s name.
+`archive_path`             style                    Returns the current archive path.
 
                                                     On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
                                                     If `style` is set to ``unix``, forward slashes are used, even on Windows. This is useful inside MSys or Cygwin environments.
-`current_source_tree_path` style                    Returns the current source tree path.
+`extracted_source_path`    style                    Returns the current source tree path.
 
                                                     On UNIX and its derivatives, forward slashes are used. On Windows, backwards slashes are used.
 
@@ -526,54 +394,42 @@ Other settings
 
 :term:`teapot` runs with the following defaults:
 
-============ ======================================= ======================================================================================================
-Parameter    Default value                           Meaning
-============ ======================================= ======================================================================================================
+============== ======================================= ======================================================================================================
+Parameter      Default value                           Meaning
+============== ======================================= ======================================================================================================
 
-`cache_path` ``~/.teapot.cache`` (UNIX)              The path where the archives are downloaded to.
+`cache_root`   ``~/.teapot/cache`` (UNIX)              The path where the archives are downloaded to.
 
-             ``%APPDATA%/teapot/cache`` (Windows)
+               ``%APPDATA%/teapot/cache`` (Windows)
 
-`build_path` ``~/.teapot.build`` (UNIX)              The path where the builds take place.
+`sources_root` ``~/.teapot/sources`` (UNI              The path where the sources are unpacked.
 
-             ``%APPDATA%/teapot/build`` (Windows)
+               ``%APPDATA%/teapot/sources`` (Windows)
 
-`prefix`     ``install``                             The default :term:`party file` prefix that gets prepended to all :term:`attendees<attendee>` prefixes.
+`builds_root`  ``~/.teapot/builds`` (UNIX)             The path where the builds take place.
 
-These settings are to be set at the root of the :term:`party file`, like so:
+               ``%APPDATA%/teapot/builds`` (Windows)
 
-.. code-block:: yaml
+`prefix`       ``~/.teapot/install``                   The default :term:`party file` prefix that gets prepended to all :term:`attendees<attendee>` prefixes.
 
-    attendees:
-      libiconv:
-        source: http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz
+               ``%APPDATA%/teapot/install`` (Windows)
 
-    cache_path: cache
-    build_path: build
-    prefix: install
+These settings are to be set use the `set_option()` method, like so:
+
+..  code-block:: python
+
+    from teapot import *
+
+    set_option('prefix', 'install')
+    print get_option('prefix')
+
+.. note::
+
+    When setting options, note that you can also specify a :term:`filter` to restrict its effect on some platforms/in some environments.
 
 Depending on your project, you may want to set the `cache_path` to a more local location (you may choose to add them to version control for instance).
 
 .. _extension_modules:
-
-Writing extension modules
--------------------------
-
-*teapot* was designed from the start to be extensible.
-
-Using the `extension_modules` attribute at the root of :term:`party file`, you can extend *teapot* any way you want.
-
-Those extensions modules are regular Python modules into which you can define :term:`filters<filter>`, :term:`extensions<extension>`, :term:`environments<environment>` or anything else you want.
-
-The `extension_modules` attribute is a dictionary located at the root of the :term:`party file` where keys are the shortnames for the modules, and the values are the path to those modules:
-
-.. code-block:: yaml
-
-    extension_modules:
-      myfilter: modules/myfilter.py
-      myenvironment: modules/myenvironment.py
-
-To get more details about how to write filters, extensions and environments, take a look at :doc:`inside_the_party`.
 
 Using :term:`teapot`
 ====================
@@ -603,27 +459,28 @@ Using :term:`teapot`
       -p PARTY_FILE, --party-file PARTY_FILE
                             The party-file to read.
 
-By default, :term:`teapot` looks for a file named ``party.yaml`` in the current directory. You may change the location of this file by using the ``--party-file`` option.
+By default, :term:`teapot` looks for a file named ``Party`` in the current directory. You may change the location of this file by using the ``--party-file`` option.
 
 The `clean` command
 -------------------
 
-:term:`teapot` fetches the sources archives and stores them in the `cache` directory. It also build attendees and stores the temporary results inside the `build` directory.
+:term:`teapot` fetches the sources archives and stores them in the `cache` directory. It unpacks those archives in the `sources` directory. It also build attendees and stores the temporary results inside the `builds` directory.
 
-Use ``teapot clean`` to clean either the `cache` or the `build` directory (or both).
+Use ``teapot clean`` to clean either the `cache`, `sources` or the `builds` directory (or all of them).
 
 The use of this command in normally not needed as `teapot` knows how to compute dependencies and detect changes automatically.
 
 .. code-block:: bash
 
     $ teapot clean --help
-    usage: teapot clean [-h] {cache,build,all} ...
+    usage: teapot clean [-h] {cache,sources,builds,all} ...
 
     positional arguments:
-      {cache,build,all}  The available commands.
+      {cache,sources,builds,all}  The available commands.
         cache            Clean the party cache.
-        build            Clean the party build.
-        all              Clean the party cache and build.
+        sources          Clean the party sources.
+        builds           Clean the party builds.
+        all              Clean the party cache, sources and builds.
 
     optional arguments:
       -h, --help         show this help message and exit
@@ -648,19 +505,19 @@ If no `attendee` is specified, all the attendees are cleaned.
     optional arguments:
       -h, --help  show this help message and exit
 
-The `clean build` command
-+++++++++++++++++++++++++
+The `clean sources` command
++++++++++++++++++++++++++++
 
-Cleans the *teapot* build directory, where the build results are stored.
+Cleans the *teapot* sources directory, where the unpacked archives are stored.
 
-Use this command if, for whatever reason you think the build results were corrupted.
+Use this command if, for whatever reason you think the sources were corrupted.
 
 If no `attendee` is specified, all the attendees are cleaned.
 
 .. code-block:: bash
 
-    $ teapot clean build --help
-    usage: teapot clean build [-h] [attendee [attendee ...]]
+    $ teapot clean sources --help
+    usage: teapot clean sources [-h] [attendee [attendee ...]]
 
     positional arguments:
       attendee    The attendees to clean.
@@ -668,10 +525,30 @@ If no `attendee` is specified, all the attendees are cleaned.
     optional arguments:
       -h, --help  show this help message and exit
 
-The `clean cache` command
+The `clean builds` command
+++++++++++++++++++++++++++
+
+Cleans the *teapot* builds directory, where the build results are stored.
+
+Use this command if, for whatever reason you think the build results were corrupted.
+
+If no `attendee` is specified, all the attendees are cleaned.
+
+.. code-block:: bash
+
+    $ teapot clean builds --help
+    usage: teapot clean builds [-h] [attendee [attendee ...]]
+
+    positional arguments:
+      attendee    The attendees to clean.
+
+    optional arguments:
+      -h, --help  show this help message and exit
+
+The `clean all` command
 +++++++++++++++++++++++++
 
-Cleans the *teapot* cache and build directories.
+Cleans the *teapot* cache, sources and builds directories.
 
 Use this command if, for whatever reason you want to reset the status of your current *teapot* project.
 
@@ -751,16 +628,9 @@ If no `attendee` is specified, all the attendees are built. If a list of `attend
 
     optional arguments:
       -h, --help          show this help message and exit
-      -t tag, --tags tag  The tags to build.
-      -u, --force-unpack  Delete and reunpack all source tree directories before
-                          attempting a build.
-      -f, --force-build   Run all builders even if their last run was successful.
+      -f, --force         Build archives even if they were already built.
       -k, --keep-builds   Keep the build directories for inspection.
 
-By default, all variants from all builders are taken. You may specify the ``--tags`` option to build only specific variants (like `x86` or `x64` for instance).
-
-Only the builders that didn't succeeded the last time or the one that changed since the last build are run. To change that behavior, specify the ``--force-build`` option.
-
-**teapot** will not try to re-unpack archives that were already unpacked unless ``--force-unpack`` is specified.
+Only the builds that didn't succeeded the last time or the one that changed since the last build are run. To change that behavior, specify the ``--force-build`` option.
 
 Temporary build directories are deleted automatically whenever a build terminates (either with a success or a failure), unless the ``--keep-builds`` option is specified. In that case, the build directory remains until the build gets restarted.

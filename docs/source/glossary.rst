@@ -4,7 +4,7 @@ Glossary
 .. glossary::
 
     party file
-      The party file is a YAML file, named `party.yaml` that can be located anywhere.
+      The party file is a Python file, named `Party`, `Party.py`, `.party` or `.party.py` that can be located anywhere.
       
       Within the party file, all paths are relative to the party file directory.
 
@@ -24,8 +24,8 @@ Glossary
     unpacker
       An unpacker is the entity that is responsible for turning a compressed archive (Zip file or tarball for instance) into a source tree.
 
-    builder
-      A builder is the list of commands to execute in order to transform the attendee source into a compiled set of binaries (or whatever a build process can produce).
+    build
+      A build is an environment and a list of commands to execute in order to transform the attendee source into a compiled set of binaries (or whatever a build process can produce).
       
       Builders rely a lot on :term:`environments<environment>`.
 
