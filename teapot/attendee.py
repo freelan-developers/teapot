@@ -605,6 +605,10 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
 
         source = self.source
 
+        if not source:
+            self.cache_manifest = {}
+            raise TeapotError("No valid source was found for %s. Unable to fetch.", hl(self))
+
         if self.archive_path:
             if os.path.isfile(self.archive_path):
                 if force:
