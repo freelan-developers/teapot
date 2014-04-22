@@ -305,20 +305,20 @@ Filter     Role
 
 All classes can refer to filters using their name (as a Python string) or directly (referring to a :py:class:`teapot.filters.filter.Filter` instance).
 
-**teapot** exposes two helper functions, `f_` and `uf_` which respectively stand for "filter" and "unnamed filter". Filters can be aggregated using standard bit-wise operators like so:
+**teapot** exposes two helper functions, `f` and `uf` which respectively stand for "filter" and "unnamed filter". Filters can be aggregated using standard bit-wise operators like so:
 
 ..  code-block:: python
 
     from teapot import *
 
     # Define a new filter, named 'x64' that is verified if either of the filters `mingw64` or `gcc64` are defined.
-    f_('x64', f_('mingw64') | f_('gcc64'))
+    f('x64', f('mingw64') | f('gcc64'))
 
     # Define a new filter, named 'foo' that is verified is we run on Windows and with MinGW or on UNIX but not on Darwin.
-    f_('foo', (f_('windows') & f_('mingw')) | f_('unix') & ~f_('darwin'))
+    f('foo', (f('windows') & f('mingw')) | f('unix') & ~f('darwin'))
 
     # Filters can also be created from variables or callables.
-    f_('bar', uf_(True) & uf_(lambda: True))
+    f('bar', uf(True) & uf(lambda: True))
 
     # Finally, one can also use the `named_filter` decorator to declare a custom filter.
     @named_filter('has_foo')
