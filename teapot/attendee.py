@@ -622,7 +622,7 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
             raise TeapotError("No valid source was found for %s. Unable to fetch.", hl(self))
 
         if self.archive_path:
-            if os.path.isfile(self.archive_path):
+            if os.path.exists(self.archive_path):
                 if force:
                     LOGGER.info("%s was already fetched but force fetching was requested. Will fetch it again.", hl(self))
                     self.cache_manifest = {}
@@ -734,6 +734,8 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
                     hl(signature),
                 )
                 self.builds_manifest[build.name] = None
+                # Forces manifest writing.
+                self.builds_manifest = self.builds_manifest
             else:
                 LOGGER.info(
                     "%s was built already. Nothing to do.",
@@ -746,4 +748,8 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
 
             with temporary_copy(self.extracted_sources_path, build_path, persistent=keep_builds):
                 build.build(path=build_path, log_path=log_path, verbose=verbose)
+
+                LOGGER.debug('Setting last build signature to: %s', hl(signature))
                 self.builds_manifest[build.name] = signature
+                # Forces manifest writing.
+                self.builds_manifest = self.builds_manifest
