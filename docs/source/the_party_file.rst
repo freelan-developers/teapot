@@ -303,7 +303,7 @@ Filter     Role
            The filter will try to find `gcc.exe`.
 ========== ========================================================================================
 
-All classes can refer to filters using their name (as a Python string) or directly (referring to a :class:`teapot.filters.filter.Filter` instance).
+All classes can refer to filters using their name (as a Python string) or directly (referring to a :py:class:`teapot.filters.filter.Filter` instance).
 
 **teapot** exposes two helper functions, `f_` and `uf_` which respectively stand for "filter" and "unnamed filter". Filters can be aggregated using standard bit-wise operators like so:
 
@@ -387,7 +387,7 @@ Extension                  Parameters               Role
 `msvc_toolset`                                      Get the current Microsoft Visual Studio toolset. Example: "v120"
 ========================== ======================== =====================================================================================================================================
 
-You may also define your own extensions, see :ref:`extension_modules`.
+You may also define your own extensions, see :py:func:`teapot.extensions.extension.register_extension`.
 
 Other settings
 --------------
