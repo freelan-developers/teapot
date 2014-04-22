@@ -12,6 +12,8 @@ except ImportError:
 
 from teapot import *
 from teapot.memoized import Memoized
+from teapot.extensions import parse_extension
+from teapot.error import TeapotError
 
 
 class TestTeapot(unittest.TestCase):
@@ -271,6 +273,50 @@ class TestTeapot(unittest.TestCase):
         a.add_build('foo', environment='attendee_test_environment')
         self.assertIsNotNone(a.get_build('foo'))
         self.assertEqual(a.get_build('foo').environment, attendee_test_environment)
+
+    def test_extensions(self):
+        """
+        Test the extensions.
+        """
+
+        simple_call = 'foo'
+        function_call = 'foo()'
+        param_call = 'foo(1, 2, 3)'
+        named_param_call = 'foo(a =1,c= 3,b = 2)'
+        mixed_call = 'foo ( 1 , c=3, b = "test" )'
+        missing_call = 'bar(5, 6, 7)'
+
+        @register_extension('foo')
+        def foo(a=None, b=None, c=None):
+            return [a, b, c]
+
+        extension, args, kwargs = parse_extension(simple_call)
+
+        self.assertEqual(args, tuple())
+        self.assertEqual(kwargs, {})
+
+        extension, args, kwargs = parse_extension(function_call)
+
+        self.assertEqual(args, tuple())
+        self.assertEqual(kwargs, {})
+
+        extension, args, kwargs = parse_extension(param_call)
+
+        self.assertEqual(args, (1, 2, 3))
+        self.assertEqual(kwargs, {})
+
+        extension, args, kwargs = parse_extension(named_param_call)
+
+        self.assertEqual(args, tuple())
+        self.assertEqual(kwargs, {'a': 1, 'b': 2, 'c': 3})
+
+        extension, args, kwargs = parse_extension(mixed_call)
+
+        self.assertEqual(args, (1,))
+        self.assertEqual(kwargs, {'b': 'test', 'c': 3})
+
+        # Make sure unregistered extensions don't parse successfully.
+        self.assertRaises(TeapotError, parse_extension, missing_call)
 
 
 if __name__ == '__main__':
