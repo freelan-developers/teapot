@@ -113,7 +113,18 @@ def main():
         LOGGER.setLevel(logging.INFO)
 
     if args.party_file is None:
-        args.party_file = os.path.join(os.getcwd(), 'Party')
+        party_files = ('Party', 'Party.py', '.party', '.party.py')
+        existing_files = filter(os.path.isfile, party_files)
+
+        if not existing_files:
+            LOGGER.error(
+                'No party-file was found. (Looked for: %s)',
+                ', '.join(map(repr, party_files)),
+            )
+
+            return 1
+
+        args.party_file = os.path.join(os.getcwd(), existing_files[0])
     else:
         args.party_file = os.path.abspath(args.party_file)
 
