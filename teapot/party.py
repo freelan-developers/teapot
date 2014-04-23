@@ -135,7 +135,7 @@ def unpack(attendees=None, force=False):
     Unpack the specified attendees.
     """
 
-    fetch(attendees, force=force)
+    fetch(attendees, force=False)
 
     attendees = Attendee.get_dependent_instances(attendees or None)
 
@@ -161,7 +161,7 @@ def build(attendees=None, force=False, verbose=False, keep_builds=False):
     Build the specified attendees.
     """
 
-    unpack(attendees, force=force)
+    unpack(attendees, force=False)
 
     attendees = Attendee.get_dependent_instances(attendees or None)
 
