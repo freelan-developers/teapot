@@ -577,8 +577,8 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
 
         compute_hash(self.archive_path)
 
-        for command in self._post_unpack_commands:
-            m.update(command.signature)
+        for command in self.post_unpack_commands:
+            m.update(command)
 
         archive_signature = m.hexdigest()
 
