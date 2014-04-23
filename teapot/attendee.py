@@ -5,6 +5,7 @@ An attendee class.
 import os
 import json
 import hashlib
+import subprocess
 
 from .memoized import MemoizedObject
 from .filters import FilteredObject
@@ -12,11 +13,12 @@ from .source import Source
 from .error import TeapotError
 from .log import LOGGER, Highlight as hl
 from .options import get_option
-from .path import mkdir, rmdir, from_user_path, temporary_copy
+from .path import mkdir, rmdir, from_user_path, temporary_copy, chdir
 from .unpackers import Unpacker
 from .build import Build
 from .globals import get_party_path
 from .prefix import PrefixedObject
+from .command import Command
 
 
 class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
@@ -110,6 +112,7 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
         self._last_unpacked_archive_info = {}
         self._builds = set()
         self._builds_manifest = {}
+        self._post_unpack_commands = []
 
         super(Attendee, self).__init__(*args, **kwargs)
 
@@ -190,6 +193,27 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
     @property
     def sources_last_unpacked_archive_info_path(self):
         return os.path.join(self.sources_path, 'last_unpacked_archive_info.json')
+
+    def add_post_unpack_command(self, command, *args, **kwargs):
+        """
+        Add a post unpack command.
+        """
+
+        self._post_unpack_commands.append(Command(command, *args, **kwargs))
+
+    @property
+    def post_unpack_commands(self):
+        return [command.resolve(self) for command in self._post_unpack_commands if command.enabled]
+
+    @post_unpack_commands.setter
+    def post_unpack_commands(self, value):
+        def make_command(command):
+            if isinstance(command, Command):
+                return command
+            else:
+                return Command(command)
+
+        self._post_unpack_commands = map(make_command, value)
 
     @property
     def builds_manifest_path(self):
@@ -552,6 +576,10 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
                         compute_hash(os.path.join(root, f))
 
         compute_hash(self.archive_path)
+
+        for command in self._post_unpack_commands:
+            m.update(command.signature)
+
         archive_signature = m.hexdigest()
 
         def update_signature():
@@ -693,6 +721,18 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
 
             unpacker = Unpacker.get_instance_or_fail(self.archive_type)
             self.sources_manifest = unpacker.unpack(archive_path=self.archive_path, target_path=self.sources_path)
+
+            try:
+                with chdir(self.extracted_sources_path):
+                    for command in self.post_unpack_commands:
+                        LOGGER.info("Executing post-unpack command: %s", hl(command))
+                        subprocess.check_call(command, shell=True)
+            except Exception as ex:
+                LOGGER.error('Error when running the post-unpack command: %s', hl(ex))
+                LOGGER.debug('Clearing the sources manifest for %s', hl(self))
+                self.sources_manifest = {}
+
+                raise
 
             LOGGER.debug('Clearing builds manifest as unpacking just took place.')
             self.builds_manifest = {}

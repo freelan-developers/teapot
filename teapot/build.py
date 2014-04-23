@@ -3,7 +3,6 @@ A build class.
 """
 
 import os
-import re
 import signal
 import subprocess
 import math
@@ -19,9 +18,10 @@ from .log import LOGGER, Highlight as hl
 from .log import print_normal, print_error
 from .filters import FilteredObject
 from .environment import Environment
-from .extensions import parse_extension
 from .prefix import PrefixedObject
 from .signature import SignableObject
+from .command import Command
+from .path import chdir
 
 
 class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
@@ -51,7 +51,7 @@ class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
         super(Build, self).__init__(*args, **kwargs)
         self._environment = environment
         self.subdir = subdir
-        self.commands = commands or []
+        self._commands = commands or []
 
         # Register the build in the Attendee.
         self.attendee = attendee
@@ -64,6 +64,20 @@ class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
             self._environment = Environment.get_instance(self._environment)
 
         return self._environment
+
+    @property
+    def commands(self):
+        return [command.resolve(self) for command in self._commands if command.enabled]
+
+    @commands.setter
+    def commands(self, value):
+        def make_command(command):
+            if isinstance(command, Command):
+                return command
+            else:
+                return Command(command)
+
+        self._commands = map(make_command, value)
 
     def __repr__(self):
         """
@@ -79,12 +93,12 @@ class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
 
         return '%s_%s' % (self.attendee, self.name)
 
-    def add_command(self, command):
+    def add_command(self, command, *args, **kwargs):
         """
         Add a command to the builder.
         """
 
-        self.commands.append(command)
+        self._commands.append(Command(command, *args, **kwargs))
 
     @contextmanager
     def create_log_file(self, log_path):
@@ -102,23 +116,6 @@ class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
 
         finally:
             LOGGER.info('Log file written to: %s', hl(log_path))
-
-    @contextmanager
-    def chdir(self, path):
-        """
-        Change the current directory.
-        """
-
-        old_path = os.getcwd()
-
-        LOGGER.debug('Moving to: %s', hl(path))
-        os.chdir(path)
-
-        try:
-            yield path
-        finally:
-            LOGGER.debug('Moving back to: %s', hl(old_path))
-            os.chdir(old_path)
 
     @contextmanager
     def handle_interruptions(self, callable=None):
@@ -149,7 +146,7 @@ class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
         working_dir = os.path.join(path, self.subdir if self.subdir else '')
 
         with self.create_log_file(log_path) as log_file:
-            with self.chdir(working_dir):
+            with chdir(working_dir):
                 with self.environment.enable() as env:
                     LOGGER.info("Build started in %s at %s.", hl(working_dir), hl(datetime.now().strftime('%c')))
                     log_file.write("Build started in %s at %s.\n" % (working_dir, datetime.now().strftime('%c')))
@@ -166,7 +163,6 @@ class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
                         log_file.write('%s: %s\n' % (key, value))
 
                     for index, command in enumerate(self.commands):
-                        command = self.apply_extensions(command)
                         numbered_prefix = ('%%0%sd' % int(math.ceil(math.log10(len(self.commands))))) % index
 
                         LOGGER.important('%s: %s', numbered_prefix, hl(command))
@@ -221,14 +217,3 @@ class Build(MemoizedObject, FilteredObject, PrefixedObject, SignableObject):
 
                     LOGGER.info("Build succeeded at %s.", hl(datetime.now().strftime('%c')))
                     log_file.write("Build succeeded at %s.\n" % datetime.now().strftime('%c'))
-
-    def apply_extensions(self, command):
-        """
-        Apply the extensions to the command.
-        """
-
-        def replace(match):
-            extension, args, kwargs = parse_extension(match.group('extension'))
-            return extension(self, *args, **kwargs)
-
-        return re.sub(r'\{{(?P<extension>([^}]|[}][^}])+)}}', replace, command)

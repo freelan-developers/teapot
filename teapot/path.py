@@ -214,3 +214,21 @@ def windows_to_unix_path(path):
         drive = '/' + drive[0]
 
     return drive + tail.replace('\\', '/')
+
+
+@contextmanager
+def chdir(path):
+    """
+    Change the current directory.
+    """
+
+    old_path = os.getcwd()
+
+    LOGGER.debug('Moving to: %s', hl(path))
+    os.chdir(path)
+
+    try:
+        yield path
+    finally:
+        LOGGER.debug('Moving back to: %s', hl(old_path))
+        os.chdir(old_path)

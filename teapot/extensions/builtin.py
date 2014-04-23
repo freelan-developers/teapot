@@ -12,6 +12,7 @@ from ..path import windows_to_unix_path
 from ..path import resolve_user_path
 from ..options import get_option
 from ..attendee import Attendee
+from ..build import Build
 
 from .extension import register_extension
 
@@ -33,34 +34,44 @@ def styleable(func):
 @register_extension('root')
 @styleable
 @resolve_user_path
-def root(build):
+def root(context):
     """
-    Get the build prefix.
+    Get party root.
     """
 
-    return build.attendee.party_root
+    if isinstance(context, Build):
+        return context.attendee.party_root
+    elif isinstance(context, Attendee):
+        return context.party_root
 
 
 @register_extension('prefix')
 @styleable
 @resolve_user_path
-def prefix(build):
+def prefix(context):
     """
-    Get the build prefix.
+    Get the prefix.
     """
 
-    return os.path.join(
-        root(build),
-        build.apply_extensions(get_option('prefix')),
-        build.apply_extensions(build.attendee.prefix),
-        build.apply_extensions(build.prefix),
-    )
+    if isinstance(context, Build):
+        return os.path.join(
+            root(context),
+            get_option('prefix'),
+            context.attendee.prefix,
+            context.prefix,
+        )
+    elif isinstance(context, Attendee):
+        return os.path.join(
+            root(context),
+            get_option('prefix'),
+            context.prefix,
+        )
 
 
 @register_extension('prefix_for')
 @styleable
 @resolve_user_path
-def prefix_for(build, attendee, attendee_build=None):
+def prefix_for(context, attendee, attendee_build=None):
     """
     Get the build prefix for a given attendee, and optionally one of its builders.
     """
@@ -69,64 +80,69 @@ def prefix_for(build, attendee, attendee_build=None):
     attendee_build_prefix = attendee.get_build(attendee_build).prefix if attendee_build is not None else ''
 
     return os.path.join(
-        root(build),
-        build.apply_extensions(get_option('prefix')),
-        build.apply_extensions(attendee.prefix),
-        build.apply_extensions(attendee_build_prefix),
+        root(context),
+        get_option('prefix'),
+        attendee.prefix,
+        attendee_build_prefix,
     )
 
 
 @register_extension('attendee')
-def attendee(build):
+def attendee(context):
     """
     Get the current attendee.
     """
 
-    return build.attendee
+    if isinstance(context, Build):
+        return context.attendee
+    elif isinstance(context, Attendee):
+        return context
 
 
 @register_extension('build')
-def build(build):
+def build(context):
     """
     Get the current build.
     """
 
-    return build.name
+    if isinstance(context, Build):
+        return context.name
 
 
 @register_extension('full_build')
-def full_build(build):
+def full_build(context):
     """
     Get the full current build.
     """
 
-    return build
+    if isinstance(context, Build):
+        return context.name
 
 
 @register_extension('archive_path')
 @styleable
 @resolve_user_path
-def archive_path(build):
+def archive_path(context):
     """
     Get the current archive path.
     """
 
-    return build.attendee.archive_path
+    return attendee(context).archive_path
 
 
 @register_extension('extracted_sources_path')
 @styleable
 @resolve_user_path
-def extracted_sources_path(build):
+def extracted_sources_path(context):
     """
     Get the current source tree path.
     """
 
-    return build.attendee.extracted_sources_path
+    return attendee(context).extracted_sources_path
 
 
 @register_extension('msvc_version')
-def msvc_version(builder):
+def msvc_version(contexter):
     """
     Get the MSVC version.
     """
@@ -135,12 +151,12 @@ def msvc_version(builder):
 
 
 @register_extension('msvc_toolset')
-def msvc_toolset(builder):
+def msvc_toolset(contexter):
     """
     Get the MSVC toolset.
     """
 
-    version = msvc_version(builder)
+    version = msvc_version(contexter)
 
     toolset_map = {
         '12.0': 'v120',

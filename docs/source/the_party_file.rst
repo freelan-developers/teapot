@@ -172,6 +172,8 @@ Null unpacker
 
 You may also extend teapot and implement your own unpackers, should you have specific needs.
 
+.. note:: You can specify some actions to perform after the unpacking process completed using the :method:`teapot.attendee.Attendee.add_post_unpack_command` method. These commands can have a filter.
+
 .. _builds:
 
 Builders
@@ -337,7 +339,7 @@ All classes can refer to filters using their name (as a Python string) or direct
 Extensions
 ----------
 
-Extensions are simple functions, that optionally have parameters, which can occur in a :term:`build` command.
+Extensions are simple functions, that optionally have parameters, which can occur in a :term:`build` or post-unpack command.
 
 For instance the `prefix` extension is resolved at runtime and replaced with the complete prefix (as defined at the root of the :term:`party file`, the :term:`attendee` and the :term:`build`).
 
