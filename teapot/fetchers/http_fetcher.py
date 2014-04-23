@@ -44,7 +44,7 @@ class HttpFetcher(FetcherImplementation):
         response = requests.get(fetch_info['url'], stream=True)
         response.raise_for_status()
 
-        mimetype = response.headers.get('content-type')
+        mimetype = fetch_info['mimetype'] or response.headers.get('content-type')
         encoding = response.headers.get('content-encoding')
         archive_type = (mimetype, encoding)
 
