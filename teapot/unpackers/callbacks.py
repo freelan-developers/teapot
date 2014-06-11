@@ -4,7 +4,31 @@ A set of unpacker callbacks class.
 
 import os
 
-from progressbar import *
+try:
+    from progressbar import WidgetHFill
+    from progressbar import SimpleProgress
+    from progressbar import Percentage
+    from progressbar import ProgressBar
+except ImportError:
+    # Fallback for progressbar==2.2
+    from progressbar import ProgressBarWidgetHFill as WidgetHFill
+    from progressbar import ProgressBarWidget
+
+
+    class SimpleProgress(ProgressBarWidget):
+        """Returns progress as a count of the total (e.g.: "5 of 47")."""
+
+        __slots__ = ('sep',)
+
+        def __init__(self, sep=' of '):
+            self.sep = sep
+
+        def update(self, pbar):
+            return '%d%s%d' % (pbar.currval, self.sep, pbar.maxval)
+
+
+    from progressbar import Percentage
+    from progressbar import ProgressBar
 
 
 class BaseUnpackerCallback(object):

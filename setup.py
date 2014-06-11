@@ -4,7 +4,7 @@ import sys
 
 install_requires = [
     'requests>=1.2.3',
-    'progressbar>=2.3',
+    'progressbar',
     'colorama',
     'LEPL',
 ]
