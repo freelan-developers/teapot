@@ -70,7 +70,7 @@ class Attendee(MemoizedObject, FilteredObject, PrefixedObject):
                 cycle = []
                 attendee = dependency_tree.keys()[0]
 
-                while not attendee in cycle:
+                while attendee not in cycle:
                     cycle.append(attendee)
                     attendee = next(iter(dependency_tree[attendee]))
 

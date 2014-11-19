@@ -2,7 +2,6 @@
 The teapot logging facilities.
 """
 
-import sys
 import logging
 import colorama
 

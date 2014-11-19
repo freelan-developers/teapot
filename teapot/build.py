@@ -10,10 +10,8 @@ import math
 from datetime import datetime
 from contextlib import contextmanager
 from threading import Thread
-from datetime import datetime
 
 from .memoized import MemoizedObject
-from .error import TeapotError
 from .log import LOGGER, Highlight as hl
 from .log import print_normal, print_error
 from .filters import FilteredObject
