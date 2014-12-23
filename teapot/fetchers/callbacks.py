@@ -73,11 +73,13 @@ class ProgressBarFetcherCallback(BaseFetcherCallback):
         """
 
         widgets = [target, ': ', Bar(marker='#', left='[', right='] '), Percentage(), ' - ', FileTransferSpeed()]
+        kwargs = {}
 
         if size:
             widgets.extend([' - ', 'Total size: %s MB' % round(size / (1024 ** 2), 2)])
+            kwargs['maxval'] = size
 
-        self.progressbar = ProgressBar(widgets=widgets, maxval=size)
+        self.progressbar = ProgressBar(widgets=widgets, **kwargs)
         self.progressbar.start()
 
     def on_update(self, progress):
@@ -86,7 +88,8 @@ class ProgressBarFetcherCallback(BaseFetcherCallback):
         """
 
         try:
-            self.progressbar.update(progress)
+            if progress is not None:
+                self.progressbar.update(progress)
         except ValueError:
             pass
 
