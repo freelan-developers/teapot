@@ -159,6 +159,8 @@ def msvc_toolset(contexter):
     version = msvc_version(contexter)
 
     toolset_map = {
+        '15.0': 'v141',
+        '14.0': 'v140',
         '12.0': 'v120',
         '11.0': 'v110',
     }
